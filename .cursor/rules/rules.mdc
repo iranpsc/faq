@@ -1,0 +1,25 @@
+// Rules for LLMs when writing Laravel code:
+
+1. Always follow PSR-12 coding standards and Laravel's own conventions for file and folder structure.
+2. Use Eloquent ORM for database interactions unless raw queries are explicitly required.
+3. Validate all user input using Laravel's built-in validation mechanisms (e.g., `$request->validate()` or Form Requests).
+4. Never expose sensitive information (such as passwords, API keys, or environment variables) in code or error messages.
+5. Use route model binding where possible for cleaner and safer controller methods.
+6. Prefer dependency injection over facades in controllers and services.
+7. Use migrations for all database schema changes.
+8. Write clear, descriptive comments and PHPDoc blocks for classes, methods, and properties.
+9. Use resource controllers and route resources for RESTful APIs.
+10. Always sanitize and escape output in Blade templates to prevent XSS attacks.
+11. Use Laravel's built-in authentication and authorization features for user access control.
+12. Avoid using `dd()` or `dump()` in production code.
+13. Use configuration files and environment variables for settings, not hardcoded values.
+14. Write unit and feature tests for new functionality using Laravel's testing tools.
+15. Follow naming conventions: controllers in `StudlyCase`, models in `StudlyCase`, variables and methods in `camelCase`, database tables in `snake_case`.
+16. Use queues and jobs for long-running or asynchronous tasks.
+17. Handle exceptions gracefully and use Laravel's exception handling features.
+18. Use service providers for binding classes into the service container.
+19. Keep controllers thin; move business logic to service classes or models.
+20. Document any artisan commands or custom scripts created.
+21. Use Artisan command to generate models, controllers, migrations, etc.
+
+These rules ensure maintainable, secure, and idiomatic Laravel code.
