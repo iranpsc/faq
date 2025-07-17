@@ -65,68 +65,44 @@
 
             <!-- Navigation Menu -->
             <div class="h-auto lg:h-[30vh] xl:h-[35vh] 2xl:h-[45vh] 3xl:h-[53vh] overflow-auto space-y-3">
-                <!-- 3D Meta -->
                 <div class="pr-[20PX] p-[14px] flex items-center gap-4">
-                    <img src="{{ asset('assets/icon/3dmetaicon.svg') }}" alt="" class="w-7 h-7">
-                    <a href="#" class="text-[#868B90]">سه بعدی متا</a>
-                </div>
-
-                <!-- 3D Models Bank -->
-                <div>
-                    <ul class="tree">
-                        <li class="flex flex-col gap-3">
-                            <input type="checkbox" id="c2" class="peer" />
-                            <label class="px-[20px] py-[14px] w-full rounded-[10px] text-[#868B90] peer-checked:text-white head_label peer-checked:bg-[#000BEE] dark:peer-checked:bg-[#C2008C] peer-checked:[&>div>svg]:rotate-180 peer-checked:[&>div>svg>path]:stroke-white" for="c2">
-                                <div class="flex w-full justify-between items-center select-none">
-                                    <div class="flex gap-4 items-center">
-                                        <img src="{{ asset('assets/icon/Group1000002695.svg') }}" alt="" class="w-7 h-7">
-                                        <p>بانک مدل های سه بعدی</p>
-                                    </div>
-                                    <svg class="transition-[5s] duration-300" width="15" height="9" viewBox="0 0 15 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path class="stroke-[#868B90]" d="M14 1L7.5 7.5L1 0.999999" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                            </label>
-                            <ul>
-                                <li>
-                                    <input type="checkbox" id="c3" class="peer" />
-                                    <label for="c3" class="tree_label w-full text-[#868B90] peer-checked:text-[#000BEE] dark:peer-checked:text-white peer-checked:bg-[#ECF4FE] dark:peer-checked:bg-[#C2008C]/30">
-                                        مدل سه بعدی
-                                    </label>
-                                    <ul>
-                                        <div class="flex flex-col text-sm text-[#000BEE] font-bold gap-5 p-3 pr-[20PX] dark:text-[#868B90]">
-                                            <a href="#">آواتار</a>
-                                            <a href="#">پکیج آواتار</a>
-                                            <a href="#">سه بعدی</a>
-                                            <a href="#">پکیج سه بعدی</a>
-                                        </div>
-                                    </ul>
-                                </li>
-                                <!-- Other menu items -->
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Other Menu Items -->
-                <div class="pr-[20PX] p-[14px] flex items-center gap-4">
-                    <img src="{{ asset('assets/icon/amoozesh.svg') }}" alt="" class="w-7 h-7">
-                    <a href="#" class="text-[#868B90]">آموزش</a>
+                    <i class="fas fa-chart-line w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">فعالیت روز</a>
                 </div>
 
                 <div class="pr-[20PX] p-[14px] flex items-center gap-4">
-                    <img src="{{ asset('assets/icon/sefareshicon.svg') }}" alt="" class="w-7 h-7">
-                    <a href="#" class="text-[#868B90]">ثبت سفارش</a>
+                    <i class="fas fa-layer-group w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">دسته بندی</a>
                 </div>
 
                 <div class="pr-[20PX] p-[14px] flex items-center gap-4">
-                    <img src="{{ asset('assets/icon/contactus.svg') }}" alt="" class="w-7 h-7">
-                    <a href="#" class="text-[#868B90]">تماس با ما</a>
+                    <i class="fas fa-users w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">فعالان انجمن</a>
                 </div>
 
                 <div class="pr-[20PX] p-[14px] flex items-center gap-4">
-                    <img src="{{ asset('assets/icon/abuotus.svg') }}" alt="" class="w-7 h-7">
+                    <i class="fas fa-info-circle w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">جزئیات</a>
+                </div>
+
+                <div class="pr-[20PX] p-[14px] flex items-center gap-4">
+                    <i class="fas fa-newspaper w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">اخبار متاورس</a>
+                </div>
+
+                <div class="pr-[20PX] p-[14px] flex items-center gap-4">
+                    <i class="fas fa-comments w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">انجمن متاورس</a>
+                </div>
+
+                <div class="pr-[20PX] p-[14px] flex items-center gap-4">
+                    <i class="fas fa-address-card w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
                     <a href="#" class="text-[#868B90]">درباره ما</a>
+                </div>
+
+                <div class="pr-[20PX] p-[14px] flex items-center gap-4">
+                    <i class="fas fa-envelope w-7 h-7 flex items-center justify-center text-[#868B90]"></i>
+                    <a href="#" class="text-[#868B90]">ارتباط با ما</a>
                 </div>
 
                 <!-- Language Selection -->
