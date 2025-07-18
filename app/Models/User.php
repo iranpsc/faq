@@ -20,7 +20,15 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
+        'email_verified_at',
+        'phone',
+        'code',
+        'score',
+        'image',
+        'access_token',
+        'refresh_token',
+        'expires_in',
+        'token_type',
     ];
 
     /**
@@ -29,8 +37,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'refresh_token',
     ];
 
     /**
@@ -42,7 +49,98 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'expires_in' => 'datetime',
+            'score' => 'integer',
         ];
+    }
+
+    /**
+     * Get all questions created by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
+    }
+
+    /**
+     * Get all questions published by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function publishedQuestions()
+    {
+        return $this->hasMany(Question::class, 'published_by');
+    }
+
+    /**
+     * Get all answers created by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
+
+    /**
+     * Get all answers published by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function publishedAnswers()
+    {
+        return $this->hasMany(Answer::class, 'published_by');
+    }
+
+    /**
+     * Get all comments created by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Get all comments published by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function publishedComments()
+    {
+        return $this->hasMany(Comment::class, 'published_by');
+    }
+
+    /**
+     * Get all votes by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    /**
+     * Get all verifications by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function verifications()
+    {
+        return $this->hasMany(Verification::class);
+    }
+
+    /**
+     * The levels that belong to the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function levels()
+    {
+        return $this->belongsToMany(Level::class);
     }
 }

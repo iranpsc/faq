@@ -15,9 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->dateTime('email_verified_at');
+            $table->string('phone');
+            $table->string('code');
+            $table->string('role')->default('user'); // Added role column with default value
+            $table->bigInteger('score')->default(0);
+            $table->string('image')->nullable();
+            $table->string('access_token')->nullable();
+            $table->string('refresh_token')->nullable();
+            $table->timestamp('expires_in')->nullable();
+            $table->string('token_type')->nullable();
             $table->timestamps();
         });
 
