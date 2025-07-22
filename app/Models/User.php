@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -21,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'email_verified_at',
-        'phone',
+        'mobile',
         'code',
         'score',
         'image',
@@ -29,6 +30,20 @@ class User extends Authenticatable
         'refresh_token',
         'expires_in',
         'token_type',
+    ];
+
+    /**
+     * The attributes with default values.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'score' => 0,
+        'image' => 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+        'access_token' => '',
+        'refresh_token' => '',
+        'expires_in' => null,
+        'token_type' => 'Bearer',
     ];
 
     /**

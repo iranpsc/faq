@@ -21,59 +21,31 @@ setupSuggestion('searchInput', 'hiddenDiv');
 setupSuggestion('searchInput2', 'hiddenDiv2');
 
 
-        // Dropdown functionality
-    document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('dropdownButton').addEventListener('click', function() {
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        dropdownMenu.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', function(event) {
         const dropdownButton = document.getElementById('dropdownButton');
         const dropdownMenu = document.getElementById('dropdownMenu');
-
-        if (dropdownButton && dropdownMenu) {
-            dropdownButton.addEventListener('click', function() {
-                dropdownMenu.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', function(event) {
-                if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
-                    dropdownMenu.classList.add('hidden');
-                }
-            });
+        if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+          dropdownMenu.classList.add('hidden');
         }
-    });
-      // Modal functionality
-      document.addEventListener("DOMContentLoaded", function() {
-          // Handle desktop button (ID)
-          const desktopButton = document.getElementById("openModalBtn");
-          if (desktopButton) {
-              desktopButton.addEventListener("click", function() {
-                  document.getElementById("modal").classList.remove("hidden");
-              });
-          }
-
-          // Handle mobile button (class)
-          const mobileButton = document.querySelector(".openModalBtn");
-          if (mobileButton) {
-              mobileButton.addEventListener("click", function() {
-                  document.getElementById("modal").classList.remove("hidden");
-              });
-          }
-
-          // Handle modal close functionality
-          const modal = document.getElementById("modal");
-          if (modal) {
-              modal.addEventListener("click", function(event) {
-                  if (event.target === this || event.target.classList.contains("close")) {
-                      this.classList.add("hidden");
-                  }
-              });
-          }
-
-          // Handle close button
-          const closeButton = document.getElementById("closeModalBtn");
-          if (closeButton) {
-              closeButton.addEventListener("click", function() {
-                  document.getElementById("modal").classList.add("hidden");
-              });
-          }
       });
+      document.getElementById("openModalBtn").addEventListener("click", function() {
+      document.getElementById("modal").classList.remove("hidden");
+  });
+
+  document.getElementById("modal").addEventListener("click", function(event) {
+      if (event.target === this || event.target.classList.contains("close")) {
+          this.classList.add("hidden");
+      }
+  });
+
+  document.getElementById("closeModalBtn").addEventListener("click", function() {
+      document.getElementById("modal").classList.add("hidden");
+  });
 
 $(document).ready(function () {
     $('.my-select').select2({
@@ -81,18 +53,6 @@ $(document).ready(function () {
         dir: 'rtl'
 
     });
-
-    // Initialize CKEditor
-    if (typeof ClassicEditor !== 'undefined') {
-        ClassicEditor
-            .create(document.querySelector('#editor'))
-            .then(editor => {
-                console.log('Editor was initialized', editor);
-            })
-            .catch(error => {
-                console.error('Error during initialization of the editor', error);
-            });
-    }
 
     function updateTags() {
         var selectedOptions = $('.my-select').val();

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->dateTime('email_verified_at');
-            $table->string('phone');
-            $table->string('code');
+            $table->string('mobile')->nullable(); // Added mobile column
+            $table->string('code')->nullable(); // Added code column
             $table->string('role')->default('user'); // Added role column with default value
             $table->bigInteger('score')->default(0);
             $table->string('image')->nullable();
