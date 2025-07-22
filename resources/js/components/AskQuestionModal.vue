@@ -1,76 +1,99 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center" @click.self="$emit('close')">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-3xl mx-4" style="direction: rtl;">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
+  <div class="fixed inset-0 bg-black bg-opacity-25 z-40 flex items-center justify-center" @click.self="$emit('close')">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl mx-4 flex flex-col max-h-[90vh]" style="direction: rtl;">
+      <div class="flex justify-between items-center border-b pb-3 p-6 flex-shrink-0">
         <h2 class="text-xl font-semibold">سوال خود را وارد کنید</h2>
         <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">مشخصات مربوط به سوال خود را در کادرهای زیر وارد کنید.</p>
 
-      <form @submit.prevent="submitQuestion">
-        <div class="space-y-6">
-          <!-- Category -->
-          <div>
-            <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">دسته بندی</label>
-            <Multiselect
-              v-model="form.category"
-              :options="categories"
-              placeholder="انتخاب دسته بندی"
-              label="name"
-              track-by="id"
-              :searchable="true"
-            />
+      <div class="overflow-y-auto p-6">
+        <p class="text-gray-600 dark:text-gray-400 mb-6">مشخصات مربوط به سوال خود را در کادرهای زیر وارد کنید.</p>
+
+        <form @submit.prevent="submitQuestion" id="ask-question-form">
+          <div class="space-y-6">
+            <!-- Category -->
+            <div>
+              <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">دسته بندی</label>
+              <Multiselect
+                v-model="form.category"
+                :options="categories"
+                placeholder="انتخاب دسته بندی"
+                label="name"
+                track-by="id"
+                :searchable="true"
+                @search-change="fetchCategories"
+              />
+            </div>
+
+            <!-- Title -->
+            <div>
+              <BaseInput
+                id="title"
+                v-model="form.title"
+                label="عنوان سوال"
+                placeholder="عنوان سوال خود را وارد کنید..."
+                required
+              />
+            </div>
+
+            <!-- Body -->
+            <div>
+              <label for="body" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شرح سوال</label>
+              <Editor
+                  api-key="2sfprbtijd268hiw733k56v9bp9bpy8jgsqet6q8z4vvirow"
+                  v-model="form.body"
+                  :init="{
+                      height: 250,
+                      menubar: false,
+                      directionality: 'rtl',
+                      plugins: [
+                          'advlist autolink lists link image charmap print preview anchor',
+                          'searchreplace visualblocks code fullscreen',
+                          'insertdatetime media table paste code help wordcount directionality'
+                      ],
+                      toolbar:
+                          'help | removeformat | ltr rtl | bullist numlist outdent indent | alignleft aligncenter alignright alignjustify | bold italic backcolor | formatselect | undo redo'
+                  }"
+              />
+            </div>
+
+            <!-- Tags -->
+            <div>
+              <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">برچسب ها</label>
+              <Multiselect
+                  v-model="form.tags"
+                  :options="tagOptions"
+                  :multiple="true"
+                  :taggable="true"
+                  @tag="addTag"
+                  placeholder="برای سوال خود برچسب وارد کنید..."
+                  label="name"
+                  track-by="id"
+                  @search-change="fetchTags"
+              />
+              <p class="text-xs text-gray-500 mt-1">مثال: سوالی درباره کود مناسب درختان نوشته اید پس برچسب ها میتواند (کود مناسب، تغذیه درختان، مواد غذایی برای درخت، کود برای رشد درخت، رشد بهتر درخت) باشد.</p>
+            </div>
           </div>
+        </form>
+      </div>
 
-          <!-- Title -->
-          <div>
-            <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">عنوان سوال</label>
-            <input type="text" id="title" v-model="form.title" placeholder="دیدگاه خود را وارد کنید..." class="w-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-          </div>
-
-          <!-- Body -->
-          <div>
-            <label for="body" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شرح سوال</label>
-            <Editor v-model="form.body" editorStyle="height: 150px" />
-          </div>
-
-          <!-- Tags -->
-          <div>
-            <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">برچسب ها</label>
-            <Multiselect
-                v-model="form.tags"
-                :options="tagOptions"
-                :multiple="true"
-                :taggable="true"
-                @tag="addTag"
-                placeholder="برای سوال خود برچسب وارد کنید..."
-            />
-            <p class="text-xs text-gray-500 mt-1">مثال: سوالی درباره کود مناسب درختان نوشته اید پس برچسب ها میتواند (کود مناسب، تغذیه درختان، مواد غذایی برای درخت، کود برای رشد درخت، رشد بهتر درخت) باشد.</p>
-          </div>
-        </div>
-
-        <div class="mt-8 flex justify-end">
-          <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-            ثبت سوال
-          </button>
-        </div>
-      </form>
+      <div class="mt-auto flex justify-end p-6 border-t flex-shrink-0">
+        <button type="submit" form="ask-question-form" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+          ثبت سوال
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import Editor from 'primevue/editor';
-import Multiselect from 'vue-multiselect';
+import BaseInput from './ui/BaseInput.vue';
 
 export default {
   name: 'AskQuestionModal',
-  components: {
-    Editor,
-    Multiselect
-  },
+  components: { BaseInput },
   emits: ['close'],
   data() {
     return {
@@ -94,22 +117,39 @@ export default {
       console.log(submissionData);
       this.$emit('close');
     },
-    fetchCategories() {
-        // Mock categories. In a real app, you'd fetch this from your backend.
-        this.categories = [
-            {id: 1, name: 'فناوری'},
-            {id: 2, name: 'علمی'},
-            {id: 3, name: 'برنامه نویسی'},
-            {id: 4, name: 'زندگی روزمره'},
-        ];
+    async fetchCategories(query = '') {
+        try {
+            const response = await this.$axios.get('/api/categories', {
+                params: { query }
+            });
+            this.categories = response.data.data;
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            // Optionally, show an error to the user
+        }
+    },
+    async fetchTags(query = '') {
+        try {
+            const response = await this.$axios.get('/api/tags', {
+                params: { query }
+            });
+            this.tagOptions = response.data.data;
+        } catch (error) {
+            console.error('Error fetching tags:', error);
+        }
     },
     addTag (newTag) {
-      this.tagOptions.push(newTag)
-      this.form.tags.push(newTag)
+      const tag = {
+        name: newTag,
+        id: newTag // For new tags, we can use the name as a temporary ID
+      };
+      this.tagOptions.push(tag);
+      this.form.tags.push(tag);
     }
   },
   mounted() {
       this.fetchCategories();
+      this.fetchTags();
   }
 };
 </script>
