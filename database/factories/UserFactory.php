@@ -27,7 +27,7 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'phone' => fake()->phoneNumber(),
+            'mobile' => fake()->phoneNumber(),
             'code' => fake()->numerify('######'), // 6-digit code
             'role' => 'user',
             'score' => fake()->numberBetween(0, 1000),

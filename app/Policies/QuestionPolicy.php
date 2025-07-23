@@ -11,7 +11,7 @@ class QuestionPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }
@@ -19,7 +19,7 @@ class QuestionPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Question $question): bool
+    public function view(?User $user, Question $question): bool
     {
         return true;
     }
@@ -49,18 +49,25 @@ class QuestionPolicy
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Determine whether the user can publish the model.
      */
-    public function restore(User $user, Question $question): bool
+    public function publish(User $user, Question $question): bool
     {
-        return false;
+        return $user->id === $question->user_id;
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Determine whether the user can pin the model.
      */
-    public function forceDelete(User $user, Question $question): bool
+    public function pin(User $user, Question $question): bool
     {
-        return false;
+        return $user->id === $question->user_id;
+    }
+    /**
+     * Determine whether the user can feature the model.
+     */
+    public function feature(User $user, Question $question): bool
+    {
+        return $user->id === $question->user_id;
     }
 }

@@ -24,5 +24,5 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::apiResource('questions', QuestionController::class);
-Route::apiResource('categories', CategoryController::class)->only('index');
-Route::apiResource('tags', TagController::class)->only('index');
+Route::apiResource('categories', CategoryController::class);
+Route::apiResource('tags', TagController::class);

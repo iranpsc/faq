@@ -2,7 +2,7 @@
     <div class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <div :class="{ 'md:mr-80': sidebarOpen, 'md:mr-16': !sidebarOpen, 'mr-0': true }" class="flex flex-col flex-grow transition-all duration-300">
             <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @search="handleSearch" @main-action="handleMainAction" />
-            <MainContent />
+            <MainContent @edit-question="handleEditQuestion" />
             <Footer />
         </div>
         <Sidebar
@@ -12,7 +12,13 @@
             @theme-change="handleThemeChange"
         />
 
-        <AskQuestionModal v-if="showAskQuestionModal" @close="showAskQuestionModal = false" />
+        <QuestionModal
+            v-if="showQuestionModal"
+            @close="showQuestionModal = false"
+            :question-to-edit="questionToEdit"
+            @question-created="handleQuestionCreated"
+            @question-updated="handleQuestionUpdated"
+        />
 
         <!-- Overlay for mobile/tablet -->
         <div
@@ -29,7 +35,7 @@ import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import Sidebar from './components/Sidebar.vue';
 import MainContent from './components/MainContent.vue';
-import AskQuestionModal from './components/AskQuestionModal.vue';
+import QuestionModal from './components/QuestionModal.vue';
 import { useTheme } from './composables/useTheme.js';
 import { useAuth } from './composables/useAuth.js';
 
@@ -40,12 +46,13 @@ export default {
         Footer,
         Sidebar,
         MainContent,
-        AskQuestionModal,
+        QuestionModal,
     },
     setup() {
         const { isDark, theme, setTheme, initializeTheme, setupSystemThemeListener } = useTheme();
         const { isAuthenticated, initializeAuth } = useAuth();
-        const showAskQuestionModal = ref(false);
+        const showQuestionModal = ref(false);
+        const questionToEdit = ref(null);
         const app = getCurrentInstance();
 
         const sidebarOpen = ref(window.innerWidth >= 768);
@@ -77,7 +84,8 @@ export default {
 
         const handleMainAction = () => {
             if (isAuthenticated.value) {
-                showAskQuestionModal.value = true;
+                questionToEdit.value = null;
+                showQuestionModal.value = true;
             } else {
                 app.appContext.config.globalProperties.$swal({
                     title: 'خطا',
@@ -90,6 +98,22 @@ export default {
 
         const handleThemeChange = (theme) => {
             setTheme(theme);
+        };
+
+        const handleEditQuestion = (question) => {
+            questionToEdit.value = question;
+            showQuestionModal.value = true;
+        };
+
+        const handleQuestionCreated = () => {
+            showQuestionModal.value = false;
+            // Optionally, refresh the list of questions in MainContent
+        };
+
+        const handleQuestionUpdated = () => {
+            showQuestionModal.value = false;
+            questionToEdit.value = null;
+            // Optionally, refresh the list of questions in MainContent
         };
 
         onMounted(async () => {
@@ -132,7 +156,11 @@ export default {
             handleSearch,
             handleMainAction,
             handleThemeChange,
-            showAskQuestionModal,
+            showQuestionModal,
+            questionToEdit,
+            handleEditQuestion,
+            handleQuestionCreated,
+            handleQuestionUpdated,
         };
     },
 };

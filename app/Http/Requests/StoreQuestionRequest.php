@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Question;
 
 class StoreQuestionRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreQuestionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', Question::class);
     }
 
     /**
@@ -24,10 +25,10 @@ class StoreQuestionRequest extends FormRequest
         return [
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
-            'body' => 'required|string',
-            'tags' => 'required|array',
+            'content' => 'required|string',
+            'tags' => 'required|array|min:1',
             'tags.*.id' => 'sometimes|exists:tags,id',
-            'tags.*.name' => 'sometimes|string',
+            'tags.*.name' => 'sometimes|string|max:50',
         ];
     }
 }

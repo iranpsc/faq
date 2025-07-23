@@ -11,7 +11,7 @@ class UpdateQuestionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('update', $this->route('question'));
     }
 
     /**
@@ -22,12 +22,12 @@ class UpdateQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'title' => 'sometimes|required|string|max:255',
-            'body' => 'sometimes|required|string',
-            'tags' => 'sometimes|required|array',
+            'category_id' => 'required|exists:categories,id',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'tags' => 'present|array',
             'tags.*.id' => 'sometimes|exists:tags,id',
-            'tags.*.name' => 'sometimes|string',
+            'tags.*.name' => 'sometimes|string|max:50',
         ];
     }
 }

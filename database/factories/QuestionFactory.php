@@ -23,12 +23,12 @@ class QuestionFactory extends Factory
             'user_id' => User::factory(),
             'title' => fake()->sentence(),
             'content' => fake()->paragraphs(3, true),
-            'pinned' => fake()->boolean(),
-            'featured' => fake()->boolean(),
+            'pinned' => fake()->boolean(10), // 10% chance of being pinned
+            'featured' => fake()->boolean(5), // 5% chance of being featured
             'last_activity' => fake()->dateTime(),
             'views' => fake()->numberBetween(0, 1000),
-            'published' => fake()->boolean(),
-            'published_at' => fake()->dateTime(),
+            'published' => true, // Default to published for tests
+            'published_at' => now(), // Set to current time for tests
             'published_by' => User::factory(),
         ];
     }

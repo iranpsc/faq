@@ -30,6 +30,7 @@ class User extends Authenticatable
         'refresh_token',
         'expires_in',
         'token_type',
+        'role'
     ];
 
     /**
@@ -67,6 +68,16 @@ class User extends Authenticatable
             'expires_in' => 'datetime',
             'score' => 'integer',
         ];
+    }
+
+    /**
+     * Determine if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 
     /**

@@ -11,6 +11,11 @@ const setToken = (newToken) => {
     } else {
         localStorage.removeItem('auth_token')
     }
+
+    // Update axios authorization header
+    if (window.updateAxiosAuth) {
+        window.updateAxiosAuth();
+    }
 }
 
 const setUser = (userData) => {

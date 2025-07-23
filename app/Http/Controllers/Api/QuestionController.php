@@ -7,14 +7,13 @@ use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
-use App\Models\Tag;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
     public function __construct()
     {
+        $this->middleware('auth:sanctum');
         $this->authorizeResource(Question::class, 'question');
     }
 
@@ -33,12 +32,17 @@ class QuestionController extends Controller
     {
         $question = Question::create([
             'category_id' => $request->category_id,
-            'user_id' => Auth::id(),
+            'user_id' => $request->user()->id,
             'title' => $request->title,
-            'content' => $request->body,
+            'content' => $request->content,
+            'published' => true,
+            'published_at' => now(),
+            'published_by' => $request->user()->id,
         ]);
 
-        $question->tags()->sync($request->tags);
+        $tagIds = collect($request->tags)->pluck('id')->toArray();
+
+        $question->tags()->sync($tagIds);
 
         return new QuestionResource($question->load('user', 'category', 'tags'));
     }
@@ -56,14 +60,14 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Question $question)
     {
-
         $question->update([
-            'category_id' => $request->category_id ?? $question->category_id,
-            'title' => $request->title ?? $question->title,
-            'content' => $request->body ?? $question->content,
+            'category_id' => $request->category_id,
+            'title' => $request->title,
+            'content' => $request->content,
         ]);
 
-        $question->tags()->sync($request->tags);
+        $tagIds = collect($request->tags)->pluck('id')->toArray();
+        $question->tags()->sync($tagIds);
 
         return new QuestionResource($question->load('user', 'category', 'tags'));
     }

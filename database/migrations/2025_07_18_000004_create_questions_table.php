@@ -13,13 +13,13 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id');
             $table->unsignedBigInteger('user_id');
             $table->string('title');
-            $table->text('content');
+            $table->longText('content');
             $table->boolean('featured')->default(false);
-            $table->dateTime('last_activity');
+            $table->dateTime('last_activity')->nullable();
             $table->bigInteger('views')->default(0);
             $table->boolean('pinned')->default(false);
             $table->boolean('published')->default(false);
-            $table->dateTime('published_at');
+            $table->dateTime('published_at')->nullable();
             $table->unsignedBigInteger('published_by')->nullable();
             $table->timestamps();
 
