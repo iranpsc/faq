@@ -26,6 +26,20 @@ class Question extends Model
     ];
 
     /**
+     * The attributes with default values.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'pinned' => false,
+        'featured' => false,
+        'published' => true,
+        'last_activity' => null,
+        'published_at' => null,
+        'published_by' => null
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

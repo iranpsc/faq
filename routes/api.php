@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\TagController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,5 +19,10 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::apiResource('categories', CategoryController::class);
-Route::apiResource('tags', TagController::class);
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+Route::apiResource('questions', QuestionController::class);
+Route::apiResource('categories', CategoryController::class)->only('index');
+Route::apiResource('tags', TagController::class)->only('index');

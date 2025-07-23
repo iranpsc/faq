@@ -25,6 +25,7 @@
                 :searchable="true"
                 @search-change="fetchCategories"
               />
+              <p v-if="errors.category" class="text-red-500 text-xs mt-1">{{ errors.category }}</p>
             </div>
 
             <!-- Title -->
@@ -36,6 +37,7 @@
                 placeholder="عنوان سوال خود را وارد کنید..."
                 required
               />
+              <p v-if="errors.title" class="text-red-500 text-xs mt-1">{{ errors.title }}</p>
             </div>
 
             <!-- Body -->
@@ -57,6 +59,7 @@
                           'help | removeformat | ltr rtl | bullist numlist outdent indent | alignleft aligncenter alignright alignjustify | bold italic backcolor | formatselect | undo redo'
                   }"
               />
+              <p v-if="errors.body" class="text-red-500 text-xs mt-1">{{ errors.body }}</p>
             </div>
 
             <!-- Tags -->
@@ -73,6 +76,7 @@
                   track-by="id"
                   @search-change="fetchTags"
               />
+              <p v-if="errors.tags" class="text-red-500 text-xs mt-1">{{ errors.tags }}</p>
               <p class="text-xs text-gray-500 mt-1">مثال: سوالی درباره کود مناسب درختان نوشته اید پس برچسب ها میتواند (کود مناسب، تغذیه درختان، مواد غذایی برای درخت، کود برای رشد درخت، رشد بهتر درخت) باشد.</p>
             </div>
           </div>
@@ -103,19 +107,59 @@ export default {
         body: '',
         tags: []
       },
+      errors: {},
       categories: [], // Should be loaded from API
       tagOptions: []
     };
   },
   methods: {
-    submitQuestion() {
-      // Handle question submission logic
-      const submissionData = {
-        ...this.form,
-        category_id: this.form.category ? this.form.category.id : null,
-      };
-      console.log(submissionData);
-      this.$emit('close');
+    validateForm() {
+        const newErrors = {};
+        if (!this.form.category) {
+            newErrors.category = 'دسته بندی الزامی است.';
+        }
+        if (!this.form.title.trim()) {
+            newErrors.title = 'عنوان سوال الزامی است.';
+        }
+        if (!this.form.body.trim()) {
+            newErrors.body = 'شرح سوال الزامی است.';
+        }
+        if (this.form.tags.length === 0) {
+            newErrors.tags = 'حداقل یک برچسب الزامی است.';
+        }
+        this.errors = newErrors;
+        return Object.keys(newErrors).length === 0;
+    },
+    async submitQuestion() {
+      if (!this.validateForm()) {
+        return;
+      }
+
+      try {
+        const submissionData = {
+          category_id: this.form.category ? this.form.category.id : null,
+          title: this.form.title,
+          body: this.form.body,
+          tags: this.form.tags,
+        };
+
+        await this.$axios.post('/api/questions', submissionData);
+
+        this.$emit('close');
+        // Optionally, you can show a success notification here
+        // and refresh the questions list.
+      } catch (error) {
+        if (error.response && error.response.status === 422) {
+          // Handle validation errors
+          this.errors = Object.entries(error.response.data.errors).reduce((acc, [key, value]) => {
+            acc[key] = value[0];
+            return acc;
+          }, {});
+        } else {
+          console.error('Error submitting question:', error);
+          // Optionally, show a generic error message to the user
+        }
+      }
     },
     async fetchCategories(query = '') {
         try {
