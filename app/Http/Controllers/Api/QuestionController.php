@@ -7,6 +7,7 @@ use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 
 class QuestionController extends Controller
@@ -22,7 +23,11 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        return QuestionResource::collection(Question::with('user', 'category', 'tags')->latest()->paginate());
+        $questions = Question::with('user', 'category', 'tags', 'upVotes', 'downVotes')
+            ->withCount('votes', 'upVotes', 'downVotes', 'answers')
+            ->latest()
+            ->paginate();
+        return QuestionResource::collection($questions);
     }
 
     /**
@@ -44,7 +49,7 @@ class QuestionController extends Controller
 
         $question->tags()->sync($tagIds);
 
-        return new QuestionResource($question->load('user', 'category', 'tags'));
+        return new QuestionResource($question->load('user', 'category', 'tags', 'upVotes', 'downVotes'));
     }
 
     /**
@@ -52,7 +57,17 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
-        return new QuestionResource($question->load('user', 'category', 'tags', 'answers.user', 'comments.user'));
+        $question->load([
+            'user',
+            'category',
+            'tags',
+            'upVotes',
+            'downVotes',
+            'answers.user',
+            'answers.votes'
+        ])->loadCount('votes', 'upVotes', 'downVotes', 'answers');
+
+        return new QuestionResource($question);
     }
 
     /**
@@ -80,5 +95,50 @@ class QuestionController extends Controller
         $question->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Vote on a question (upvote or downvote).
+     */
+    public function vote(Request $request, Question $question)
+    {
+        $request->validate([
+            'type' => 'required|in:up,down'
+        ]);
+
+        $userId = $request->user()->id;
+        $voteType = $request->type;
+
+        // Check if user has already voted on this question
+        $existingVote = $question->votes()->where('user_id', $userId)->first();
+
+        if ($existingVote) {
+            // If same vote type, remove the vote (toggle off)
+            if ($existingVote->type === $voteType) {
+                $existingVote->delete();
+            } else {
+                // If different vote type, update the vote
+                $existingVote->update(['type' => $voteType]);
+            }
+        } else {
+            // Create new vote
+            $question->votes()->create([
+                'user_id' => $userId,
+                'type' => $voteType
+            ]);
+        }
+
+        // Return updated vote counts and user vote status
+        $question->load('upVotes', 'downVotes');
+
+        // Get user's current vote
+        $userVoteRecord = $question->votes()->where('user_id', $userId)->first();
+        $userVote = $userVoteRecord ? $userVoteRecord->type : null;
+
+        return response()->json([
+            'upvotes' => $question->upVotes->count(),
+            'downvotes' => $question->downVotes->count(),
+            'user_vote' => $userVote
+        ]);
     }
 }

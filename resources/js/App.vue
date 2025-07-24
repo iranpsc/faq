@@ -2,7 +2,7 @@
     <div class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <div :class="{ 'md:mr-80': sidebarOpen, 'md:mr-16': !sidebarOpen, 'mr-0': true }" class="flex flex-col flex-grow transition-all duration-300">
             <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @search="handleSearch" @main-action="handleMainAction" />
-            <MainContent @edit-question="handleEditQuestion" />
+            <router-view @edit-question="handleEditQuestion" ref="mainContentRef" />
             <Footer />
         </div>
         <Sidebar
@@ -34,7 +34,7 @@ import { ref, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import Sidebar from './components/Sidebar.vue';
-import MainContent from './components/MainContent.vue';
+import MainContent from './pages/Home.vue';
 import QuestionModal from './components/QuestionModal.vue';
 import { useTheme } from './composables/useTheme.js';
 import { useAuth } from './composables/useAuth.js';
@@ -53,6 +53,7 @@ export default {
         const { isAuthenticated, initializeAuth } = useAuth();
         const showQuestionModal = ref(false);
         const questionToEdit = ref(null);
+        const mainContentRef = ref(null);
         const app = getCurrentInstance();
 
         const sidebarOpen = ref(window.innerWidth >= 768);
@@ -107,13 +108,19 @@ export default {
 
         const handleQuestionCreated = () => {
             showQuestionModal.value = false;
-            // Optionally, refresh the list of questions in MainContent
+            // Refresh the questions list in MainContent
+            if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
+                mainContentRef.value.refreshQuestions();
+            }
         };
 
         const handleQuestionUpdated = () => {
             showQuestionModal.value = false;
             questionToEdit.value = null;
-            // Optionally, refresh the list of questions in MainContent
+            // Refresh the questions list in MainContent
+            if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
+                mainContentRef.value.refreshQuestions();
+            }
         };
 
         onMounted(async () => {
@@ -158,6 +165,7 @@ export default {
             handleThemeChange,
             showQuestionModal,
             questionToEdit,
+            mainContentRef,
             handleEditQuestion,
             handleQuestionCreated,
             handleQuestionUpdated,

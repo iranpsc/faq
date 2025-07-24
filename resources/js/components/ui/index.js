@@ -10,6 +10,7 @@ export { default as BaseBadge } from './BaseBadge.vue'
 export { default as BaseAvatar } from './BaseAvatar.vue'
 export { default as BaseDropdown } from './BaseDropdown.vue'
 export { default as LoadingSpinner } from './LoadingSpinner.vue'
+export { default as VoteButtons } from './VoteButtons.vue'
 
 // Export all components as an object for global registration
 export default {
@@ -24,4 +25,5 @@ export default {
   BaseAvatar: () => import('./BaseAvatar.vue'),
   BaseDropdown: () => import('./BaseDropdown.vue'),
   LoadingSpinner: () => import('./LoadingSpinner.vue'),
+  VoteButtons: () => import('./VoteButtons.vue'),
 }

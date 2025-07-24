@@ -128,11 +128,28 @@ export function useAuth() {
         return name.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()
     }
 
+    const can = (permission, resource = null) => {
+        if (!user.value || !isAuthenticated.value) {
+            return false
+        }
+
+        // Basic permission checking logic
+        // For now, let's assume all authenticated users can edit/delete their own content
+        if (resource && resource.user && user.value) {
+            return resource.user.id === user.value.id
+        }
+
+        // You can extend this with more sophisticated permission logic
+        // based on user roles, permissions array, etc.
+        return false
+    }
+
     return {
         user,
         isAuthenticated,
         logout,
         handleLogin,
         getInitials,
+        can,
     }
 }

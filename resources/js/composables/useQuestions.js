@@ -154,6 +154,31 @@ export function useQuestions() {
     errors.value = {}
   }
 
+    // Vote on a question (upvote or downvote)
+  const voteQuestion = async (questionId, voteType) => {
+    errors.value = {}
+
+    try {
+      const authToken = localStorage.getItem('auth_token');
+      if (!authToken) {
+        return { success: false, error: 'authentication', message: 'برای رای دادن باید وارد شوید.' };
+      }
+
+      const response = await axios.post(`/api/questions/${questionId}/vote`, {
+        type: voteType
+      });
+
+      // Return the updated vote data from the API response
+      return {
+        success: true,
+        message: 'رای شما ثبت شد',
+        data: response.data
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
   return {
     // State
     isSubmitting,
@@ -168,6 +193,26 @@ export function useQuestions() {
     submitQuestion,
     updateQuestion,
     deleteQuestion,
-    clearErrors
+    clearErrors,
+    voteQuestion
+  }
+
+  return {
+    // State
+    isSubmitting,
+    isLoading,
+    questions,
+    pagination,
+    errors,
+
+    // Methods
+    fetchQuestions,
+    fetchQuestion,
+    submitQuestion,
+    updateQuestion,
+    deleteQuestion,
+    clearErrors,
+    voteQuestion,
+    getQuestionVotes
   }
 }

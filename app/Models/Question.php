@@ -128,6 +128,26 @@ class Question extends Model
     }
 
     /**
+     * Get the upvotes for the question.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function upVotes()
+    {
+        return $this->morphMany(Vote::class, 'votable')->where('type', 'up');
+    }
+
+    /**
+     * Get the downvotes for the question.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function downVotes()
+    {
+        return $this->morphMany(Vote::class, 'votable')->where('type', 'down');
+    }
+
+    /**
      * Get all of the question's verifications.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany
@@ -135,5 +155,17 @@ class Question extends Model
     public function verifications()
     {
         return $this->morphMany(Verification::class, 'verifiable');
+    }
+
+    /**
+     * Check if the question is solved (has a correct or best answer).
+     *
+     * @return bool
+     */
+    public function isSolved()
+    {
+        return $this->answers()->where(function ($query) {
+            $query->where('is_correct', true)->orWhere('is_best', true);
+        })->exists();
     }
 }

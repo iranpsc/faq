@@ -7,8 +7,16 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import Editor from '@tinymce/tinymce-vue';
 import Multiselect from 'vue-multiselect';
 import axios from 'axios';
+import Swal from 'sweetalert2';
+
+import router from './router'
+
+// Make SweetAlert available globally
+window.Swal = Swal;
 
 const app = createApp(App)
+
+app.use(router)
 
 // Register UI components globally
 app.use(UIComponents)

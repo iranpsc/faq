@@ -14,6 +14,13 @@ class QuestionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Check if current user has voted
+        $userVote = null;
+        if ($request->user()) {
+            $userVoteRecord = $this->votes()->where('user_id', $request->user()->id)->first();
+            $userVote = $userVoteRecord ? $userVoteRecord->type : null;
+        }
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -22,10 +29,16 @@ class QuestionResource extends JsonResource
             'user' => new UserResource($this->whenLoaded('user')),
             'category' => new CategoryResource($this->whenLoaded('category')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
-            'answers' => AnswerResource::collection($this->whenLoaded('answers')),
-            'comments' => CommentResource::collection($this->whenLoaded('comments')),
+            'answers_count' => $this->whenCounted('answers'),
             'votes_count' => $this->whenCounted('votes'),
+            'votes' => [
+                'upvotes' => $this->whenLoaded('upVotes'),
+                'downvotes' => $this->whenLoaded('downVotes'),
+                'user_vote' => $userVote,
+            ],
             'views' => $this->views,
+            'is_solved' => $this->isSolved(),
+            'answers' => AnswerResource::collection($this->whenLoaded('answers')),
             'can' => [
                 'view' => $request->user()?->can('view', $this->resource) ?? false,
                 'publish' => $request->user()?->can('publish', $this->resource) ?? false,

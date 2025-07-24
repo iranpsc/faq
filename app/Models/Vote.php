@@ -11,7 +11,7 @@ class Vote extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = ['user_id', 'votable_type', 'votable_id', 'postive'];
+    protected $fillable = ['user_id', 'votable_type', 'votable_id', 'type'];
 
     /**
      * Get the attributes that should be cast.
@@ -21,7 +21,7 @@ class Vote extends Model
     protected function casts(): array
     {
         return [
-            'postive' => 'boolean',
+            'type' => 'string',
         ];
     }
 

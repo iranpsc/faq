@@ -85,13 +85,14 @@
 </template>
 
 <script>
-import { onMounted, ref, getCurrentInstance } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuestions } from '../composables'
-import QuestionCard from './QuestionCard.vue'
-import { BaseButton, BaseAlert } from './ui'
+import QuestionCard from '../components/QuestionCard.vue'
+import { BaseButton, BaseAlert } from '../components/ui'
 
 export default {
-  name: 'MainContent',
+  name: 'Home',
   components: {
     QuestionCard,
     BaseButton,
@@ -99,81 +100,36 @@ export default {
   },
   emits: ['edit-question'],
   setup(props, { emit }) {
+    const router = useRouter()
     const {
       questions,
       pagination,
       isLoading,
       errors,
       fetchQuestions,
-      deleteQuestion
+      deleteQuestion,
+      changePage
     } = useQuestions()
 
-    const { proxy } = getCurrentInstance();
+    const handleQuestionClick = (question) => {
+      router.push(`/questions/${question.id}`)
+    }
+
+    const handleEditQuestion = (question) => {
+      emit('edit-question', question)
+    }
+
+    const handleDeleteQuestion = async (questionId) => {
+      await deleteQuestion(questionId)
+    }
+
+    const refreshQuestions = () => {
+      fetchQuestions()
+    }
 
     onMounted(() => {
       fetchQuestions()
     })
-
-    const changePage = (page) => {
-      if (page > 0 && page <= pagination.value.meta.last_page) {
-        fetchQuestions({ page })
-      }
-    }
-
-    const handleQuestionClick = (question) => {
-      // TODO: Implement navigation to question detail page
-      console.log('Question clicked:', question.id)
-    }
-
-    const handleEditQuestion = (question) => {
-      emit('edit-question', question);
-    };
-
-    const refreshQuestions = () => {
-      fetchQuestions();
-    };
-
-    const handleDeleteQuestion = async (question) => {
-      const result = await proxy.$swal.fire({
-        title: 'آیا مطمئن هستید؟',
-        text: `آیا مطمئن هستید که میخواهید سوال "${question.title}" را حذف کنید؟ این عمل قابل بازگشت نیست.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'بله، حذف کن!',
-        cancelButtonText: 'انصراف',
-        reverseButtons: true
-      });
-
-      if (result.isConfirmed) {
-        const deleteResult = await deleteQuestion(question.id);
-
-        if (deleteResult.success) {
-          // Remove the question from the local array
-          const index = questions.value.findIndex(q => q.id === question.id);
-          if (index !== -1) {
-            questions.value.splice(index, 1);
-          }
-
-          // Show success message
-          proxy.$swal.fire({
-            title: 'حذف شد!',
-            text: deleteResult.message || 'سوال با موفقیت حذف شد.',
-            icon: 'success',
-            confirmButtonText: 'باشه'
-          });
-        } else {
-          // Show error message
-          proxy.$swal.fire({
-            title: 'خطا!',
-            text: deleteResult.message || 'خطایی در حذف سوال رخ داد.',
-            icon: 'error',
-            confirmButtonText: 'باشه'
-          });
-        }
-      }
-    };
 
     return {
       questions,
@@ -184,14 +140,8 @@ export default {
       handleQuestionClick,
       handleEditQuestion,
       handleDeleteQuestion,
-      refreshQuestions,
+      refreshQuestions
     }
   }
 }
 </script>
-
-<style scoped>
-.main-content-container {
-  font-family: 'Iran Sans', 'Tahoma', sans-serif;
-}
-</style>

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('question_id');
             $table->unsignedBigInteger('user_id');
-            $table->text('content');
+            $table->longText('content');
             $table->boolean('published')->default(false);
             $table->dateTime('published_at')->nullable();
             $table->unsignedBigInteger('published_by')->nullable();

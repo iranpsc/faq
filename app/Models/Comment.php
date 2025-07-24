@@ -65,4 +65,12 @@ class Comment extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Get all of the comment's votes.
+     */
+    public function votes()
+    {
+        return $this->morphMany(Vote::class, 'votable');
+    }
 }

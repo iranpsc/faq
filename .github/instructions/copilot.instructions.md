@@ -25,3 +25,25 @@
 23. Add comments before model properties and relationships. 
 
 These rules ensure maintainable, secure, and idiomatic Laravel code.
+
+#Vuejs Rules:
+1. Use single-file components (SFCs) with `.vue` extension for better organization.
+2. Follow Vue's official style guide for naming conventions and code structure.
+3. Use `v-bind` and `v-on` directives for binding data and events, respectively, to keep templates clean.
+4. Prefer using `v-if` for conditional rendering and `v-for` for lists, ensuring keys are used for list items.
+5. Use computed properties for derived state and methods for actions, keeping templates declarative.
+6. Use Vue's reactivity system effectively by avoiding direct mutations of props; instead, emit events to parent components.
+7. Use scoped styles in single-file components to avoid CSS conflicts.
+8. Use Vue Router for navigation and Vuex for state management in larger applications.
+9. Use `v-model` for two-way data binding on form inputs, but avoid using it on complex components.
+10. Use slots for content distribution in components, allowing for flexible component composition.
+11. Use lifecycle hooks (`created`, `mounted`, etc.) to manage component behavior, but avoid heavy logic in them.
+12. Use `async` and `await` for asynchronous operations in methods to keep code readable.
+13. Use `v-show` for toggling visibility without removing elements from the DOM, but prefer `v-if` for conditional rendering.
+14. Use `v-once` for static content that does not change, improving performance.
+15. Use `key` attribute in lists to help Vue track elements and optimize rendering.
+16. Use `provide` and `inject` for dependency injection in deeply nested components.
+17. Use `watch` for observing changes in reactive data and performing side effects.
+18. Use `ref` for accessing DOM elements or child components directly when necessary.
+19. Use `defineProps` and `defineEmits` in the `<script setup>` to declare component props and events.
+20. Use sweet alerts for resource deletion confirmations and other user interactions to enhance UX.

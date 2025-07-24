@@ -37,7 +37,7 @@ class QuestionPolicy
      */
     public function update(User $user, Question $question): bool
     {
-        return $user->id === $question->user_id;
+        return $question->user->is($user);
     }
 
     /**
@@ -45,7 +45,7 @@ class QuestionPolicy
      */
     public function delete(User $user, Question $question): bool
     {
-        return $user->id === $question->user_id;
+        return $question->user->is($user);
     }
 
     /**

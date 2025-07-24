@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CommentResource extends JsonResource
@@ -10,10 +9,36 @@ class CommentResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @param  \Illuminate\Http\Request  $request
+     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
-        return parent::toArray($request);
+        $upvotes = $this->votes->where('type', 'up')->count();
+        $downvotes = $this->votes->where('type', 'down')->count();
+        $userVote = null;
+
+        if ($request->user()) {
+            $userVoteRecord = $this->votes->where('user_id', $request->user()->id)->first();
+            $userVote = $userVoteRecord ? ($userVoteRecord->type === 'up' ? 'up' : 'down') : null;
+        }
+
+        return [
+            'id' => $this->id,
+            'content' => $this->content,
+            'user' => new UserResource($this->whenLoaded('user')),
+            'created_at' => $this->created_at->diffForHumans(),
+            'updated_at' => $this->updated_at->diffForHumans(),
+            'votes' => [
+                'upvotes' => $upvotes,
+                'downvotes' => $downvotes,
+                'score' => $upvotes - $downvotes,
+                'user_vote' => $userVote,
+            ],
+            'can' => [
+                'update' => $request->user() ? $request->user()->can('update', $this->resource) : false,
+                'delete' => $request->user() ? $request->user()->can('delete', $this->resource) : false,
+            ],
+        ];
     }
 }

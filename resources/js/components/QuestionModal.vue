@@ -100,12 +100,18 @@
 
 <script>
 import BaseInput from './ui/BaseInput.vue';
+import Editor from '@tinymce/tinymce-vue';
+import Multiselect from 'vue-multiselect';
 import { useQuestions, useCategories, useTags } from '../composables';
 import { onMounted, watch, ref, computed } from 'vue';
 
 export default {
   name: 'QuestionModal',
-  components: { BaseInput },
+  components: {
+    BaseInput,
+    Editor,
+    Multiselect
+  },
   props: {
     questionToEdit: {
       type: Object,
@@ -151,12 +157,14 @@ export default {
 
     // Methods
     const populateForm = (question) => {
+      if (!question) return;
+
       form.value = {
         id: question.id,
-        title: question.title,
-        content: question.content,
-        category: categories.value.find(c => c.id === question.category_id),
-        tags: question.tags,
+        title: question.title || '',
+        content: question.content || '',
+        category: question.category || (question.category_id ? categories.value.find(c => c.id === question.category_id) : null),
+        tags: question.tags || [],
       };
     };
 
@@ -190,6 +198,13 @@ export default {
         populateForm(newQuestion);
       } else {
         resetForm();
+      }
+    }, { immediate: true });
+
+    // Watch for categories to be loaded and re-populate form if needed
+    watch(categories, () => {
+      if (props.questionToEdit && form.value.id && !form.value.category) {
+        populateForm(props.questionToEdit);
       }
     });
 
