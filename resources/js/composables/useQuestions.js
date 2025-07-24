@@ -179,22 +179,10 @@ export function useQuestions() {
     }
   }
 
-  return {
-    // State
-    isSubmitting,
-    isLoading,
-    questions,
-    pagination,
-    errors,
-
-    // Methods
-    fetchQuestions,
-    fetchQuestion,
-    submitQuestion,
-    updateQuestion,
-    deleteQuestion,
-    clearErrors,
-    voteQuestion
+  // Change page for pagination
+  const changePage = async (page) => {
+    if (page < 1) return
+    await fetchQuestions({ page })
   }
 
   return {
@@ -213,6 +201,6 @@ export function useQuestions() {
     deleteQuestion,
     clearErrors,
     voteQuestion,
-    getQuestionVotes
+    changePage
   }
 }

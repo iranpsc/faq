@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuestions } from '../composables'
 import QuestionCard from '../components/QuestionCard.vue'
@@ -101,6 +101,7 @@ export default {
   emits: ['edit-question'],
   setup(props, { emit }) {
     const router = useRouter()
+    const instance = getCurrentInstance()
     const {
       questions,
       pagination,
@@ -119,8 +120,42 @@ export default {
       emit('edit-question', question)
     }
 
-    const handleDeleteQuestion = async (questionId) => {
-      await deleteQuestion(questionId)
+    const handleDeleteQuestion = async (question) => {
+      // Show confirmation dialog
+      const { value: confirmed } = await instance.appContext.config.globalProperties.$swal({
+        title: 'حذف سوال',
+        text: `آیا از حذف سوال "${question.title}" اطمینان دارید؟`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'بله، حذف کن',
+        cancelButtonText: 'انصراف',
+        reverseButtons: true
+      })
+
+      if (confirmed) {
+        const result = await deleteQuestion(question.id)
+
+        if (result.success) {
+          // Show success message
+          instance.appContext.config.globalProperties.$swal({
+            title: 'موفق',
+            text: result.message || 'سوال با موفقیت حذف شد.',
+            icon: 'success',
+            confirmButtonText: 'باشه'
+          })
+
+          // Refresh the questions list
+          await fetchQuestions()
+        } else {
+          // Show error message
+          instance.appContext.config.globalProperties.$swal({
+            title: 'خطا',
+            text: result.message || 'خطا در حذف سوال',
+            icon: 'error',
+            confirmButtonText: 'باشه'
+          })
+        }
+      }
     }
 
     const refreshQuestions = () => {

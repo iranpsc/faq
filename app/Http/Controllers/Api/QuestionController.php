@@ -7,7 +7,6 @@ use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
-use App\Models\Vote;
 use Illuminate\Http\Request;
 
 class QuestionController extends Controller
