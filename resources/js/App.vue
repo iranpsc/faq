@@ -106,19 +106,25 @@ export default {
             showQuestionModal.value = true;
         };
 
-        const handleQuestionCreated = () => {
+        const handleQuestionCreated = (newQuestion) => {
             showQuestionModal.value = false;
-            // Refresh the questions list in MainContent
-            if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
+            // Add the new question to the top of the list if Home component supports it
+            if (mainContentRef.value && mainContentRef.value.prependQuestion) {
+                mainContentRef.value.prependQuestion(newQuestion);
+            } else if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
+                // Fallback to refresh if prepend is not available
                 mainContentRef.value.refreshQuestions();
             }
         };
 
-        const handleQuestionUpdated = () => {
+        const handleQuestionUpdated = (updatedQuestion) => {
             showQuestionModal.value = false;
             questionToEdit.value = null;
-            // Refresh the questions list in MainContent
-            if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
+            // Update the question in the list if Home component supports it
+            if (mainContentRef.value && mainContentRef.value.updateQuestion) {
+                mainContentRef.value.updateQuestion(updatedQuestion.id, updatedQuestion);
+            } else if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
+                // Fallback to refresh if update is not available
                 mainContentRef.value.refreshQuestions();
             }
         };

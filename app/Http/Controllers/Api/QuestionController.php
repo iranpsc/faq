@@ -20,12 +20,16 @@ class QuestionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->get('per_page', 15); // Default to 15, max 50
+        $perPage = min($perPage, 50); // Limit to maximum 50 items per page
+
         $questions = Question::with('user', 'category', 'tags', 'upVotes', 'downVotes')
             ->withCount('votes', 'upVotes', 'downVotes', 'answers')
             ->latest()
-            ->paginate();
+            ->paginate($perPage);
+
         return QuestionResource::collection($questions);
     }
 
