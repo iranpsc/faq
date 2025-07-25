@@ -7,19 +7,35 @@
           آخرین پرسش و پاسخ ها
         </h1>
         <div class="flex items-center gap-2">
-          <BaseButton variant="outline" size="sm">
+          <BaseButton
+            :variant="currentFilter === 'newest' ? 'outline' : 'ghost'"
+            size="sm"
+            @click="handleFilterChange('newest')"
+          >
             <template #icon>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9M3 12h9m-9 4h13m-5-4v8m0 0l-4-4m4 4l4-4"></path></svg>
             </template>
             جدیدترین
           </BaseButton>
-          <BaseButton variant="ghost" size="sm">محبوب ترین</BaseButton>
-          <BaseButton variant="ghost" size="sm">بدون پاسخ</BaseButton>
+          <BaseButton
+            :variant="currentFilter === 'popular' ? 'outline' : 'ghost'"
+            size="sm"
+            @click="handleFilterChange('popular')"
+          >
+            محبوب ترین
+          </BaseButton>
+          <BaseButton
+            :variant="currentFilter === 'unanswered' ? 'outline' : 'ghost'"
+            size="sm"
+            @click="handleFilterChange('unanswered')"
+          >
+            بدون پاسخ
+          </BaseButton>
         </div>
       </div>
 
       <!-- Initial Loading State -->
-      <div v-if="isInitialLoading" class="grid grid-cols-1 gap-4">
+      <div v-if="isLoading" class="grid grid-cols-1 gap-4">
         <div v-for="n in 10" :key="n" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm animate-pulse">
           <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
           <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
@@ -47,48 +63,19 @@
               :key="question.id"
               :question="question"
               @click="handleQuestionClick(question)"
-              @edit="handleEditQuestion"
-              @delete="handleDeleteQuestion"
             />
           </TransitionGroup>
         </div>
 
-        <!-- Load More Trigger (Intersection Observer Sentinel) -->
-        <div ref="sentinel" class="w-full h-4 mt-8">
-          <!-- This invisible element triggers loading more content when scrolled into view -->
-        </div>
-
-        <!-- Loading More State -->
-        <div v-if="isLoadingMore" class="mt-8">
-          <div class="grid grid-cols-1 gap-4">
-            <div v-for="n in 3" :key="n" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm animate-pulse">
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-4"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Load More Error -->
-        <div v-if="errors.loadMore" class="mt-8">
-          <BaseAlert variant="error" :message="errors.loadMore" />
-          <div class="text-center mt-4">
-            <BaseButton @click="handleLoadMore" variant="outline" size="sm">
-              تلاش مجدد
-            </BaseButton>
-          </div>
-        </div>
-
-        <!-- End of Results -->
-        <div v-if="!hasMore && !isLoadingMore && questions.length > 0" class="text-center py-8">
-          <div class="text-gray-500 dark:text-gray-400">
-            <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <p class="text-sm">همه سوالات نمایش داده شد</p>
-            <p class="text-xs mt-1">{{ totalQuestions }} سوال در مجموع</p>
-          </div>
+        <!-- Pagination -->
+        <div v-if="pagination.meta" class="mt-8">
+          <BasePagination
+            :current-page="pagination.meta.current_page"
+            :total-pages="pagination.meta.last_page"
+            :total="pagination.meta.total"
+            :per-page="pagination.meta.per_page"
+            @page-changed="handlePageChange"
+          />
         </div>
       </div>
 
@@ -119,124 +106,114 @@
 </template>
 
 <script>
-import { onMounted, ref, getCurrentInstance, nextTick, onBeforeUnmount } from 'vue'
+import { onMounted, ref, getCurrentInstance, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuestions } from '../composables'
-import { useLazyQuestions } from '../composables/useLazyQuestions'
-import { useInfiniteScroll } from '../composables/useInfiniteScroll'
 import QuestionCard from '../components/QuestionCard.vue'
-import { BaseButton, BaseAlert } from '../components/ui'
+import { BaseButton, BaseAlert, BasePagination } from '../components/ui'
 
 export default {
   name: 'Home',
   components: {
     QuestionCard,
     BaseButton,
-    BaseAlert
+    BaseAlert,
+    BasePagination
   },
-  emits: ['edit-question'],
-  setup(props, { emit }) {
+  emits: [],
+  setup(props) {
     const router = useRouter()
     const instance = getCurrentInstance()
 
     // Scroll to top functionality
     const showScrollToTop = ref(false)
-    const scrollContainer = ref(null)
+    const currentFilter = ref('newest')
 
-    // Use lazy loading for questions
+    // Use questions composable for pagination
     const {
       questions,
       isLoading,
-      isLoadingMore,
-      hasMore,
+      pagination,
       errors,
-      totalQuestions,
-      isInitialLoading,
-      loadInitialQuestions,
-      loadMoreQuestions,
-      removeQuestion,
-      prependQuestion,
-      updateQuestion,
-      clearErrors
-    } = useLazyQuestions()
+      fetchQuestions,
+      clearErrors,
+      changePage
+    } = useQuestions()
 
-    // Use regular questions composable for delete functionality
-    const { deleteQuestion: deleteQuestionApi } = useQuestions()
+    // Handle filter change
+    const handleFilterChange = async (filter, forceRefresh = false) => {
+      if (filter === currentFilter.value && !forceRefresh) return
 
-    // Handle loading more questions
-    const handleLoadMore = async () => {
-      if (!hasMore.value || isLoadingMore.value) return
-
+      currentFilter.value = filter
       clearErrors()
-      const result = await loadMoreQuestions()
 
-      if (!result.success) {
-        console.error('Failed to load more questions:', result.error)
-        // The error will be displayed in the UI via the errors reactive state
-      } else if (result.newQuestionsCount === 0) {
-        // No more questions available
-        console.log('No more questions to load')
+      let params = { page: 1 }
+
+      switch (filter) {
+        case 'newest':
+          params.sort = 'created_at'
+          params.order = 'desc'
+          break
+        case 'popular':
+          params.sort = 'votes'
+          params.order = 'desc'
+          break
+        case 'unanswered':
+          params.filter = 'unanswered'
+          break
       }
+
+      await fetchQuestions(params)
+      scrollToTop()
     }
 
-    // Setup infinite scroll
-    const { sentinel, pauseObserver, resumeObserver } = useInfiniteScroll(handleLoadMore, {
-      threshold: 0.1,
-      rootMargin: '300px 0px' // Load more content when user is 300px away from bottom
-    })
+    // Handle page change
+    const handlePageChange = async (page) => {
+      if (page === pagination.value.meta?.current_page) return
+
+      clearErrors()
+
+      let params = { page }
+
+      // Include current filter parameters
+      switch (currentFilter.value) {
+        case 'newest':
+          params.sort = 'created_at'
+          params.order = 'desc'
+          break
+        case 'popular':
+          params.sort = 'votes'
+          params.order = 'desc'
+          break
+        case 'unanswered':
+          params.filter = 'unanswered'
+          break
+      }
+
+      await fetchQuestions(params)
+      scrollToTop()
+    }
 
     const handleQuestionClick = (question) => {
       router.push(`/questions/${question.id}`)
     }
 
-    const handleEditQuestion = (question) => {
-      emit('edit-question', question)
-    }
-
-    const handleDeleteQuestion = async (question) => {
-      // Show confirmation dialog
-      const { value: confirmed } = await instance.appContext.config.globalProperties.$swal({
-        title: 'حذف سوال',
-        text: `آیا از حذف سوال "${question.title}" اطمینان دارید؟`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'بله، حذف کن',
-        cancelButtonText: 'انصراف',
-        reverseButtons: true
-      })
-
-      if (confirmed) {
-        const result = await deleteQuestionApi(question.id)
-
-        if (result.success) {
-          // Remove question from the list
-          removeQuestion(question.id)
-
-          // Show success message
-          instance.appContext.config.globalProperties.$swal({
-            title: 'موفق',
-            text: result.message || 'سوال با موفقیت حذف شد.',
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-          })
-        } else {
-          // Show error message
-          instance.appContext.config.globalProperties.$swal({
-            title: 'خطا',
-            text: result.message || 'خطا در حذف سوال',
-            icon: 'error',
-            confirmButtonText: 'باشه'
-          })
-        }
-      }
-    }
-
-    const refreshQuestionsForParent = async () => {
+    const refreshQuestions = async () => {
       clearErrors()
-      await loadInitialQuestions()
+      await handleFilterChange(currentFilter.value, true)
+    }
+
+    // Add a new question to the beginning of the list (for external use)
+    const prependQuestion = (question) => {
+      questions.value.unshift(question)
+    }
+
+    // Update a question in the list (for external use)
+    const updateQuestion = (questionId, updatedQuestion) => {
+      const index = questions.value.findIndex(q => q.id === questionId)
+      if (index > -1) {
+        questions.value[index] = { ...questions.value[index], ...updatedQuestion }
+      }
     }
 
     // Scroll to top functionality
@@ -279,11 +256,8 @@ export default {
     }
 
     onMounted(async () => {
-      // Load initial questions when component mounts
-      await loadInitialQuestions()
-
-      // Wait for DOM to update and then initialize the intersection observer
-      await nextTick()
+      // Load initial questions when component mounts with newest filter
+      await handleFilterChange('newest', true)
 
       // Add scroll event listener
       const container = document.querySelector('.main-content-container')
@@ -309,18 +283,14 @@ export default {
     return {
       questions,
       isLoading,
-      isLoadingMore,
-      hasMore,
+      pagination,
       errors,
-      totalQuestions,
-      isInitialLoading,
-      sentinel,
+      currentFilter,
       showScrollToTop,
       handleQuestionClick,
-      handleEditQuestion,
-      handleDeleteQuestion,
-      handleLoadMore,
-      refreshQuestions: refreshQuestionsForParent,
+      handleFilterChange,
+      handlePageChange,
+      refreshQuestions,
       prependQuestion,
       updateQuestion,
       scrollToTop

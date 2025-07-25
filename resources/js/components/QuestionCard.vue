@@ -2,19 +2,6 @@
   <BaseCard variant="bordered" class="mb-4 hover:shadow-md transition-all duration-300">
     <div class="p-6">
       <div class="flex gap-4">
-        <!-- Vote Section -->
-        <div class="flex-shrink-0">
-          <VoteButtons
-            resource-type="question"
-            :resource-id="question.id"
-            :question-id="question.id"
-            :initial-upvotes="Array.isArray(question.votes?.upvotes) ? question.votes.upvotes.length : (question.votes?.upvotes || 0)"
-            :initial-downvotes="Array.isArray(question.votes?.downvotes) ? question.votes.downvotes.length : (question.votes?.downvotes || 0)"
-            :initial-user-vote="question.votes?.user_vote"
-            @vote-changed="handleVoteChanged"
-          />
-        </div>
-
         <!-- Question Content -->
         <div class="flex-1 cursor-pointer" @click="$emit('click', question)">
           <!-- Question Header -->
@@ -43,20 +30,6 @@
               >
                 {{ question.category.name }}
               </BaseBadge>
-              <div v-if="question.can" class="flex items-center gap-1">
-                <button v-if="question.can.update" @click.stop="$emit('edit', question)" class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="ویرایش">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
-                </button>
-                <button v-if="question.can.delete" @click.stop="$emit('delete', question)" class="p-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" title="حذف">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-                <button v-if="question.can.publish" @click.stop="$emit('publish', question)" class="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" title="انتشار">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                </button>
-                <button v-if="question.can.pin" @click.stop="$emit('pin', question)" class="p-1 text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300" title="پین کردن">
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v12l-5-3-5 3V4z"></path></svg>
-                </button>
-              </div>
             </div>
           </div>
 
@@ -101,6 +74,12 @@
               </span>
               <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                {{ totalVotes }} رای
+              </span>
+              <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
@@ -119,15 +98,13 @@
 
 <script>
 import { BaseCard, BaseBadge, BaseAvatar } from './ui'
-import VoteButtons from './ui/VoteButtons.vue'
 
 export default {
   name: 'QuestionCard',
   components: {
     BaseCard,
     BaseBadge,
-    BaseAvatar,
-    VoteButtons
+    BaseAvatar
   },
   props: {
     question: {
@@ -135,21 +112,20 @@ export default {
       required: true
     }
   },
-  emits: ['click', 'edit', 'delete', 'publish', 'pin', 'vote-changed'],
+  emits: ['click'],
+  computed: {
+    totalVotes() {
+      if (!this.question.votes) return 0
+      const upvotes = Array.isArray(this.question.votes.upvotes)
+        ? this.question.votes.upvotes.length
+        : (this.question.votes.upvotes || 0)
+      const downvotes = Array.isArray(this.question.votes.downvotes)
+        ? this.question.votes.downvotes.length
+        : (this.question.votes.downvotes || 0)
+      return upvotes - downvotes
+    }
+  },
   methods: {
-    handleVoteChanged(voteData) {
-      // Emit the vote change to parent component
-      this.$emit('vote-changed', {
-        questionId: this.question.id,
-        ...voteData
-      })
-
-      // Show success message if available
-      if (voteData.message) {
-        // You can use a toast notification here
-        console.log(voteData.message)
-      }
-    },
     formatDate(dateString) {
       const date = new Date(dateString)
       return new Intl.DateTimeFormat('fa-IR', {
