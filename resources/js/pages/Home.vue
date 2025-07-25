@@ -9,31 +9,7 @@
                 <!-- Right Content (75% on medium+ screens, 100% on small screens) -->
                 <div class="flex-1 md:w-3/4">
                     <!-- Header -->
-                    <div class="flex flex-col sm:flex-row items-center justify-between mb-6">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
-                            آخرین پرسش و پاسخ ها
-                        </h1>
-                        <div class="flex items-center gap-2">
-                            <BaseButton :variant="currentFilter === 'newest' ? 'outline' : 'ghost'" size="sm"
-                                @click="handleFilterChange('newest')">
-                                <template #icon>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 4h13M3 8h9M3 12h9m-9 4h13m-5-4v8m0 0l-4-4m4 4l4-4"></path>
-                                    </svg>
-                                </template>
-                                جدیدترین
-                            </BaseButton>
-                            <BaseButton :variant="currentFilter === 'popular' ? 'outline' : 'ghost'" size="sm"
-                                @click="handleFilterChange('popular')">
-                                محبوب ترین
-                            </BaseButton>
-                            <BaseButton :variant="currentFilter === 'unanswered' ? 'outline' : 'ghost'" size="sm"
-                                @click="handleFilterChange('unanswered')">
-                                بدون پاسخ
-                            </BaseButton>
-                        </div>
-                    </div>
+                    <FilterQuestion @filters-changed="handleFiltersChanged" />
 
                     <!-- Initial Loading State -->
                     <div v-if="isLoading" class="grid grid-cols-1 gap-4">
@@ -154,13 +130,14 @@
 </template>
 
 <script>
-import { onMounted, ref, getCurrentInstance, onBeforeUnmount } from 'vue'
+import { onMounted, ref, computed, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuestions, useUsers } from '../composables'
 import QuestionCard from '../components/QuestionCard.vue'
 import UserCard from '../components/UserCard.vue'
 import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
 import PopularCategories from '../components/PopularCategories.vue'
+import FilterQuestion from '../components/FilterQuestion.vue'
 import { BaseButton, BaseAlert, BasePagination } from '../components/ui'
 
 export default {
@@ -170,6 +147,7 @@ export default {
         UserCard,
         HomeSidebar,
         PopularCategories,
+        FilterQuestion,
         BaseButton,
         BaseAlert,
         BasePagination
@@ -179,7 +157,7 @@ export default {
         const router = useRouter()
         const instance = getCurrentInstance()
 
-        const currentFilter = ref('newest')
+        const currentFilters = ref({})
 
         // Use questions composable for pagination
         const {
@@ -189,7 +167,6 @@ export default {
             errors,
             fetchQuestions,
             clearErrors,
-            changePage
         } = useQuestions()
 
         // Use users composable for active users
@@ -198,57 +175,21 @@ export default {
             isLoading: isLoadingUsers,
             errors: userErrors,
             fetchActiveUsers,
-            clearErrors: clearUserErrors
         } = useUsers()
 
-        // Handle filter change
-        const handleFilterChange = async (filter, forceRefresh = false) => {
-            if (filter === currentFilter.value && !forceRefresh) return
-
-            currentFilter.value = filter
+        const handleFiltersChanged = async (filters) => {
             clearErrors()
-
-            let params = { page: 1 }
-
-            switch (filter) {
-                case 'newest':
-                    params.sort = 'created_at'
-                    params.order = 'desc'
-                    break
-                case 'popular':
-                    params.sort = 'votes'
-                    params.order = 'desc'
-                    break
-                case 'unanswered':
-                    params.filter = 'unanswered'
-                    break
-            }
-
-            await fetchQuestions(params)
+            currentFilters.value = filters
+            await fetchQuestions(filters)
         }
 
         // Handle page change
         const handlePageChange = async (page) => {
-            if (page === pagination.value.meta?.current_page) return
+            if (pagination.value.meta && page === pagination.value.meta.current_page) return
 
             clearErrors()
 
-            let params = { page }
-
-            // Include current filter parameters
-            switch (currentFilter.value) {
-                case 'newest':
-                    params.sort = 'created_at'
-                    params.order = 'desc'
-                    break
-                case 'popular':
-                    params.sort = 'votes'
-                    params.order = 'desc'
-                    break
-                case 'unanswered':
-                    params.filter = 'unanswered'
-                    break
-            }
+            const params = { ...currentFilters.value, page }
 
             await fetchQuestions(params)
         }
@@ -258,7 +199,7 @@ export default {
         }
 
         const handleUserClick = (user) => {
-            // For now, just log the user click. You can implement user profile navigation later
+            // For now, just log the user click. You can implement user profile page navigation later
             console.log('User clicked:', user)
             // TODO: Implement user profile page navigation
             // router.push(`/users/${user.id}`)
@@ -273,7 +214,7 @@ export default {
 
         const refreshQuestions = async () => {
             clearErrors()
-            await handleFilterChange(currentFilter.value, true)
+            await fetchQuestions(currentFilters.value)
         }
 
         // Add a new question to the beginning of the list (for external use)
@@ -290,8 +231,8 @@ export default {
         }
 
         onMounted(async () => {
-            // Load initial questions when component mounts with newest filter
-            await handleFilterChange('newest', true)
+            // Load initial questions when component mounts
+            await fetchQuestions({ page: 1, sort: 'created_at', order: 'desc' })
 
             // Load active users
             await fetchActiveUsers(5)
@@ -302,14 +243,14 @@ export default {
             isLoading,
             pagination,
             errors,
-            currentFilter,
             activeUsers,
             isLoadingUsers,
             userErrors,
+            handleFiltersChanged,
+            // Other methods
             handleQuestionClick,
             handleUserClick,
             handleCategoryClick,
-            handleFilterChange,
             handlePageChange,
             refreshQuestions,
             prependQuestion,
