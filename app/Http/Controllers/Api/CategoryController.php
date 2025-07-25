@@ -26,6 +26,37 @@ class CategoryController extends Controller
     }
 
     /**
+     * Get popular categories based on questions, answers, and comments count.
+     */
+    public function popular(Request $request)
+    {
+        $limit = $request->input('limit', 15);
+
+        $categories = Category::withCount([
+            'questions',
+            'questions as answers_count' => function ($query) {
+                $query->join('answers', 'questions.id', '=', 'answers.question_id');
+            },
+            'questions as comments_count' => function ($query) {
+                $query->join('comments', 'questions.id', '=', 'comments.commentable_id')
+                      ->where('comments.commentable_type', 'App\\Models\\Question');
+            }
+        ])
+        ->get()
+        ->map(function ($category) {
+            $category->activity_score = $category->questions_count +
+                                      ($category->answers_count ?? 0) +
+                                      ($category->comments_count ?? 0);
+            return $category;
+        })
+        ->sortByDesc('activity_score')
+        ->take($limit)
+        ->values();
+
+        return CategoryResource::collection($categories);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)

@@ -27,6 +27,27 @@ export function useCategories() {
     }
   }
 
+  // Fetch popular categories
+  const fetchPopularCategories = async (limit = 15) => {
+    isLoading.value = true
+    errors.value = {}
+
+    try {
+      const response = await axios.get('/api/categories/popular', {
+        params: { limit }
+      })
+      const popularCategories = response.data.data || response.data
+      return { success: true, data: popularCategories }
+    } catch (error) {
+      console.error('Error fetching popular categories:', error)
+      const errorMessage = 'خطا در بارگذاری دسته‌بندی‌های محبوب'
+      errors.value.fetchPopular = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Create a new category
   const createCategory = async (categoryData) => {
     isLoading.value = true
@@ -142,6 +163,7 @@ export function useCategories() {
 
     // Methods
     fetchCategories,
+    fetchPopularCategories,
     createCategory,
     updateCategory,
     deleteCategory,
