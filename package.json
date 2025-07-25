@@ -15,6 +15,7 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@inertiajs/vue3": "^2.0.17",
         "@primevue/themes": "^4.3.6",
         "@tailwindcss/forms": "^0.5.10",
         "@tinymce/tinymce-vue": "^6.2.0",

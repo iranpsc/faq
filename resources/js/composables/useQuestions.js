@@ -185,6 +185,26 @@ export function useQuestions() {
     await fetchQuestions({ page })
   }
 
+  // Search questions
+  const searchQuestions = async (query, limit = 10) => {
+    if (!query || query.trim().length === 0) {
+      return { success: true, data: [] }
+    }
+
+    try {
+      const response = await axios.get('/api/questions/search', {
+        params: {
+          q: query.trim(),
+          limit: limit
+        }
+      })
+      return { success: true, data: response.data.data }
+    } catch (error) {
+      console.error('Error searching questions:', error)
+      return { success: false, error: 'خطا در جستجو', data: [] }
+    }
+  }
+
   return {
     // State
     isSubmitting,
@@ -201,6 +221,7 @@ export function useQuestions() {
     deleteQuestion,
     clearErrors,
     voteQuestion,
-    changePage
+    changePage,
+    searchQuestions
   }
 }

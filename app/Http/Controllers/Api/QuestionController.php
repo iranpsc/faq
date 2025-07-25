@@ -13,8 +13,10 @@ class QuestionController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
-        $this->authorizeResource(Question::class, 'question');
+        $this->middleware('auth:sanctum')->except(['search']);
+        $this->authorizeResource(Question::class, 'question', [
+            'except' => ['search']
+        ]);
     }
 
     /**
@@ -28,6 +30,41 @@ class QuestionController extends Controller
             ->paginate(10);
 
         return QuestionResource::collection($questions);
+    }
+
+    /**
+     * Search questions by title
+     */
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+        $limit = $request->get('limit', 10);
+
+        if (empty($query)) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+                'message' => 'نتیجه‌ای یافت نشد'
+            ]);
+        }
+
+        $questions = Question::with('user', 'category', 'tags')
+            ->withCount('votes', 'upVotes', 'downVotes', 'answers')
+            ->where('published', true)
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'LIKE', "%{$query}%")
+                  ->orWhere('content', 'LIKE', "%{$query}%");
+            })
+            ->orderByDesc('views')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => QuestionResource::collection($questions),
+            'message' => 'جستجو با موفقیت انجام شد'
+        ]);
     }
 
     /**

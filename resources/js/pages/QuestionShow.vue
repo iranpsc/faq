@@ -319,6 +319,21 @@ export default {
       window.removeEventListener('keydown', handleKeyDown)
     })
 
+    // Watch for route parameter changes to handle navigation between different questions
+    watch(() => route.params.id, (newId, oldId) => {
+      if (newId && newId !== oldId) {
+        // Reset state
+        question.value = null
+        answers.value = []
+        error.value = null
+        showEditModal.value = false
+        isUpdating.value = false
+
+        // Fetch new question data
+        fetchQuestion()
+      }
+    }, { immediate: false })
+
     return {
       question,
       answers,

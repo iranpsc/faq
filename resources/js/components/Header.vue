@@ -22,19 +22,7 @@
 
       <!-- Center - Search bar -->
       <div class="flex-1 max-w-2xl mx-4">
-        <BaseInput
-          v-model="searchQuery"
-          placeholder="سوال یا کلمه موردنظر خود را جستجو کنید"
-          variant="filled"
-          rounded="xl"
-          @enter="handleSearch"
-        >
-          <template #prefix>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </template>
-        </BaseInput>
+        <SearchComponent />
       </div>
 
       <!-- Right side - Action buttons -->
@@ -58,31 +46,20 @@
 
     <!-- Mobile search (shown when mobile search is active) -->
     <div v-if="showMobileSearch" class="md:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-      <BaseInput
-        v-model="searchQuery"
-        placeholder="سوال یا کلمه موردنظر خود را جستجو کنید"
-        variant="filled"
-        rounded="xl"
-        @enter="handleSearch"
-      >
-        <template #prefix>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </template>
-      </BaseInput>
+      <SearchComponent />
     </div>
   </header>
 </template>
 
 <script>
-import { BaseButton, BaseInput } from './ui'
+import { BaseButton } from './ui'
+import SearchComponent from './SearchComponent.vue'
 
 export default {
   name: 'Header',
   components: {
     BaseButton,
-    BaseInput
+    SearchComponent
   },
   props: {
     sidebarOpen: {
@@ -90,19 +67,13 @@ export default {
       default: false
     }
   },
-  emits: ['toggle-sidebar', 'search', 'main-action'],
+  emits: ['toggle-sidebar', 'main-action'],
   data() {
     return {
-      searchQuery: '',
       showMobileSearch: false
     };
   },
   methods: {
-    handleSearch() {
-      if (this.searchQuery.trim()) {
-        this.$emit('search', this.searchQuery.trim());
-      }
-    },
     handleMainAction() {
       this.$emit('main-action');
     },

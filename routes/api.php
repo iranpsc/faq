@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 Route::prefix('questions')->group(function () {
     Route::get('/recommended', [DashboardController::class, 'recommendedQuestions']);
     Route::get('/popular', [DashboardController::class, 'popularQuestions']);
+    Route::get('/search', [QuestionController::class, 'search']);
 });
 
 // Category popular route (must be before resource routes)

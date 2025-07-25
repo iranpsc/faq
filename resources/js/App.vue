@@ -1,7 +1,11 @@
 <template>
     <div class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <div :class="{ 'md:mr-80': sidebarOpen, 'md:mr-16': !sidebarOpen, 'mr-0': true }" class="flex flex-col flex-grow transition-all duration-300">
-            <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @search="handleSearch" @main-action="handleMainAction" />
+            <Header
+                :sidebarOpen="sidebarOpen"
+                @toggle-sidebar="toggleSidebar"
+                @main-action="handleMainAction"
+            />
             <router-view @edit-question="handleEditQuestion" ref="mainContentRef" />
             <Footer />
         </div>
@@ -77,10 +81,6 @@ export default {
 
         const closeSidebar = () => {
             sidebarOpen.value = false;
-        };
-
-        const handleSearch = (query) => {
-            // TODO: Implement search functionality
         };
 
         const handleMainAction = () => {
@@ -166,7 +166,6 @@ export default {
             theme,
             toggleSidebar,
             closeSidebar,
-            handleSearch,
             handleMainAction,
             handleThemeChange,
             showQuestionModal,
