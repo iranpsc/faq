@@ -24,10 +24,14 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
-        $questions = Question::with('user', 'category', 'tags', 'upVotes', 'downVotes')
-            ->withCount('votes', 'upVotes', 'downVotes', 'answers')
-            ->latest()
-            ->paginate(10);
+        $query = Question::with('user', 'category', 'tags', 'upVotes', 'downVotes')
+            ->withCount('votes', 'upVotes', 'downVotes', 'answers');
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $questions = $query->latest()->paginate(10);
 
         return QuestionResource::collection($questions);
     }

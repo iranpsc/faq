@@ -1,7 +1,7 @@
 <template>
     <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto main-content-container">
         <!-- Popular Categories Section -->
-        <PopularCategories :limit="15" @category-click="handleCategoryClick" />
+        <PopularCategories :limit="15" @category-click="handleCategoryClick" :selected-category="selectedCategory" />
 
         <div class="max-w-7xl mx-auto">
             <!-- Two Column Layout -->
@@ -158,6 +158,7 @@ export default {
         const instance = getCurrentInstance()
 
         const currentFilters = ref({})
+        const selectedCategory = ref(null)
 
         // Use questions composable for pagination
         const {
@@ -206,10 +207,14 @@ export default {
         }
 
         const handleCategoryClick = (category) => {
-            // TODO: Filter questions by category or navigate to category page
-            console.log('Category clicked:', category)
-            // For now, we can filter questions by category
-            // This could be implemented by adding a category filter to the questions API
+            if (selectedCategory.value && selectedCategory.value.id === category.id) {
+                // If the same category is clicked again, deselect it and show all questions
+                selectedCategory.value = null
+                handleFiltersChanged({ ...currentFilters.value, category_id: undefined })
+            } else {
+                selectedCategory.value = category
+                handleFiltersChanged({ ...currentFilters.value, category_id: category.id })
+            }
         }
 
         const refreshQuestions = async () => {
@@ -254,7 +259,8 @@ export default {
             handlePageChange,
             refreshQuestions,
             prependQuestion,
-            updateQuestion
+            updateQuestion,
+            selectedCategory
         }
     }
 }

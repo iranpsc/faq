@@ -98,8 +98,13 @@ export default {
         limit: {
             type: Number,
             default: 15
+        },
+        selectedCategory: {
+            type: Object,
+            default: null
         }
     },
+
     setup(props, { emit }) {
         const router = useRouter()
         const popularCategories = ref([])
@@ -112,12 +117,15 @@ export default {
             clearErrors
         } = useCategories()
 
-        const variants = ['primary', 'info', 'success', 'warning', 'secondary']
-
         const getCategoryVariant = (category) => {
-            // Use category ID to consistently assign the same variant
-            const index = category.id % variants.length
-            return variants[index]
+            if (props.selectedCategory && props.selectedCategory.id === category.id) {
+                return 'primary';
+            }
+            const total = getTotalActivity(category)
+            if (total > 100) return 'success'
+            if (total > 50) return 'info'
+            if (total > 20) return 'warning'
+            return 'default'
         }
 
         const getTotalActivity = (category) => {
@@ -150,13 +158,10 @@ export default {
 
         const handleCategoryClick = (category) => {
             emit('category-click', category)
-            // TODO: Navigate to category page or filter questions by category
-            console.log('Category clicked:', category)
-            // router.push(`/categories/${category.slug}`)
         }
 
-        onMounted(() => {
-            loadPopularCategories()
+        onMounted(async () => {
+            await loadPopularCategories()
         })
 
         return {
