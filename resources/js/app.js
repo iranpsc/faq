@@ -8,8 +8,21 @@ import Editor from '@tinymce/tinymce-vue';
 import Multiselect from 'vue-multiselect';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 import router from './router'
+
+NProgress.configure({ showSpinner: false });
+
+router.beforeEach((to, from, next) => {
+    NProgress.start();
+    next();
+});
+
+router.afterEach(() => {
+    NProgress.done();
+});
 
 // Make SweetAlert available globally
 window.Swal = Swal;

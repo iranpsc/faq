@@ -11,10 +11,12 @@
         "axios": "^1.10.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.2.0",
+        "nprogress": "^0.2.0",
         "tailwindcss": "^4.1.11",
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@inertiajs/progress": "^0.2.7",
         "@inertiajs/vue3": "^2.0.17",
         "@primevue/themes": "^4.3.6",
         "@tailwindcss/forms": "^0.5.10",
