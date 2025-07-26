@@ -13,7 +13,7 @@ class QuestionController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['search']);
+        $this->middleware('auth:sanctum')->except(['search', 'index', 'show']);
         $this->authorizeResource(Question::class, 'question', [
             'except' => ['search']
         ]);
@@ -25,7 +25,8 @@ class QuestionController extends Controller
     public function index(Request $request)
     {
         $query = Question::with('user', 'category', 'tags', 'upVotes', 'downVotes')
-            ->withCount('votes', 'upVotes', 'downVotes', 'answers');
+            ->withCount('votes', 'upVotes', 'downVotes', 'answers')
+            ->published();
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);

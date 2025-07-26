@@ -168,4 +168,15 @@ class Question extends Model
             $query->where('is_correct', true)->orWhere('is_best', true);
         })->exists();
     }
+
+    /**
+     * Scope a query to only include published questions.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('published', true);
+    }
 }

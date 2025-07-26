@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         Category::factory(140)->create();
         Tag::factory(50)->create();
-        Question::factory(100)
+        Question::factory(34)
             ->hasComments(3)
             ->hasVotes(2)
             ->hasVerifications(1)

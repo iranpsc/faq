@@ -16,7 +16,7 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
-        "@inertiajs/progress": "^0.2.7",
+        "@inertiajs/progress": "^0.1.2",
         "@inertiajs/vue3": "^2.0.17",
         "@primevue/themes": "^4.3.6",
         "@tailwindcss/forms": "^0.5.10",
@@ -26,7 +26,7 @@
         "primeicons": "^7.0.0",
         "primevue": "^4.3.6",
         "quill": "^2.0.3",
-        "sweetalert2": "^11.22.2",
+        "sweetalert2": "^11.6.13",
         "vue": "^3.5.17",
         "vue-multiselect": "^3.0.0-beta.3",
         "vue-router": "^4.5.1",

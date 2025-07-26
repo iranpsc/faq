@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Ybazli\Faker\Facades\Faker;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Question>
@@ -21,8 +22,8 @@ class QuestionFactory extends Factory
         return [
             'category_id' => Category::factory(),
             'user_id' => User::factory(),
-            'title' => fake()->sentence(),
-            'content' => fake()->paragraphs(3, true),
+            'title' => Faker::sentence(),
+            'content' => Faker::paragraph(3, true),
             'pinned' => fake()->boolean(10), // 10% chance of being pinned
             'featured' => fake()->boolean(5), // 5% chance of being featured
             'last_activity' => fake()->dateTime(),

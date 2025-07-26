@@ -21,7 +21,7 @@ class QuestionPolicy
      */
     public function view(?User $user, Question $question): bool
     {
-        return true;
+        return $question->published || ($user && $question->user->is($user));
     }
 
     /**

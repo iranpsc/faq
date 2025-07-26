@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Ybazli\Faker\Facades\Faker;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Category>
@@ -20,7 +21,7 @@ class CategoryFactory extends Factory
         $name = fake()->unique()->words(2, true);
 
         return [
-            'name' => $name,
+            'name' => Faker::word(),
             'slug' => Str::slug($name),
             'parent_id' => null,
             'last_activity' => fake()->dateTime(),
