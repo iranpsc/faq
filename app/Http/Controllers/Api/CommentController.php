@@ -17,6 +17,7 @@ class CommentController extends Controller
     public function __construct()
     {
         $this->middleware('auth:sanctum')->except(['index', 'show']);
+
         $this->authorizeResource(Comment::class, 'comment', [
             'except' => ['index', 'show']
         ]);
@@ -72,6 +73,9 @@ class CommentController extends Controller
                 ]);
             }
         }
+
+        // Increment user's score for commenting
+        $request->user()->increment('score', 2);
 
         return new CommentResource($comment);
     }

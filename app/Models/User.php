@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email_verified_at',
         'mobile',
         'code',
+        'level',
         'score',
         'image',
         'access_token',
@@ -40,6 +41,7 @@ class User extends Authenticatable
      */
     protected $attributes = [
         'score' => 0,
+        'level' => 1,
         'image' => 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
         'access_token' => '',
         'refresh_token' => '',

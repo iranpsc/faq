@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\FetchUserLevel;
 
 class AuthController extends Controller
 {
@@ -74,17 +75,25 @@ class AuthController extends Controller
             ],
             [
                 'name' => $userArray['name'],
-                'email_verified_at' => $userArray['email_verified_at'] ?? now(),
-                'mobile' => $userArray['mobile'] ?? null,
-                'code' => $userArray['code'] ?? null,
+                'mobile' => $userArray['mobile'],
+                'code' => $userArray['code'],
                 'access_token' => $accessToken,
-                'refresh_token' => $response->json('refresh_token') ?? '',
+                'refresh_token' => $response->json('refresh_token'),
                 'expires_in' => $response->json('expires_in'),
-                'token_type' => $response->json('token_type') ?? 'Bearer',
+                'token_type' => $response->json('token_type'),
             ]
         );
 
+        $user->update(['email_verified_at' => $userArray['email_verified_at']]);
+
+        if($user->wasChanged('email_verified_at')) {
+            $user->increment('score', 10); // Increment score for new user
+        }
+
         Auth::login($user);
+
+        // Dispatch job to fetch user level
+        FetchUserLevel::dispatch($user);
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -114,6 +123,8 @@ class AuthController extends Controller
         $user = $request->user();
         $user->tokens()->delete(); // Revoke all tokens
         Auth::logout(); // Log out the user
+        $request->session()->invalidate(); // Invalidate the session
+        $request->session()->regenerateToken(); // Regenerate CSRF token
 
         return response()->json(['message' => 'Logged out successfully']);
     }

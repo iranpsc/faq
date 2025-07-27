@@ -15,14 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->dateTime('email_verified_at');
+            $table->string('email_verified_at')->nullable();
             $table->string('mobile')->nullable(); // Added mobile column
+            $table->smallInteger('level')->default(1); // Added level column with default value
             $table->string('code')->nullable(); // Added code column
             $table->string('role')->default('user'); // Added role column with default value
             $table->bigInteger('score')->default(0);
             $table->string('image')->nullable();
-            $table->string('access_token')->nullable();
-            $table->string('refresh_token')->nullable();
+            $table->text('access_token')->nullable();
+            $table->text('refresh_token')->nullable();
             $table->timestamp('expires_in')->nullable();
             $table->string('token_type')->nullable();
             $table->timestamps();

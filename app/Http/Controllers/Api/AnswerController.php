@@ -27,6 +27,8 @@ class AnswerController extends Controller
             'content' => $request->content,
         ]);
 
+        $request->user()->increment('score', 5); // Increment score for answering
+
         return new AnswerResource($answer);
     }
 
@@ -65,6 +67,12 @@ class AnswerController extends Controller
 
         $user = $request->user();
         $voteType = $request->input('vote');
+
+        if($voteType === 'up') {
+            $answer->user->increment('score', 10); // Increment score for upvote
+        } elseif($voteType === 'down') {
+            $answer->user->decrement('score', 2); // Decrement score for downvote
+        }
 
         $existingVote = $answer->votes()->where('user_id', $user->id)->first();
 

@@ -56,7 +56,7 @@ class QuestionController extends Controller
 
         $questions = Question::with('user', 'category', 'tags')
             ->withCount('votes', 'upVotes', 'downVotes', 'answers')
-            ->where('published', true)
+            ->published()
             ->where(function ($q) use ($query) {
                 $q->where('title', 'LIKE', "%{$query}%")
                   ->orWhere('content', 'LIKE', "%{$query}%");
@@ -92,7 +92,9 @@ class QuestionController extends Controller
 
         $question->tags()->sync($tagIds);
 
-        return new QuestionResource($question->load('user', 'category', 'tags', 'upVotes', 'downVotes'));
+        $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
+
+        return new QuestionResource($question);
     }
 
     /**
@@ -129,7 +131,9 @@ class QuestionController extends Controller
         $tagIds = collect($request->tags)->pluck('id')->toArray();
         $question->tags()->sync($tagIds);
 
-        return new QuestionResource($question->load('user', 'category', 'tags'));
+        $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
+
+        return new QuestionResource($question);
     }
 
     /**
@@ -153,6 +157,12 @@ class QuestionController extends Controller
 
         $userId = $request->user()->id;
         $voteType = $request->type;
+
+        if($voteType == 'up') {
+            $question->user->increment('score', 10);
+        } elseif($voteType == 'down') {
+            $question->user->decrement('score', 2);
+        }
 
         // Check if user has already voted on this question
         $existingVote = $question->votes()->where('user_id', $userId)->first();

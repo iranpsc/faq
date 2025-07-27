@@ -33,10 +33,7 @@ Route::apiResource('questions', QuestionController::class);
 // Category popular route (must be before resource routes)
 Route::get('categories/popular', [CategoryController::class, 'popular']);
 
-// Question voting routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('questions/{question}/vote', [QuestionController::class, 'vote']);
-});
+Route::post('questions/{question}/vote', [QuestionController::class, 'vote']);
 
 Route::apiResource('tags', TagController::class)->only(['index']);
 
@@ -44,8 +41,8 @@ Route::apiResource('questions.answers', AnswerController::class)->shallow()->onl
 Route::apiResource('questions.comments', CommentController::class)->shallow()->only(['index', 'store']);
 Route::apiResource('answers.comments', CommentController::class)->shallow()->only(['index', 'store']);
 Route::apiResource('comments', CommentController::class)->shallow()->only(['update', 'destroy']);
-Route::post('comments/{comment}/vote', [CommentController::class, 'vote'])->middleware('auth:sanctum');
-Route::post('answers/{answer}/vote', [AnswerController::class, 'vote'])->middleware('auth:sanctum');
+Route::post('comments/{comment}/vote', [CommentController::class, 'vote']);
+Route::post('answers/{answer}/vote', [AnswerController::class, 'vote']);
 
 Route::apiResource('categories', CategoryController::class);
 
