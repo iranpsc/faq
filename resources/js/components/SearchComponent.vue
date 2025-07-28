@@ -1,5 +1,6 @@
 <template>
-  <div class="relative" ref="dropdownRef">
+  <!-- Desktop Search (hidden on mobile) -->
+  <div class="hidden md:block relative" ref="dropdownRef">
     <!-- Search Input -->
     <BaseInput
       v-model="searchQuery"
@@ -21,7 +22,7 @@
       </template>
     </BaseInput>
 
-    <!-- Search Results Dropdown -->
+    <!-- Desktop Search Results Dropdown -->
     <Transition
       enter-active-class="transition ease-out duration-200"
       enter-from-class="opacity-0 translate-y-1"
@@ -126,18 +127,177 @@
       </div>
     </Transition>
   </div>
+
+  <!-- Mobile Search Icon (visible on mobile only) -->
+  <div class="md:hidden">
+    <BaseButton
+      variant="ghost"
+      size="sm"
+      @click="toggleMobileSearch"
+      :aria-label="isMobileSearchOpen ? 'بستن جستجو' : 'باز کردن جستجو'"
+      data-mobile-search-trigger
+    >
+      <template #icon>
+        <svg v-if="!isMobileSearchOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </template>
+    </BaseButton>
+  </div>
+
+  <!-- Mobile Search Overlay (full width below header) -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition ease-out duration-300"
+      enter-from-class="opacity-0 transform -translate-y-2"
+      enter-to-class="opacity-100 transform translate-y-0"
+      leave-active-class="transition ease-in duration-200"
+      leave-from-class="opacity-100 transform translate-y-0"
+      leave-to-class="opacity-0 transform -translate-y-2"
+    >
+      <div
+        v-if="isMobileSearchOpen"
+        class="fixed inset-x-0 top-16 z-40 bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 md:hidden"
+        ref="mobileSearchRef"
+      >
+        <!-- Mobile Search Input -->
+        <div class="p-4">
+          <BaseInput
+            v-model="searchQuery"
+            :placeholder="placeholder"
+            :variant="variant"
+            :rounded="rounded"
+            @update:modelValue="handleInput"
+            @focus="handleFocus"
+            @keydown="handleKeydown"
+            class="w-full"
+            ref="mobileSearchInput"
+          >
+            <template #prefix>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </template>
+            <template #suffix v-if="isLoading">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            </template>
+          </BaseInput>
+        </div>
+
+        <!-- Mobile Search Results -->
+        <div
+          v-if="searchResults.length > 0 || showNoResults"
+          class="max-h-96 overflow-y-auto border-t border-gray-200 dark:border-gray-700"
+        >
+          <!-- Loading state -->
+          <div v-if="isLoading" class="p-4 text-center text-gray-500 dark:text-gray-400">
+            <div class="flex items-center justify-center gap-2">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span>در حال جستجو...</span>
+            </div>
+          </div>
+
+          <!-- No results -->
+          <div v-else-if="showNoResults" class="p-4 text-center text-gray-500 dark:text-gray-400">
+            <div class="flex flex-col items-center gap-2">
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.386 0-4.569-.831-6.293-2.209"></path>
+              </svg>
+              <span>نتیجه‌ای یافت نشد</span>
+            </div>
+          </div>
+
+          <!-- Search results -->
+          <ul v-else class="divide-y divide-gray-200 dark:divide-gray-700">
+            <li
+              v-for="(question, index) in searchResults"
+              :key="question.id"
+              :class="[
+                'cursor-pointer transition-colors duration-150',
+                selectedIndex === index
+                  ? 'bg-blue-50 dark:bg-blue-900/20'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+              ]"
+              @click="selectQuestion(question)"
+              @mouseenter="selectedIndex = index"
+            >
+              <div class="p-4">
+                <!-- Question title -->
+                <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">
+                  {{ question.title }}
+                </h4>
+
+                <!-- Question metadata -->
+                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <div class="flex items-center gap-3">
+                    <!-- Category -->
+                    <span v-if="question.category" class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                      </svg>
+                      {{ question.category.name }}
+                    </span>
+
+                    <!-- Author -->
+                    <span v-if="question.user" class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      {{ question.user.name }}
+                    </span>
+                  </div>
+
+                  <!-- Stats -->
+                  <div class="flex items-center gap-3">
+                    <!-- Answers count -->
+                    <span class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                      </svg>
+                      {{ question.answers_count || 0 }}
+                    </span>
+
+                    <!-- Votes count -->
+                    <span class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                      </svg>
+                      {{ question.votes_count || 0 }}
+                    </span>
+
+                    <!-- Views -->
+                    <span class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                      {{ question.views || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { BaseInput } from './ui'
+import { BaseInput, BaseButton } from './ui'
 import { useQuestions } from '../composables/useQuestions'
 
 export default {
   name: 'SearchComponent',
   components: {
-    BaseInput
+    BaseInput,
+    BaseButton
   },
   props: {
     modelValue: {
@@ -176,12 +336,15 @@ export default {
 
     // Refs
     const dropdownRef = ref(null)
+    const mobileSearchRef = ref(null)
+    const mobileSearchInput = ref(null)
     const searchQuery = ref(props.modelValue)
     const searchResults = ref([])
     const isLoading = ref(false)
     const showDropdown = ref(false)
     const selectedIndex = ref(-1)
     const searchTimeout = ref(null)
+    const isMobileSearchOpen = ref(false)
 
     // Computed
     const showNoResults = computed(() => {
@@ -243,6 +406,7 @@ export default {
       if (question && question.id) {
         // Keep the search query as is, don't replace with question title
         showDropdown.value = false
+        isMobileSearchOpen.value = false
         emit('select', question)
 
         // Navigate to the question page
@@ -258,17 +422,34 @@ export default {
       }
     }
 
+    const toggleMobileSearch = () => {
+      isMobileSearchOpen.value = !isMobileSearchOpen.value
+
+      if (isMobileSearchOpen.value) {
+        // Focus the mobile search input after the transition
+        nextTick(() => {
+          if (mobileSearchInput.value) {
+            const inputElement = mobileSearchInput.value.$el?.querySelector('input') || mobileSearchInput.value.$el
+            if (inputElement && inputElement.focus) {
+              inputElement.focus()
+            }
+          }
+        })
+      }
+    }
+
     const selectOnEnter = () => {
       if (selectedIndex.value >= 0 && searchResults.value[selectedIndex.value]) {
         selectQuestion(searchResults.value[selectedIndex.value])
       } else {
         handleSearch(searchQuery.value)
         hideDropdown()
+        isMobileSearchOpen.value = false
       }
     }
 
     const handleKeydown = (e) => {
-      if (!showDropdown.value) return
+      if (!showDropdown.value && !isMobileSearchOpen.value) return
 
       switch (e.key) {
         case 'ArrowDown':
@@ -286,6 +467,7 @@ export default {
         case 'Escape':
           e.preventDefault()
           hideDropdown()
+          isMobileSearchOpen.value = false
           break
       }
     }
@@ -293,6 +475,9 @@ export default {
     const handleClickOutside = (event) => {
       if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
         hideDropdown()
+      }
+      if (mobileSearchRef.value && !mobileSearchRef.value.contains(event.target) && !event.target.closest('[data-mobile-search-trigger]')) {
+        isMobileSearchOpen.value = false
       }
     }
 
@@ -315,16 +500,20 @@ export default {
 
     return {
       dropdownRef,
+      mobileSearchRef,
+      mobileSearchInput,
       searchQuery,
       searchResults,
       isLoading,
       showDropdown,
       selectedIndex,
       showNoResults,
+      isMobileSearchOpen,
       handleInput,
       handleFocus,
       handleKeydown,
-      selectQuestion
+      selectQuestion,
+      toggleMobileSearch
     }
   }
 }
@@ -337,5 +526,69 @@ export default {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Mobile search overlay positioning */
+.fixed.inset-x-0.top-16 {
+  top: 4rem; /* Adjust based on your header height */
+}
+
+/* Smooth transitions for mobile search */
+.transition.ease-out.duration-300 {
+  transition-property: opacity, transform;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Mobile search results scrolling */
+.max-h-96.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.max-h-96.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Dark mode scrollbar */
+:global(.dark) .max-h-96.overflow-y-auto {
+  scrollbar-color: #4a5568 #2d3748;
+}
+
+:global(.dark) .max-h-96.overflow-y-auto::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+:global(.dark) .max-h-96.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+:global(.dark) .max-h-96.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Ensure mobile search is above other content */
+.fixed.z-40 {
+  z-index: 40;
+}
+
+/* Mobile search backdrop blur effect */
+@supports (backdrop-filter: blur(10px)) {
+  .fixed.inset-x-0.top-16.z-40 {
+    backdrop-filter: blur(10px);
+  }
 }
 </style>

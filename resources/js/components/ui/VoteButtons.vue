@@ -11,8 +11,8 @@
         'rounded-lg transition-all duration-200',
         'hover:scale-105 active:scale-95',
         {
-          'bg-green-500 text-white shadow-lg': userVote === 'up',
-          'text-gray-600 hover:text-green-600 hover:bg-green-50': userVote !== 'up' && !isVoting,
+          'text-gray-900 dark:text-gray-100': userVote === 'up',
+          'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': userVote !== 'up' && !isVoting,
           'opacity-50 cursor-not-allowed': isVoting,
           'cursor-not-allowed opacity-60': !isAuthenticated
         }
@@ -37,8 +37,8 @@
         'rounded-lg transition-all duration-200',
         'hover:scale-105 active:scale-95',
         {
-          'bg-red-500 text-white shadow-lg': userVote === 'down',
-          'text-gray-600 hover:text-red-600 hover:bg-red-50': userVote !== 'down' && !isVoting,
+          'text-gray-900 dark:text-gray-100': userVote === 'down',
+          'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': userVote !== 'down' && !isVoting,
           'opacity-50 cursor-not-allowed': isVoting,
           'cursor-not-allowed opacity-60': !isAuthenticated
         }
@@ -359,12 +359,9 @@ export default {
 }
 
 /* Active vote styles */
-.vote-btn.bg-green-500 {
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-}
-
-.vote-btn.bg-red-500 {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+.vote-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Loading spinner for voting state */

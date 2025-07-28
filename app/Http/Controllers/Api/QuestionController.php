@@ -59,10 +59,7 @@ class QuestionController extends Controller
         $questions = Question::with('user', 'category', 'tags')
             ->withCount('votes', 'upVotes', 'downVotes', 'answers')
             ->published()
-            ->where(function ($q) use ($query) {
-                $q->where('title', 'LIKE', "%{$query}%")
-                  ->orWhere('content', 'LIKE', "%{$query}%");
-            })
+            ->where('title', 'like', '%' . $query . '%')
             ->orderByDesc('views')
             ->orderByDesc('created_at')
             ->limit($limit)

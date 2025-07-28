@@ -50,10 +50,10 @@
       <div
         v-for="answer in sortedAnswers"
         :key="answer.id"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm w-full min-w-0 overflow-hidden"
       >
-        <div class="p-8">
-          <div class="flex items-start gap-6">
+        <div class="p-4 sm:p-8">
+          <div class="flex items-start gap-3 sm:gap-6 min-w-0">
             <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
               <img
                 v-if="answer.user?.avatar"
@@ -65,18 +65,18 @@
                 <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"></path>
               </svg>
             </div>
-            <div class="flex-1">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-gray-900 dark:text-gray-100">{{ answer.user?.name }}</span>
-                  <span class="text-xs text-blue-600">امتیاز: {{ formatNumber(answer.user?.points || 0) }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ answer.user?.name }}</span>
+                  <span class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{ formatNumber(answer.user?.points || 0) }}</span>
                 </div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(answer.created_at) }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ formatDate(answer.created_at) }}</span>
               </div>
 
               <!-- Answer Content -->
-              <div v-if="editingAnswer !== answer.id" class="mt-6">
-                <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300" v-html="answer.content"></div>
+              <div v-if="editingAnswer !== answer.id" class="mt-4 sm:mt-6 overflow-hidden">
+                <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 break-words" v-html="answer.content"></div>
               </div>
 
               <!-- Edit Form -->
@@ -114,13 +114,13 @@
           </div>
         </div>
 
-        <div class="bg-gray-50 dark:bg-gray-700/50 px-8 py-4 flex items-center justify-between">
-          <div class="flex items-center gap-6">
-            <span v-if="answer.is_solution || answer.is_best" class="text-sm font-medium text-green-600 dark:text-green-400">تایید شده</span>
+        <div class="bg-gray-50 dark:bg-gray-700/50 px-4 sm:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-2 sm:gap-6 flex-wrap">
+            <span v-if="answer.is_solution || answer.is_best" class="text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">تایید شده</span>
             <button
               v-if="canUpdate(answer)"
               @click="startEdit(answer)"
-              class="text-sm text-blue-600 hover:text-blue-800"
+              class="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap"
             >
               ویرایش
             </button>
@@ -128,25 +128,27 @@
               v-if="canDelete(answer)"
               @click="deleteAnswerAction(answer)"
               :disabled="isDeletingAnswer === answer.id"
-              class="text-sm text-red-600 hover:text-red-800"
+              class="text-sm text-red-600 hover:text-red-800 whitespace-nowrap"
             >
               {{ isDeletingAnswer === answer.id ? 'در حال حذف...' : 'حذف' }}
             </button>
           </div>
 
           <!-- Voting Section -->
-          <VoteButtons
-            resource-type="answer"
-            :resource-id="answer.id"
-            :initial-upvotes="answer.votes?.upvotes || 0"
-            :initial-downvotes="answer.votes?.downvotes || 0"
-            :initial-user-vote="answer.votes?.user_vote"
-            @vote-changed="handleAnswerVoteChanged(answer.id, $event)"
-          />
+          <div class="flex justify-start sm:justify-end">
+            <VoteButtons
+              resource-type="answer"
+              :resource-id="answer.id"
+              :initial-upvotes="answer.votes?.upvotes || 0"
+              :initial-downvotes="answer.votes?.downvotes || 0"
+              :initial-user-vote="answer.votes?.user_vote"
+              @vote-changed="handleAnswerVoteChanged(answer.id, $event)"
+            />
+          </div>
         </div>
 
         <!-- Answer Comments Section -->
-        <div class="px-4 pb-4">
+        <div class="px-2 sm:px-4 pb-4">
           <CommentsSection
             :answer-id="answer.id"
             parent-type="answer"
@@ -184,7 +186,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['answer-added'],
+  emits: ['answer-added', 'vote-changed'],
   setup(props, { emit }) {
     const { isAuthenticated, user } = useAuth()
     const {
@@ -378,21 +380,17 @@ export default {
     }
 
     const handleAnswerVoteChanged = (answerId, voteData) => {
-      // Update the answer's vote data in real-time
-      const answerIndex = props.answers.findIndex(a => a.id === answerId)
-      if (answerIndex !== -1) {
-        const existingAnswer = props.answers[answerIndex]
-        const updatedAnswer = {
-          ...existingAnswer,
-          votes: {
-            upvotes: voteData.upvotes,
-            downvotes: voteData.downvotes,
-            user_vote: voteData.userVote
-          }
+      console.log('Answer vote changed:', { answerId, voteData })
+      // Emit an event to parent component to update the answer's vote data
+      emit('vote-changed', {
+        type: 'answer',
+        id: answerId,
+        votes: {
+          upvotes: voteData.upvotes,
+          downvotes: voteData.downvotes,
+          user_vote: voteData.userVote
         }
-        // Replace the answer to trigger reactivity
-        props.answers[answerIndex] = updatedAnswer
-      }
+      })
     }
 
     const handleAnswerCommentAdded = () => {
@@ -430,3 +428,42 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Ensure prose content wraps properly */
+.prose {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.prose img,
+.prose video,
+.prose iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+  white-space: nowrap;
+}
+
+.prose a {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.prose pre {
+  overflow-x: auto;
+  word-wrap: normal;
+  white-space: pre;
+}
+
+.prose code {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+</style>

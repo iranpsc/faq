@@ -1,5 +1,5 @@
 <template>
-  <div :class="parentType === 'question' ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6' : 'mt-4 border-t border-gray-200 dark:border-gray-600 pt-4'">
+  <div :class="parentType === 'question' ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 w-full min-w-0 overflow-hidden' : 'mt-4 border-t border-gray-200 dark:border-gray-600 pt-4 w-full min-w-0'">
     <h3 :class="parentType === 'question' ? 'text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4' : 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-3'">
       نظرات {{ parentType === 'question' ? 'کاربران' : '' }} ({{ comments.length }})
     </h3>
@@ -15,7 +15,7 @@
         :key="comment.id"
         :class="parentType === 'question' ? 'bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4' : 'bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3'"
       >
-        <div class="flex items-start gap-3">
+        <div class="flex items-start gap-2 sm:gap-3 min-w-0">
           <div :class="parentType === 'question' ? 'w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0' : 'w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0'">
             <img
               v-if="comment.user?.avatar"
@@ -27,18 +27,18 @@
               <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"></path>
             </svg>
           </div>
-          <div class="flex-1">
-            <div :class="parentType === 'question' ? 'flex items-center gap-2 mb-2' : 'flex items-center gap-2 mb-1'">
-              <span :class="parentType === 'question' ? 'font-medium text-gray-900 dark:text-gray-100' : 'font-medium text-gray-900 dark:text-gray-100 text-sm'">{{ comment.user?.name }}</span>
-              <span class="text-xs text-gray-500">امتیاز: {{ formatNumber(comment.user?.score || 0) }}</span>
+          <div class="flex-1 min-w-0">
+            <div :class="parentType === 'question' ? 'flex flex-wrap items-center gap-2 mb-2' : 'flex flex-wrap items-center gap-2 mb-1'">
+              <span :class="parentType === 'question' ? 'font-medium text-gray-900 dark:text-gray-100 truncate' : 'font-medium text-gray-900 dark:text-gray-100 text-sm truncate'">{{ comment.user?.name }}</span>
+              <span class="text-xs text-gray-500 whitespace-nowrap">امتیاز: {{ formatNumber(comment.user?.score || 0) }}</span>
               <span class="text-xs text-gray-400">•</span>
-              <span class="text-xs text-gray-500">{{ comment.created_at }}</span>
-              <span v-if="comment.updated_at !== comment.created_at" class="text-xs text-gray-400">(ویرایش شده: {{ comment.updated_at }})</span>
+              <span class="text-xs text-gray-500 whitespace-nowrap">{{ comment.created_at }}</span>
+              <span v-if="comment.updated_at !== comment.created_at" class="text-xs text-gray-400 whitespace-nowrap">(ویرایش شده: {{ comment.updated_at }})</span>
             </div>
 
             <!-- Comment Content -->
             <div v-if="editingComment !== comment.id">
-              <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed break-words overflow-wrap-anywhere">
                 {{ comment.content }}
               </p>
             </div>
@@ -208,8 +208,10 @@ export default {
 
     // Handle vote changed from VoteButtons component
     const handleCommentVoteChanged = (commentId, voteData) => {
+      console.log('Comment vote changed:', { commentId, voteData })
       const commentIndex = comments.value.findIndex(c => c.id === commentId)
       if (commentIndex !== -1) {
+        console.log('Updating comment at index:', commentIndex, 'with votes:', voteData)
         // Update the comment's vote data
         const existingComment = comments.value[commentIndex]
         const updatedComment = {
@@ -220,8 +222,10 @@ export default {
             user_vote: voteData.userVote
           }
         }
-        // Replace the comment to trigger reactivity
-        comments.value[commentIndex] = updatedComment
+        // Create a new array to ensure reactivity
+        const newComments = [...comments.value]
+        newComments[commentIndex] = updatedComment
+        comments.value = newComments
       }
     }
 
@@ -410,5 +414,17 @@ export default {
 </script>
 
 <style scoped>
-/* No additional styles needed - using VoteButtons component styles */
+/* Better text wrapping for long words */
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Ensure textareas are responsive */
+textarea {
+  min-width: 0;
+  width: 100%;
+}
 </style>

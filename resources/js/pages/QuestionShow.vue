@@ -1,6 +1,6 @@
 <template>
-  <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
-    <div class="max-w-4xl mx-auto">
+  <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto overflow-x-hidden">
+    <div class="max-w-4xl mx-auto w-full min-w-0">
       <!-- Loading State -->
       <div v-if="isLoading" class="animate-pulse">
         <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
@@ -44,6 +44,7 @@
           :questionId="question.id"
           :answers="answers"
           @answer-added="refreshQuestionData"
+          @vote-changed="handleAnswerVoteChanged"
           :key="`answers-${question.id}-${componentKey}`"
         />
       </div>
@@ -308,6 +309,27 @@ export default {
       }
     }
 
+    const handleAnswerVoteChanged = (voteData) => {
+      console.log('QuestionShow - Answer vote changed:', voteData)
+      // Update the answer vote data in real-time
+      if (voteData.type === 'answer') {
+        const answerIndex = answers.value.findIndex(a => a.id === voteData.id)
+        if (answerIndex !== -1) {
+          console.log('Updating answer at index:', answerIndex, 'with votes:', voteData.votes)
+          // Create a new answer object to ensure reactivity
+          const existingAnswer = answers.value[answerIndex]
+          const updatedAnswer = {
+            ...existingAnswer,
+            votes: voteData.votes
+          }
+          // Create a new array to ensure reactivity
+          const newAnswers = [...answers.value]
+          newAnswers[answerIndex] = updatedAnswer
+          answers.value = newAnswers
+        }
+      }
+    }
+
     onMounted(() => {
       fetchQuestion()
       // Add keyboard event listener
@@ -350,7 +372,8 @@ export default {
       handleQuestionUpdated,
       handleDelete,
       handleVote,
-      handleVoteChanged
+      handleVoteChanged,
+      handleAnswerVoteChanged
     }
   }
 }

@@ -43,11 +43,6 @@
         </BaseButton>
       </div>
     </div>
-
-    <!-- Mobile search (shown when mobile search is active) -->
-    <div v-if="showMobileSearch" class="md:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-      <SearchComponent />
-    </div>
   </header>
 </template>
 
@@ -68,17 +63,9 @@ export default {
     }
   },
   emits: ['toggle-sidebar', 'main-action'],
-  data() {
-    return {
-      showMobileSearch: false
-    };
-  },
   methods: {
     handleMainAction() {
       this.$emit('main-action');
-    },
-    toggleMobileSearch() {
-      this.showMobileSearch = !this.showMobileSearch;
     }
   }
 };
@@ -132,17 +119,5 @@ input:focus {
   .flex-1.max-w-2xl {
     max-width: 100%;
   }
-}
-
-/* Animation for mobile search */
-.mobile-search-enter-active,
-.mobile-search-leave-active {
-  transition: all 0.3s ease-in-out;
-}
-
-.mobile-search-enter-from,
-.mobile-search-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 </style>
