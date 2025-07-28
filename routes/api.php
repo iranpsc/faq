@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\AnswerController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\AuthorController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -44,7 +45,11 @@ Route::apiResource('comments', CommentController::class)->shallow()->only(['upda
 Route::post('comments/{comment}/vote', [CommentController::class, 'vote']);
 Route::post('answers/{answer}/vote', [AnswerController::class, 'vote']);
 
-Route::apiResource('categories', CategoryController::class);
+Route::get('categories/{category:slug}/questions', [CategoryController::class, 'questions']);
+Route::apiResource('categories', CategoryController::class)->scoped(['category' => 'slug']);
+
+// Authors routes
+Route::apiResource('authors', AuthorController::class)->only(['index', 'show']);
 
 // Dashboard routes
 Route::prefix('dashboard')->group(function () {

@@ -7,6 +7,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Http\Resources\QuestionResource;
 
 class CategoryController extends Controller
 {
@@ -20,7 +21,9 @@ class CategoryController extends Controller
             return $q->where('name', 'like', "%{$query}%");
         });
 
-        $categories = $query ? $categories->get() : $categories->simplePaginate();
+        $categories = $query
+            ? $categories->get()
+            : $categories->withCount('questions')->simplePaginate();
 
         return CategoryResource::collection($categories);
     }
@@ -39,19 +42,19 @@ class CategoryController extends Controller
             },
             'questions as comments_count' => function ($query) {
                 $query->join('comments', 'questions.id', '=', 'comments.commentable_id')
-                      ->where('comments.commentable_type', 'App\\Models\\Question');
+                    ->where('comments.commentable_type', 'App\\Models\\Question');
             }
         ])
-        ->get()
-        ->map(function ($category) {
-            $category->activity_score = $category->questions_count +
-                                      ($category->answers_count ?? 0) +
-                                      ($category->comments_count ?? 0);
-            return $category;
-        })
-        ->sortByDesc('activity_score')
-        ->take($limit)
-        ->values();
+            ->get()
+            ->map(function ($category) {
+                $category->activity_score = $category->questions_count +
+                    ($category->answers_count ?? 0) +
+                    ($category->comments_count ?? 0);
+                return $category;
+            })
+            ->sortByDesc('activity_score')
+            ->take($limit)
+            ->values();
 
         return CategoryResource::collection($categories);
     }
@@ -80,7 +83,22 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
+        $category->load('children');
         return new CategoryResource($category);
+    }
+
+    /**
+     * Get questions for a specific category.
+     */
+    public function questions(Category $category)
+    {
+        $questions = $category->questions()
+            ->with(['user', 'category'])
+            ->withCount('answers', 'votes')
+            ->latest()
+            ->simplePaginate();
+
+        return QuestionResource::collection($questions);
     }
 
     /**
