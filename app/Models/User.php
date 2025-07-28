@@ -161,14 +161,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Verification::class);
     }
-
-    /**
-     * The levels that belong to the user.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function levels()
-    {
-        return $this->belongsToMany(Level::class);
-    }
 }

@@ -13,7 +13,9 @@ class QuestionController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['search']);
+        $this->middleware('auth:sanctum')->except(['search', 'index', 'show']);
+
+        $this->middleware('auth.optional')->only(['search', 'index', 'show']);
 
         $this->authorizeResource(Question::class, 'question', [
             'except' => ['search']

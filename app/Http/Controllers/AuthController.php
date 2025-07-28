@@ -90,7 +90,7 @@ class AuthController extends Controller
             $user->increment('score', 10); // Increment score for new user
         }
 
-        Auth::login($user);
+        $this->guard()->login($user);
 
         // Dispatch job to fetch user level
         FetchUserLevel::dispatch($user);
@@ -121,11 +121,21 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
-        $user->tokens()->delete(); // Revoke all tokens
-        Auth::logout(); // Log out the user
-        $request->session()->invalidate(); // Invalidate the session
-        $request->session()->regenerateToken(); // Regenerate CSRF token
+        $user->tokens()->delete();
+        $this->guard()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    /**
+     * Get the guard for the controller.
+     *
+     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     */
+    protected function guard()
+    {
+        return Auth::guard('web');
     }
 }

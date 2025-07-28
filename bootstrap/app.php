@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(StartSession::class);
+        $middleware->alias([
+            'auth.optional' => \App\Http\Middleware\OptionalAuthSanctum::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
