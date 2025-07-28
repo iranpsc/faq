@@ -21,7 +21,13 @@ class QuestionPolicy
      */
     public function view(?User $user, Question $question): bool
     {
-        return $question->published || ($user && $question->user->is($user));
+        if ($user) {
+            if ($question->user->is($user) || ($user->level > $question->user->level)) {
+                return true;
+            }
+        }
+
+        return $question->published;
     }
 
     /**
@@ -45,7 +51,7 @@ class QuestionPolicy
      */
     public function delete(User $user, Question $question): bool
     {
-        return $question->user->is($user);
+        return $question->user->is($user) || $user->isAdmin();
     }
 
     /**
@@ -53,21 +59,36 @@ class QuestionPolicy
      */
     public function publish(User $user, Question $question): bool
     {
-        return $user->id === $question->user_id;
+        if($question->published) {
+            return false;
+        }
+
+        if ($user->level >= 2 && $question->user->is($user)) {
+            return true;
+        }
+
+        if (($user->level > $question->user->level) && $question->user->isNot($user)) {
+            return true;
+        }
+
+        return false;
     }
 
-    /**
-     * Determine whether the user can pin the model.
-     */
-    public function pin(User $user, Question $question): bool
-    {
-        return $user->id === $question->user_id;
-    }
     /**
      * Determine whether the user can feature the model.
      */
     public function feature(User $user, Question $question): bool
     {
-        return $user->id === $question->user_id;
+        if ($question->featured) {
+            return false;
+        }
+
+        if ($question->user->is($user)) {
+            return false;
+        } elseif (($user->level > $question->user->level) && $question->user->isNot($user)) {
+            return true;
+        }
+
+        return false;
     }
 }

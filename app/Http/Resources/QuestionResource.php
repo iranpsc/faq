@@ -16,7 +16,7 @@ class QuestionResource extends JsonResource
     {
         // Check if current user has voted
         $userVote = null;
-        if ($request->user()) {
+        if ($request->user() && $this->relationLoaded('votes')) {
             $userVoteRecord = $this->votes()->where('user_id', $request->user()->id)->first();
             $userVote = $userVoteRecord ? $userVoteRecord->type : null;
         }
@@ -42,7 +42,6 @@ class QuestionResource extends JsonResource
             'can' => [
                 'view' => $request->user()?->can('view', $this->resource) ?? false,
                 'publish' => $request->user()?->can('publish', $this->resource) ?? false,
-                'pin' => $request->user()?->can('pin', $this->resource) ?? false,
                 'feature' => $request->user()?->can('feature', $this->resource) ?? false,
                 'update' => $request->user()?->can('update', $this->resource) ?? false,
                 'delete' => $request->user()?->can('delete', $this->resource) ?? false,

@@ -27,15 +27,15 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Question::with('user', 'category', 'tags', 'upVotes', 'downVotes')
-            ->withCount('votes', 'upVotes', 'downVotes', 'answers')
-            ->published();
+        $query = Question::with('user', 'category')
+            ->withCount('votes', 'answers')
+            ->latest();
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        $questions = $query->latest()->paginate(10);
+        $questions = $query->paginate(10);
 
         return QuestionResource::collection($questions);
     }
@@ -48,15 +48,7 @@ class QuestionController extends Controller
         $query = $request->get('q', '');
         $limit = $request->get('limit', 10);
 
-        if (empty($query)) {
-            return response()->json([
-                'success' => true,
-                'data' => [],
-                'message' => 'نتیجه‌ای یافت نشد'
-            ]);
-        }
-
-        $questions = Question::with('user', 'category', 'tags')
+        $questions = Question::with('user', 'category')
             ->withCount('votes', 'upVotes', 'downVotes', 'answers')
             ->published()
             ->where('title', 'like', '%' . $query . '%')
@@ -77,21 +69,27 @@ class QuestionController extends Controller
      */
     public function store(StoreQuestionRequest $request)
     {
+
         $question = Question::create([
             'category_id' => $request->category_id,
             'user_id' => $request->user()->id,
             'title' => $request->title,
             'content' => $request->content,
-            'published' => true,
-            'published_at' => now(),
-            'published_by' => $request->user()->id,
         ]);
 
         $tagIds = collect($request->tags)->pluck('id')->toArray();
 
         $question->tags()->sync($tagIds);
 
-        $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
+        if ($request->user()->can('publish', $question)) {
+            $question->update([
+                'published' => true,
+                'published_at' => now(),
+                'published_by' => $request->user()->id,
+            ]);
+        }
+
+        $question->load('user', 'category', 'upVotes', 'downVotes');
 
         return new QuestionResource($question);
     }
@@ -157,9 +155,9 @@ class QuestionController extends Controller
         $userId = $request->user()->id;
         $voteType = $request->type;
 
-        if($voteType == 'up') {
+        if ($voteType == 'up') {
             $question->user->increment('score', 10);
-        } elseif($voteType == 'down') {
+        } elseif ($voteType == 'down') {
             $question->user->decrement('score', 2);
         }
 

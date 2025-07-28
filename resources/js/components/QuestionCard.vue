@@ -36,27 +36,6 @@
           <!-- Question Content Preview -->
           <div class="text-gray-600 dark:text-gray-400 mb-4 text-sm leading-relaxed" v-html="getContentPreview(question.content)"></div>
 
-          <!-- Tags -->
-          <div v-if="question.tags && question.tags.length > 0" class="flex flex-wrap gap-2 mb-4">
-            <BaseBadge
-              v-for="tag in question.tags.slice(0, 5)"
-              :key="tag.id"
-              variant="secondary"
-              size="xs"
-              class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-            >
-              {{ tag.name }}
-            </BaseBadge>
-            <BaseBadge
-              v-if="question.tags.length > 5"
-              variant="secondary"
-              size="xs"
-              class="bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-            >
-              +{{ question.tags.length - 5 }}
-            </BaseBadge>
-          </div>
-
           <!-- Question Stats -->
           <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-4">
             <div class="flex items-center gap-4">
@@ -66,17 +45,11 @@
                 </svg>
                 {{ question?.answers_count || 0 }} پاسخ
               </span>
-              <span v-if="question.comments" class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m0 0v10a2 2 0 002 2h8a2 2 0 002-2V8M9 12h6"></path>
-                </svg>
-                {{ question.comments.length }} نظر
-              </span>
               <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
-                {{ totalVotes }} رای
+                {{ question?.votes_count || 0 }} رای
               </span>
               <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,16 +87,7 @@ export default {
   },
   emits: ['click'],
   computed: {
-    totalVotes() {
-      if (!this.question.votes) return 0
-      const upvotes = Array.isArray(this.question.votes.upvotes)
-        ? this.question.votes.upvotes.length
-        : (this.question.votes.upvotes || 0)
-      const downvotes = Array.isArray(this.question.votes.downvotes)
-        ? this.question.votes.downvotes.length
-        : (this.question.votes.downvotes || 0)
-      return upvotes - downvotes
-    }
+    //
   },
   methods: {
     formatDate(dateString) {
