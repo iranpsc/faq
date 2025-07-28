@@ -200,7 +200,7 @@ export default {
 <style scoped>
 .form-container {
   direction: rtl;
-  font-family: 'Iran Sans', 'Tahoma', sans-serif;
+  font-family: 'Vazirmatn', 'Tahoma', sans-serif;
 }
 
 /* Horizontal layout specific styles */

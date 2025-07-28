@@ -1,9 +1,9 @@
-@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+@import url('https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css');
 @import 'tailwindcss';
 
 @layer base {
-    html {
-        font-family: 'Vazirmatn', sans-serif;
+    html, body, * {
+        font-family: 'Vazirmatn', 'Tahoma', ui-sans-serif, system-ui, sans-serif !important;
     }
 }
 

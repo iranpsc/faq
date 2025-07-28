@@ -74,7 +74,7 @@ export default {
 <style scoped>
 .header-container {
   direction: rtl;
-  font-family: 'Iran Sans', 'Tahoma', sans-serif;
+  font-family: 'Vazirmatn', 'Tahoma', sans-serif;
 }
 
 /* Custom focus styles */

@@ -65,6 +65,13 @@
                     </span>
                 </BaseBadge>
             </TransitionGroup>
+            <button
+                class="px-4 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                @click="goToCategories"
+                type="button"
+            >
+                مشاهده بیشتر
+            </button>
         </div>
 
         <!-- Empty State -->
@@ -160,6 +167,10 @@ export default {
             emit('category-click', category)
         }
 
+        const goToCategories = () => {
+            router.push('/categories')
+        }
+
         onMounted(async () => {
             await loadPopularCategories()
         })
@@ -173,7 +184,8 @@ export default {
             getTotalActivity,
             formatCount,
             refreshCategories,
-            handleCategoryClick
+            handleCategoryClick,
+            goToCategories
         }
     }
 }

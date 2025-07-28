@@ -189,7 +189,7 @@ export default {
     min-height: 100vh;
     display: flex;
     direction: rtl;
-    font-family: 'Iran Sans', 'Tahoma', sans-serif;
+    font-family: 'Vazirmatn', 'Tahoma', sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 

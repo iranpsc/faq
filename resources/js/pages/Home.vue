@@ -1,5 +1,21 @@
 <template>
     <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto main-content-container">
+        <!-- Landing Image Section -->
+        <div class="w-full max-w-7xl mx-auto mb-6 sm:mb-8 lg:mb-12">
+            <h1 class="text-center">انجمن حم بزرگترین انجمن پرسش و پاسخ ایران</h1>
+
+            <div class="relative overflow-hidden rounded-lg shadow-sm">
+                <img
+                    :src="landingImageUrl"
+                    alt="خوش آمدید به سیستم پرسش و پاسخ"
+                    class="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
+                    loading="lazy"
+                />
+                <!-- Optional overlay for better text readability if needed -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+        </div>
+
         <!-- Popular Categories Section -->
         <PopularCategories :limit="15" @category-click="handleCategoryClick" :selected-category="selectedCategory" />
 
@@ -160,6 +176,11 @@ export default {
         const currentFilters = ref({})
         const selectedCategory = ref(null)
 
+        // Computed property for landing image URL
+        const landingImageUrl = computed(() => {
+            return '/assets/images/landing.png'
+        })
+
         // Use questions composable for pagination
         const {
             questions,
@@ -251,6 +272,7 @@ export default {
             activeUsers,
             isLoadingUsers,
             userErrors,
+            landingImageUrl,
             handleFiltersChanged,
             // Other methods
             handleQuestionClick,

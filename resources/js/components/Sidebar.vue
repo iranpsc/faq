@@ -22,7 +22,7 @@
                         class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
                         <div
                             class="w-6 h-6 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center">
-                            <span class="text-white text-xs">●●●</span>
+                            <img :src="logoUrl" alt="انجمن حم" class="w-full h-full object-contain rounded-full">
                         </div>
                     </div>
                 </a>
@@ -326,12 +326,16 @@ export default {
     setup() {
         const { user, isAuthenticated, logout, handleLogin, getInitials } = useAuth()
 
+        // Create logo URL
+        const logoUrl = '/assets/icon/main-logo.PNG'
+
         return {
             user,
             isAuthenticated,
             logout,
             handleLogin,
-            getInitials
+            getInitials,
+            logoUrl
         }
     },
     methods: {
@@ -349,7 +353,7 @@ export default {
 <style scoped>
 .sidebar-container {
     direction: rtl;
-    font-family: 'Iran Sans', 'Tahoma', sans-serif;
+    font-family: 'Vazirmatn', 'Tahoma', sans-serif;
 }
 
 /* Custom scrollbar for the navigation area */

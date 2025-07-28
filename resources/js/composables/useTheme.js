@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 // Global reactive state to ensure all components share the same theme state
 const isDark = ref(false);
@@ -26,6 +26,29 @@ export function useTheme() {
     updateTheme(!isDark.value);
   };
 
+  const setTheme = (theme) => {
+    updateTheme(theme === 'dark');
+  };
+
+  const setupSystemThemeListener = () => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      // Only update if no theme is manually set
+      if (!localStorage.getItem('theme')) {
+        updateTheme(e.matches);
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+
+    // Return cleanup function
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  };
+
+  // Computed property to get current theme string
+  const theme = computed(() => isDark.value ? 'dark' : 'light');
+
   // Watch for system theme changes
   onMounted(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -41,8 +64,11 @@ export function useTheme() {
 
   return {
     isDark,
+    theme,
     initializeTheme,
     toggleTheme,
+    setTheme,
+    setupSystemThemeListener,
   };
 }
 
@@ -57,6 +83,9 @@ if (typeof window !== 'undefined') {
 
       const shouldBeDark = savedTheme === 'dark' ||
                           (!savedTheme && systemPrefersDark)
+
+      // Update both DOM and reactive state
+      isDark.value = shouldBeDark
 
       if (shouldBeDark) {
         document.documentElement.classList.add('dark')

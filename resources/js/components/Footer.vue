@@ -1,63 +1,69 @@
 <template>
   <footer class="bg-gray-100 dark:bg-gray-800 py-8 mb-0 pb-0 transition-colors duration-300">
     <!-- Top icons section -->
-    <div class="container mx-auto px-4 mb-8">
-      <div class="flex justify-center items-center gap-4 flex-wrap">
-        <!-- Circular badges/icons -->
-        <div class="w-16 h-16 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-        </div>
-        <div class="w-16 h-16 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600 relative">
-          <div class="w-6 h-6 bg-yellow-400 dark:bg-yellow-500 absolute top-2 left-2"></div>
-          <div class="w-6 h-6 bg-blue-600 dark:bg-blue-700"></div>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <span class="text-green-600 dark:text-green-400 font-bold text-lg">NFT</span>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M9 11h6v2H9z"/>
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-          </svg>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <span class="text-green-600 dark:text-green-400 font-bold text-xl">S</span>
-        </div>
-        <div class="w-16 h-16 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <span class="text-green-600 dark:text-green-400 font-bold text-xl">U</span>
-        </div>
-        <div class="w-16 h-16 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <span class="text-white font-bold text-xl">M</span>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.5 8H16c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h1v4h3z"/>
-          </svg>
-        </div>
-        <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93s3.05-7.44 7-7.93v15.86zm2-15.86c1.03.13 2 .45 2.87.93H13v-.93zM13 7h5.24c.25.31.48.65.68 1H13V7zm0 3h6.74c.08.33.15.66.19 1H13v-1zm0 9.93V19h2.87c-.87.48-1.84.8-2.87.93z"/>
-          </svg>
-        </div>
-        <div class="w-16 h-16 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center border-4 border-red-500 dark:border-red-600">
-          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-        </div>
+      <div class="flex-wrap flex justify-center items-ctener gap-2 mx-auto " style="margin-bottom:50px ;">
+        <a href="https://irpsc.com" style="width:55px ;" target="_blank " title="وزارت تعاون کار و رفاه اجتماعی">
+          <img src="https://irpsc.com/img-icon/vezarat.png">
+        </a>
+        <a class="active" href="#" target="_blank " style="width:55px ;" title="نماد اعتماد الکترونیک">
+          <img src="https://irpsc.com/img-icon/enamad.png">
+          <i class="vi vi-chat"></i>
+        </a>
+        <a href="https://irpsc.com" target="_blank " style="width:55px ;" title="ثبت اسناد و املاک کشور">
+          <img src="https://irpsc.com/img-icon/qazaii.png">
+        </a>
+        <a href="https://video.irpsc.com" target="_blank " style="width:55px ;" title="مرکز آموزش ویدئویی">
+          <img src="https://irpsc.com/img-icon/video.png">
+        </a>
+        <a href="https://faq.irpsc.com" target="_blank " style="width:55px ;" title="انجمن پرسش و پاسخ">
+          <img src="https://irpsc.com/img-icon/faq.png">
+        </a>
+        <a href="https://Shop.irpsc.com" target="_blank " style="width:55px ;" title="فروشگاه ملی">
+          <img src="https://irpsc.com/img-icon/shop.png">
+        </a>
+        <a href="https://supply.irpsc.com" target="_blank " style="width:55px ;" title="تولید کنندگان">
+          <img src="https://irpsc.com/img-icon/supply.png">
+        </a>
+        <a href="https://crm.irpsc.com" target="_blank " style="width:55px ;" title="مدیریت بر مدیران">
+          <img src="https://irpsc.com/img-icon/crm.png">
+        </a>
+        <a href="https://target.irpsc.com" target="_blank " style="width:55px ;" title="نگرش ملی">
+          <img src="https://irpsc.com/img-icon/target.png">
+        </a>
+        <a href="https://animal.irpsc.com" target="_blank " style="width:55px ;" title="حیوانات و دامپزشک">
+          <img src="https://irpsc.com/img-icon/animal.png">
+        </a>
+        <a href="https://irpsc.com" target="_blank " style="width:55px ;" title="رسانه ملی">
+          <img src="https://irpsc.com/img-icon/irpsc.png">
+        </a>
+        <a href="https://meta.irpsc.com" target="_blank " style="width:55px ;" title="اخبار متا">
+          <img src="https://irpsc.com/img-icon/meta.png">
+        </a>
+        <a href="https://uni.irpsc.com" target="_blank " style="width:55px ;" title="دانشگاه متاورس">
+          <img src="https://irpsc.com/img-icon/uni.png">
+        </a>
+        <a href="https://crm.irpsc.com/knowledgebase" target="_blank " style="width:55px ;" title="استخدام | دانش محور">
+          <img src="https://irpsc.com/img-icon/knowledge.png">
+        </a>
+        <a href="https://sale.irpsc.com" target="_blank " style="width:55px ;" title="فروشگاه مجازی حم">
+          <img src="https://irpsc.com/img-icon/sale.png">
+        </a>
+        <a href="https://ad.irpsc.com" target="_blank " style="width:55px ;" title="تبلیغات ملی">
+          <img src="https://irpsc.com/img-icon/ad.png">
+        </a>
+        <a href="https://nft.irpsc.com" target="_blank " style="width:55px ;" title="بازار NFT">
+          <img src="https://irpsc.com/img-icon/nft.png">
+        </a>
+        <a href="https://rgb.irpsc.com" target="_blank " style="width:55px ;" title="متاورس رنگ">
+          <img src="https://irpsc.com/img-icon/rgb.png">
+        </a>
+        <a href="https://rgb.irpsc.com" target="_blank " style="width:55px ;" title="سه بعدی متا">
+          <img src="https://irpsc.com/img-icon/3d.gif">
+        </a>
+        <a title="خانه" style="width:55px ;">
+          <img src="https://irpsc.com/img-icon/home-soon.png">
+        </a>
       </div>
-    </div>
 
     <!-- Main content sections -->
     <div class="container mx-auto px-4 mb-8">
@@ -169,7 +175,7 @@ export default {
 
 <style scoped>
 footer {
-  font-family: 'Iran Sans', 'Tahoma', sans-serif;
+  font-family: 'Vazirmatn', 'Tahoma', sans-serif;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
