@@ -13,7 +13,7 @@
               <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-2">
                   <BaseAvatar
-                    :src="question.user?.image"
+                    :src="question.user?.image_url"
                     :name="question.user?.name"
                     size="xs"
                   />

@@ -54,7 +54,7 @@
                         @click="toggleUserDropdown"
                         class="flex items-center gap-3 w-full p-2 rounded-lg transition-colors outline-none focus:outline-none focus:ring-0 focus:border-0"
                     >
-                        <BaseAvatar :src="user.image" :name="user.name" size="lg"
+                        <BaseAvatar :src="user.image_url" :name="user.name" size="lg"
                             :status="user.online ? 'online' : 'offline'" />
                         <div class="text-right flex-1">
                             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{{ user.name }}</h4>
@@ -98,7 +98,7 @@
 
                 <!-- Collapsed view - just avatar -->
                 <div v-else class="flex items-center justify-center">
-                    <BaseAvatar :src="user.image" :name="user.name" size="lg"
+                    <BaseAvatar :src="user.image_url" :name="user.name" size="lg"
                         :status="user.online ? 'online' : 'offline'" />
                 </div>
             </div>

@@ -12,7 +12,7 @@
                         <!-- Avatar Section -->
                         <div class="flex flex-col items-center space-y-4">
                             <BaseAvatar
-                                :src="profileData.image"
+                                :src="profileData.image_url"
                                 :name="profileData.name"
                                 size="2xl"
                                 :status="profileData.online ? 'online' : 'offline'"
@@ -216,7 +216,7 @@ export default {
             name: '',
             email: '',
             mobile: '',
-            image: '',
+            image_url: '',
             score: 0,
             online: false
         })
@@ -251,7 +251,7 @@ export default {
                     name: user.value.name || '',
                     email: user.value.email || '',
                     mobile: user.value.mobile || '',
-                    image: user.value.image || '',
+                    image_url: user.value.image_url || '',
                     score: user.value.score || 0,
                     online: user.value.online || false
                 }
@@ -273,7 +273,7 @@ export default {
                         name: data.name || '',
                         email: data.email || '',
                         mobile: data.mobile || '',
-                        image: data.image || '',
+                        image_url: data.image || '',
                         score: data.score || 0,
                         online: data.online || false
                     }
@@ -352,9 +352,9 @@ export default {
 
                 if (response.ok) {
                     const data = await response.json()
-                    profileData.value.image = data.image_url
+                    profileData.value.image_url = data.image_url
                     // Also update the user in the auth store
-                    updateUser({ image: data.image_url })
+                    updateUser({ image_url: data.image_url })
                     showAlert('success', 'عکس پروفایل با موفقیت بروزرسانی شد')
                 } else {
                     const errorData = await response.json()

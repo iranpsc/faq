@@ -18,17 +18,11 @@
           <div class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ question.user?.name }}</div>
           <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{ formatNumber(question.user.score) }}</div>
         </div>
-        <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
-          <img
-            v-if="question.user?.avatar"
-            :src="question.user.avatar"
-            :alt="question.user.name"
-            class="w-full h-full object-cover"
-          >
-          <svg v-else class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"></path>
-          </svg>
-        </div>
+        <BaseAvatar
+          :src="question.user?.image_url"
+          :name="question.user?.name"
+          size="md"
+        />
       </div>
     </div>
 
@@ -135,11 +129,13 @@
 import { computed } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import VoteButtons from '../ui/VoteButtons.vue'
+import { BaseAvatar } from '../ui'
 
 export default {
   name: 'QuestionContent',
   components: {
-    VoteButtons
+    VoteButtons,
+    BaseAvatar
   },
   props: {
     question: {

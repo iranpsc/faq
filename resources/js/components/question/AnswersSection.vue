@@ -54,17 +54,12 @@
       >
         <div class="p-4 sm:p-8">
           <div class="flex items-start gap-3 sm:gap-6 min-w-0">
-            <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
-              <img
-                v-if="answer.user?.avatar"
-                :src="answer.user.avatar"
-                :alt="answer.user.name"
-                class="w-full h-full object-cover"
-              >
-              <svg v-else class="w-6 h-6 text-gray-600 mt-2 ml-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-            </div>
+            <BaseAvatar
+              :src="answer.user?.image_url"
+              :name="answer.user?.name"
+              size="md"
+              class="flex-shrink-0"
+            />
             <div class="flex-1 min-w-0">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
@@ -168,13 +163,15 @@ import { useAnswers } from '../../composables/useAnswers'
 import Editor from '@tinymce/tinymce-vue'
 import VoteButtons from '../ui/VoteButtons.vue'
 import CommentsSection from './CommentsSection.vue'
+import { BaseAvatar } from '../ui'
 
 export default {
   name: 'AnswersSection',
   components: {
     Editor,
     VoteButtons,
-    CommentsSection
+    CommentsSection,
+    BaseAvatar
   },
   props: {
     questionId: {

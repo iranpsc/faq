@@ -169,7 +169,7 @@ class UserController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'mobile' => $user->mobile,
-            'image' => $user->image ? asset('storage/' . $user->image) : null,
+            'image' => $user->image_url,
             'score' => $user->score ?? 0,
             'online' => $user->online ?? false,
             'created_at' => $user->created_at,

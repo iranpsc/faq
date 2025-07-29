@@ -16,17 +16,12 @@
         :class="parentType === 'question' ? 'bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4' : 'bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3'"
       >
         <div class="flex items-start gap-2 sm:gap-3 min-w-0">
-          <div :class="parentType === 'question' ? 'w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0' : 'w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0'">
-            <img
-              v-if="comment.user?.avatar"
-              :src="comment.user.avatar"
-              :alt="comment.user.name"
-              class="w-full h-full object-cover rounded-full"
-            >
-            <svg v-else :class="parentType === 'question' ? 'w-5 h-5 text-gray-600' : 'w-3 h-3 text-gray-600'" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-          </div>
+          <BaseAvatar
+            :src="comment.user?.image_url"
+            :name="comment.user?.name"
+            :size="parentType === 'question' ? 'sm' : 'xs'"
+            class="flex-shrink-0"
+          />
           <div class="flex-1 min-w-0">
             <div :class="parentType === 'question' ? 'flex flex-wrap items-center gap-2 mb-2' : 'flex flex-wrap items-center gap-2 mb-1'">
               <span :class="parentType === 'question' ? 'font-medium text-gray-900 dark:text-gray-100 truncate' : 'font-medium text-gray-900 dark:text-gray-100 text-sm truncate'">{{ comment.user?.name }}</span>
@@ -148,11 +143,13 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useComments } from '../../composables/useComments'
 import VoteButtons from '../ui/VoteButtons.vue'
+import { BaseAvatar } from '../ui'
 
 export default {
   name: 'CommentsSection',
   components: {
-    VoteButtons
+    VoteButtons,
+    BaseAvatar
   },
   props: {
     questionId: {

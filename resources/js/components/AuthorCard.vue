@@ -135,10 +135,10 @@ export default {
         const imageError = ref(false)
 
         const authorImage = computed(() => {
-            if (imageError.value || !props.author.image) {
+            if (imageError.value || !props.author.image_url) {
                 return `https://ui-avatars.com/api/?name=${encodeURIComponent(props.author.name)}&size=64&background=3b82f6&color=fff&bold=true`
             }
-            return props.author.image
+            return props.author.image_url
         })
 
         const roleClasses = computed(() => {

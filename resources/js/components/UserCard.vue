@@ -3,7 +3,7 @@
     <!-- User Avatar -->
     <div class="mb-4">
       <BaseAvatar
-        :src="user.image"
+        :src="user.image_url"
         :name="user.name"
         size="xl"
         class="mx-auto"

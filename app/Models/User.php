@@ -42,7 +42,6 @@ class User extends Authenticatable
     protected $attributes = [
         'score' => 0,
         'level' => 1,
-        'image' => 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
         'access_token' => '',
         'refresh_token' => '',
         'expires_in' => null,
@@ -57,6 +56,25 @@ class User extends Authenticatable
     protected $hidden = [
         'refresh_token',
     ];
+
+    /**
+     * The attributes that should be appended to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'image_url',
+    ];
+
+    /**
+     * Get the user's image URL.
+     *
+     * @return string|null
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
 
     /**
      * Get the attributes that should be cast.
