@@ -5,6 +5,7 @@ import Authors from '../pages/Authors.vue'
 import AuthorShow from '../pages/AuthorShow.vue'
 import Categories from '../pages/Categories.vue'
 import Category from '../pages/Category.vue'
+import Profile from '../pages/Profile.vue'
 
 const routes = [
   {
@@ -39,12 +40,34 @@ const routes = [
     name: 'Category',
     component: Category,
     props: true
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true }
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Navigation guard for authenticated routes
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // Check if user is authenticated
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      // Redirect to home page if not authenticated
+      next('/')
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

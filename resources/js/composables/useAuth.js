@@ -22,6 +22,12 @@ const setUser = (userData) => {
     user.value = userData
 }
 
+const updateUser = (userData) => {
+    if (user.value) {
+        user.value = { ...user.value, ...userData }
+    }
+}
+
 const fetchUser = async () => {
     if (!token.value) {
         return null
@@ -151,5 +157,6 @@ export function useAuth() {
         handleLogin,
         getInitials,
         can,
+        updateUser,
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AnswerController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuthorController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -50,6 +51,14 @@ Route::apiResource('categories', CategoryController::class)->scoped(['category' 
 
 // Authors routes
 Route::apiResource('authors', AuthorController::class)->only(['index', 'show']);
+
+// User profile routes
+Route::middleware('auth:sanctum')->prefix('user')->group(function () {
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::get('/stats', [UserController::class, 'stats']);
+    Route::get('/activity', [UserController::class, 'activity']);
+    Route::post('/update-image', [UserController::class, 'updateImage']);
+});
 
 // Dashboard routes
 Route::prefix('dashboard')->group(function () {

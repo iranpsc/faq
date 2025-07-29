@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+
+class UserController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
+
+    /**
+     * Get user statistics
+     */
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+
+        $stats = [
+            'questionsCount' => $user->questions()->count(),
+            'answersCount' => $user->answers()->count(),
+            'commentsCount' => $user->comments()->count(),
+        ];
+
+        return response()->json($stats);
+    }
+
+    /**
+     * Get user recent activity
+     */
+    public function activity(Request $request)
+    {
+        $user = $request->user();
+        $activities = collect();
+
+        // Get recent questions
+        $questions = $user->questions()
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($question) {
+                return [
+                    'id' => 'question_' . $question->id,
+                    'type' => 'question',
+                    'description' => 'سوال جدید: ' . $question->title,
+                    'created_at' => $question->created_at,
+                ];
+            });
+
+        // Get recent answers
+        $answers = $user->answers()
+            ->with('question')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($answer) {
+                return [
+                    'id' => 'answer_' . $answer->id,
+                    'type' => 'answer',
+                    'description' => 'پاسخ جدید به: ' . $answer->question->title,
+                    'created_at' => $answer->created_at,
+                ];
+            });
+
+        // Get recent comments
+        $comments = $user->comments()
+            ->with(['commentable' => function ($morphTo) {
+                $morphTo->morphWith([
+                    'App\Models\Question' => ['title'],
+                    'App\Models\Answer' => ['question:id,title'],
+                ]);
+            }])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($comment) {
+                $title = '';
+                if ($comment->commentable_type === 'App\Models\Question') {
+                    $title = $comment->commentable->title;
+                } elseif ($comment->commentable_type === 'App\Models\Answer' && $comment->commentable->question) {
+                    $title = $comment->commentable->question->title;
+                }
+
+                return [
+                    'id' => 'comment_' . $comment->id,
+                    'type' => 'comment',
+                    'description' => 'دیدگاه جدید در: ' . $title,
+                    'created_at' => $comment->created_at,
+                ];
+            });
+
+        // Merge and sort activities
+        $activities = $activities
+            ->merge($questions)
+            ->merge($answers)
+            ->merge($comments)
+            ->sortByDesc('created_at')
+            ->take(10)
+            ->values();
+
+        return response()->json($activities);
+    }
+
+    /**
+     * Update user profile image
+     */
+    public function updateImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+        ], [
+            'image.required' => 'لطفا یک تصویر انتخاب کنید',
+            'image.image' => 'فایل انتخابی باید یک تصویر باشد',
+            'image.mimes' => 'فرمت تصویر باید از نوع: jpeg, png, jpg, gif باشد',
+            'image.max' => 'حجم تصویر نباید بیشتر از 2 مگابایت باشد',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'خطا در اعتبارسنجی',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        try {
+            // Delete old image if exists
+            if ($user->image && Storage::disk('public')->exists($user->image)) {
+                Storage::disk('public')->delete($user->image);
+            }
+
+            // Process and store new image
+            $image = $request->file('image');
+            $filename = 'avatars/' . $user->id . '_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Store the image
+            $path = $image->storeAs('avatars', $user->id . '_' . time() . '.' . $image->getClientOriginalExtension(), 'public');
+
+            // Update user record
+            $user->update(['image' => $path]);
+
+            return response()->json([
+                'message' => 'تصویر پروفایل با موفقیت بروزرسانی شد',
+                'image_url' => asset('storage/' . $path)
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'خطا در بروزرسانی تصویر پروفایل'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user profile data
+     */
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'mobile' => $user->mobile,
+            'image' => $user->image ? asset('storage/' . $user->image) : null,
+            'score' => $user->score ?? 0,
+            'online' => $user->online ?? false,
+            'created_at' => $user->created_at,
+        ]);
+    }
+}
