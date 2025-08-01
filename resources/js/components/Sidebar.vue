@@ -5,8 +5,8 @@
         <!-- Toggle Button (when collapsed) -->
         <div v-if="!isOpen" class="flex justify-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0 p-2">
             <button @click="$emit('toggle')"
-                class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-300 flex-shrink-0 rotate-180">
-                <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
+                class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 flex-shrink-0 rotate-180">
+                <svg class="rotate-180 w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
@@ -34,8 +34,8 @@
             </div>
             <!-- Toggle Button (when expanded) -->
             <button v-if="isOpen" @click="$emit('toggle')"
-                class="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-300 flex-shrink-0">
-                <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
+                class="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-all duration-300 flex-shrink-0">
+                <svg class="rotate-180  w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
@@ -288,9 +288,9 @@
             </BaseButton>
 
             <!-- Theme Toggle -->
-            <div v-if="isOpen" class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div v-if="isOpen" class="flex bg-gray-100 dark:bg-gray-700 rounded-full p-1">
                 <BaseButton @click="toggleTheme('light')" :variant="theme === 'light' ? 'primary' : 'ghost'" size="sm"
-                    class="flex-1">
+                    class="flex-1 rounded-full">
                     <template #icon>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -300,7 +300,7 @@
                     </template>
                 </BaseButton>
                 <BaseButton @click="toggleTheme('dark')" :variant="theme === 'dark' ? 'primary' : 'ghost'" size="sm"
-                    class="flex-1">
+                    class="flex-1 rounded-full">
                     <template #icon>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

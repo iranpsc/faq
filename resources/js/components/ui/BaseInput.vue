@@ -206,7 +206,7 @@ export default {
     inputClasses() {
       return [
         // Base classes
-        'block w-full transition-all duration-200 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100',
+        'block w-full transition-all border-2 border-gray-300 dark:border-gray-600 duration-200 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100',
 
         // Size classes
         this.sizeClasses,

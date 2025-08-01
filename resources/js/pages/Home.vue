@@ -5,27 +5,26 @@
             <h1 class="text-center">انجمن حم بزرگترین انجمن پرسش و پاسخ ایران</h1>
 
             <div class="relative overflow-hidden rounded-lg shadow-sm">
-                <img
-                    :src="landingImageUrl"
-                    alt="خوش آمدید به سیستم پرسش و پاسخ"
+                <img :src="landingImageUrl" alt="خوش آمدید به سیستم پرسش و پاسخ"
                     class="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
-                    loading="lazy"
-                />
+                    loading="lazy" />
                 <!-- Optional overlay for better text readability if needed -->
-                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
+                </div>
             </div>
         </div>
 
-        <!-- Popular Categories Section -->
-        <PopularCategories :limit="15" @category-click="handleCategoryClick" :selected-category="selectedCategory" />
-
         <div class="max-w-7xl mx-auto">
+            <!-- Popular Categories Section -->
+            <PopularCategories :limit="15" @category-click="handleCategoryClick" :selected-category="selectedCategory"
+                class="mb-6" />
+            <!-- Header -->
+            <FilterQuestion @filters-changed="handleFiltersChanged" />
             <!-- Two Column Layout -->
             <div class="flex gap-6">
                 <!-- Right Content (75% on medium+ screens, 100% on small screens) -->
                 <div class="flex-1 md:w-3/4">
-                    <!-- Header -->
-                    <FilterQuestion @filters-changed="handleFiltersChanged" />
 
                     <!-- Initial Loading State -->
                     <div v-if="isLoading" class="grid grid-cols-1 gap-4">
@@ -90,13 +89,12 @@
             <div v-if="!isLoading && questions.length > 0" class="mt-12">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                        فعال‌ترین کاربران
+                        فعالان انجمن
                     </h2>
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                        </path>
-                    </svg>
+                    <BaseButton class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center"
+                        @click="$router.push('/authors')">
+                        مشاهده بیشتر
+                    </BaseButton>
                 </div>
 
                 <!-- Loading State for Active Users -->
@@ -250,8 +248,8 @@ export default {
             // or if we're sorting by newest first, add the question to the beginning
             const isFirstPage = !pagination.value.meta || pagination.value.meta.current_page === 1
             const isSortedByNewest = !currentFilters.value.sort ||
-                                   (currentFilters.value.sort === 'created_at' &&
-                                    (!currentFilters.value.order || currentFilters.value.order === 'desc'))
+                (currentFilters.value.sort === 'created_at' &&
+                    (!currentFilters.value.order || currentFilters.value.order === 'desc'))
 
             if (isFirstPage && isSortedByNewest) {
                 questions.value.unshift(question)
