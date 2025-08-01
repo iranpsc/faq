@@ -59,7 +59,7 @@
                                     <BaseInput
                                         :modelValue="profileData.name"
                                         disabled
-                                        class="bg-gray-50 dark:bg-gray-700"
+                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700"
                                     />
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         نام کاربری قابل تغییر نیست
@@ -73,7 +73,7 @@
                                     <BaseInput
                                         :modelValue="profileData.email"
                                         disabled
-                                        class="bg-gray-50 dark:bg-gray-700"
+                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700"
                                         type="email"
                                     />
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -88,7 +88,7 @@
                                     <BaseInput
                                         :modelValue="profileData.mobile"
                                         disabled
-                                        class="bg-gray-50 dark:bg-gray-700"
+                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700"
                                         type="tel"
                                     />
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">

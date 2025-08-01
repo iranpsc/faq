@@ -27,10 +27,13 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
+        $user = $request->user();
+
         $query = Question::with('user', 'category')
             ->withCount('votes', 'answers')
-            ->visible($request->user())
-            ->latest();
+            ->visible($user)
+            ->withUserPinStatus($user)
+            ->orderByPinStatus($user);
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
@@ -104,16 +107,46 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
-        $question->increment('views');
-
+        $this->incrementViews($question);
         $user = request()->user();
 
-        // For published questions, anyone can view
-        // For unpublished questions, use policy to check permissions
+        $this->checkQuestionVisibility($question, $user);
+        $this->loadPinStatus($question, $user);
+        $this->loadQuestionRelations($question, $user);
+
+        return new QuestionResource($question);
+    }
+
+    private function incrementViews(Question $question): void
+    {
+        $question->increment('views');
+    }
+
+    private function checkQuestionVisibility(Question $question, $user): void
+    {
         if (!$question->published && (!$user || !$user->can('view', $question))) {
             abort(403, 'You do not have permission to view this question.');
         }
+    }
 
+    private function loadPinStatus(Question $question, $user): void
+    {
+        if (!$user) {
+            return;
+        }
+
+        $questionWithPinStatus = Question::where('questions.id', $question->id)
+            ->withUserPinStatus($user)
+            ->first();
+
+        if ($questionWithPinStatus) {
+            $question->is_pinned_by_user = $questionWithPinStatus->is_pinned_by_user;
+            $question->pinned_at = $questionWithPinStatus->pinned_at;
+        }
+    }
+
+    private function loadQuestionRelations(Question $question, $user): void
+    {
         $question->load([
             'user',
             'category',
@@ -125,8 +158,6 @@ class QuestionController extends Controller
                 $query->visible($user)->with(['user', 'votes']);
             }
         ])->loadCount('votes', 'upVotes', 'downVotes', 'answers');
-
-        return new QuestionResource($question);
     }
 
     /**
@@ -233,6 +264,65 @@ class QuestionController extends Controller
             'upvotes' => $question->upVotes->count(),
             'downvotes' => $question->downVotes->count(),
             'user_vote' => $userVote
+        ]);
+    }
+
+    /**
+     * Pin a question for the authenticated user.
+     */
+    public function pin(Request $request, Question $question)
+    {
+        $user = $request->user();
+
+        // Check if user already pinned this question
+        if ($user->pinnedQuestions()->where('question_id', $question->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما قبلاً این سوال را پین کرده‌اید'
+            ], 409);
+        }
+
+        // Check pin limit (optional: limit to 20 pinned questions per user)
+        if ($user->pinnedQuestions()->count() >= 20) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حداکثر تعداد سوالات پین شده (20 سوال) به حد نصاب رسیده است'
+            ], 422);
+        }
+
+        $user->pinnedQuestions()->attach($question->id, [
+            'pinned_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'سوال با موفقیت پین شد',
+            'is_pinned_by_user' => true,
+            'pinned_at' => now()->toISOString()
+        ]);
+    }
+
+    /**
+     * Unpin a question for the authenticated user.
+     */
+    public function unpin(Request $request, Question $question)
+    {
+        $user = $request->user();
+
+        if (!$user->pinnedQuestions()->where('question_id', $question->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'این سوال پین نشده است'
+            ], 404);
+        }
+
+        $user->pinnedQuestions()->detach($question->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'پین سوال برداشته شد',
+            'is_pinned_by_user' => false,
+            'pinned_at' => null
         ]);
     }
 

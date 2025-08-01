@@ -80,6 +80,30 @@
                     <span class="hidden sm:inline">ویرایش</span>
                 </button>
 
+                <!-- Pin Toggle -->
+                <button v-if="user" @click="togglePin" :disabled="pinLoading"
+                    :class="[
+                        'flex items-center gap-1 transition-colors whitespace-nowrap',
+                        question.is_pinned_by_user
+                            ? 'text-yellow-600 hover:text-gray-500'  // Changed hover color for unpin state
+                            : 'text-gray-500 hover:text-yellow-600',
+                        pinLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    ]"
+                    :title="question.is_pinned_by_user ? 'برداشتن پین' : 'پین کردن سوال'">
+                    <svg v-if="!pinLoading" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <!-- Use different icon for pinned/unpinned states -->
+                        <path v-if="question.is_pinned_by_user" d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path>
+                        <path v-else d="M4 3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H4zm5.293 6.707a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1-1.414 1.414L10 11.828l-2.293 2.293a1 1 0 0 1-1.414-1.414l3-3z"></path>
+                    </svg>
+                    <svg v-else class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">
+                        {{ pinLoading ? 'در حال پردازش...' : (question.is_pinned_by_user ? 'برداشتن پین' : 'پین کردن') }}
+                    </span>
+                </button>
+
                 <!-- Delete -->
                 <button v-if="canDelete"
                     class="flex items-center gap-1 hover:text-red-600 transition-colors whitespace-nowrap"
@@ -141,7 +165,7 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, ref, getCurrentInstance } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import VoteButtons from '../ui/VoteButtons.vue'
 import { BaseAvatar } from '../ui'
@@ -158,10 +182,16 @@ export default {
             required: true
         }
     },
-    emits: ['edit', 'delete', 'vote', 'vote-changed', 'question-published'],
+    emits: ['edit', 'delete', 'vote', 'vote-changed', 'question-published', 'pin-changed'],
     setup(props, { emit }) {
         const { user, can } = useAuth()
         const isPublishing = ref(false)
+        const pinLoading = ref(false)
+
+        // Get the current instance to access global properties
+        const instance = getCurrentInstance()
+        const $axios = instance?.appContext.config.globalProperties.$axios
+        const $swal = instance?.appContext.config.globalProperties.$swal
 
         const canEdit = computed(() => {
             // Use the permissions from the API response
@@ -200,7 +230,7 @@ export default {
             try {
                 isPublishing.value = true
 
-                const response = await window.$axios.post(`/api/questions/${props.question.id}/publish`)
+                const response = await $axios.post(`/api/questions/${props.question.id}/publish`)
 
                 // Update the question object
                 props.question.published = true
@@ -209,35 +239,106 @@ export default {
                 emit('question-published', props.question)
 
                 // Show success message
-                window.$swal.fire({
-                    title: 'موفق!',
-                    text: 'سوال با موفقیت منتشر شد.',
-                    icon: 'success',
-                    timer: 3000,
-                    showConfirmButton: false
-                })
+                if ($swal) {
+                    $swal.fire({
+                        title: 'موفق!',
+                        text: 'سوال با موفقیت منتشر شد.',
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false
+                    })
+                }
 
             } catch (error) {
                 console.error('Error publishing question:', error)
-                window.$swal.fire({
-                    title: 'خطا!',
-                    text: error.response?.data?.message || 'خطا در انتشار سوال',
-                    icon: 'error'
-                })
+                if ($swal) {
+                    $swal.fire({
+                        title: 'خطا!',
+                        text: error.response?.data?.message || 'خطا در انتشار سوال',
+                        icon: 'error'
+                    })
+                }
             } finally {
                 isPublishing.value = false
             }
         }
 
+        const togglePin = async () => {
+            if (pinLoading.value || !user.value) return
+
+            pinLoading.value = true
+
+            try {
+                const url = `/api/questions/${props.question.id}/pin`
+                let response
+
+                if (props.question.is_pinned_by_user) {
+                    // Unpin the question
+                    response = await $axios.delete(url)
+                } else {
+                    // Pin the question
+                    response = await $axios.post(url)
+                }
+
+                if (response.data.success) {
+                    // Update the question object
+                    props.question.is_pinned_by_user = response.data.is_pinned_by_user
+                    props.question.pinned_at = response.data.pinned_at
+
+                    // Emit event to parent
+                    emit('pin-changed', {
+                        questionId: props.question.id,
+                        isPinned: props.question.is_pinned_by_user,
+                        pinnedAt: props.question.pinned_at
+                    })
+
+                    // Show success message
+                    if ($swal) {
+                        $swal.fire({
+                            title: 'موفق!',
+                            text: response.data.message,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        })
+                    }
+                } else {
+                    throw new Error(response.data.message || 'خطا در تغییر وضعیت پین')
+                }
+            } catch (error) {
+                console.error('Error toggling pin:', error)
+
+                let errorMessage = 'خطا در تغییر وضعیت پین'
+                if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message
+                } else if (error.message) {
+                    errorMessage = error.message
+                }
+
+                if ($swal) {
+                    $swal.fire({
+                        title: 'خطا!',
+                        text: errorMessage,
+                        icon: 'error'
+                    })
+                }
+            } finally {
+                pinLoading.value = false
+            }
+        }
+
         return {
+            user,
             canEdit,
             canDelete,
             isPublishing,
+            pinLoading,
             formatNumber,
             formatDate,
             handleVote,
             handleVoteChanged,
-            publishQuestion
+            publishQuestion,
+            togglePin
         }
     }
 }

@@ -83,7 +83,11 @@
                             <router-link
                                 to="/profile"
                                 @click="closeUserDropdown"
-                                class="dropdown-item flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                class="dropdown-item flex items-center gap-3 px-4 py-2 text-sm rounded-lg transition-colors"
+                                :class="{
+                                    'text-gray-700 hover:bg-gray-100': theme === 'light',
+                                    'text-gray-300 hover:bg-gray-700': theme === 'dark'
+                                }"
                                 role="menuitem"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

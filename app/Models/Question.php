@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Question extends Model
 {
@@ -149,6 +149,18 @@ class Question extends Model
     }
 
     /**
+     * Get the users who have pinned this question.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function pinnedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_pinned_questions')
+            ->withTimestamps()
+            ->withPivot('pinned_at');
+    }
+
+    /**
      * Get all of the question's verifications.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany
@@ -178,7 +190,7 @@ class Question extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('published', true);
+        return $query->where('questions.published', true);
     }
 
     /**
@@ -200,14 +212,57 @@ class Question extends Model
         // 2. Their own unpublished questions
         // 3. Unpublished questions from users with lower level
         return $query->where(function ($q) use ($user) {
-            $q->where('published', true)
-              ->orWhere('user_id', $user->id)
+            $q->where('questions.published', true)
+              ->orWhere('questions.user_id', $user->id)
               ->orWhere(function ($subQuery) use ($user) {
-                  $subQuery->where('published', false)
+                  $subQuery->where('questions.published', false)
                            ->whereHas('user', function ($userQuery) use ($user) {
                                $userQuery->where('level', '<', $user->level);
                            });
               });
         });
+    }
+
+    /**
+     * Scope a query to get questions with user's pin status.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User|null $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithUserPinStatus($query, ?User $user)
+    {
+        if (!$user) {
+            return $query->addSelect([
+                DB::raw('false as is_pinned_by_user'),
+                DB::raw('null as pinned_at')
+            ]);
+        }
+
+        return $query->leftJoin('user_pinned_questions', function ($join) use ($user) {
+            $join->on('questions.id', '=', 'user_pinned_questions.question_id')
+                 ->where('user_pinned_questions.user_id', '=', $user->id);
+        })->addSelect([
+            DB::raw('CASE WHEN user_pinned_questions.id IS NOT NULL THEN 1 ELSE 0 END as is_pinned_by_user'),
+            'user_pinned_questions.pinned_at as pinned_at'
+        ]);
+    }
+
+    /**
+     * Scope a query to order questions with pinned ones first.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User|null $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOrderByPinStatus($query, ?User $user)
+    {
+        if (!$user) {
+            return $query->latest('questions.created_at');
+        }
+
+        return $query->orderByRaw('is_pinned_by_user DESC')
+                    ->orderByRaw('CASE WHEN is_pinned_by_user = 1 THEN user_pinned_questions.pinned_at END DESC')
+                    ->orderBy('questions.created_at', 'desc');
     }
 }

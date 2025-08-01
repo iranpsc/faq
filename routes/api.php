@@ -37,6 +37,8 @@ Route::get('categories/popular', [CategoryController::class, 'popular']);
 
 Route::post('questions/{question}/vote', [QuestionController::class, 'vote']);
 Route::post('questions/{question}/publish', [QuestionController::class, 'publish']);
+Route::post('questions/{question}/pin', [QuestionController::class, 'pin']);
+Route::delete('questions/{question}/pin', [QuestionController::class, 'unpin']);
 
 Route::apiResource('tags', TagController::class)->only(['index']);
 

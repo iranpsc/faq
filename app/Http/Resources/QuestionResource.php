@@ -42,6 +42,8 @@ class QuestionResource extends JsonResource
             ],
             'views' => $this->views,
             'is_solved' => $this->isSolved(),
+            'is_pinned_by_user' => (bool) ($this->is_pinned_by_user ?? false),
+            'pinned_at' => $this->pinned_at ? $this->pinned_at : null,
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
             'comments' => \App\Http\Resources\CommentResource::collection($this->whenLoaded('comments')),
             'can' => [

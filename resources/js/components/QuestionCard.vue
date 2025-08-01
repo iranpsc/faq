@@ -1,17 +1,35 @@
 <template>
-    <BaseCard variant="bordered" class="mb-4 hover:shadow-md transition-all duration-300">
+    <BaseCard variant="bordered"
+        :class="[
+            'mb-4 hover:shadow-md transition-all duration-300',
+            question.is_pinned_by_user ? 'bg-green-250 dark:bg-green-900/20 border-green-200 dark:border-green-800' : ''
+        ]">
         <div class="p-6">
-            <!-- Section 1: Category (right), Creation Date (left) -->
+            <!-- Section 1: Category and Pin Badge (right), Creation Date and Pin Button (left) -->
             <div class="flex items-center justify-between mb-2">
-                <div>
+                <div class="flex items-center gap-2">
+                    <!-- Category Badge -->
                     <BaseBadge v-if="question.category"
                         size="lg"
                         class="cursor-pointer hover:-translate-y-0.5 transition-all duration-200 px-8 py-1 border-2 border-gray-400 dark:border-gray-200">
                         {{ question.category.name }}
                     </BaseBadge>
+                      <!-- Pin Badge -->
+                    <BaseBadge v-if="question.is_pinned_by_user"
+                        variant="success"
+                        size="sm"
+                        class="flex items-center gap-1 px-8 py-2 border-2 border-green-400 dark:border-green-200">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 2a1.5 1.5 0 0 0-1.415.996l-.346 1.039a4 4 0 0 1-1.905 2.53l-.346.17a.5.5 0 0 0-.297.642l.774 2.316a.5.5 0 0 0 .475.354h2.064l1.173 3.52a.5.5 0 0 0 .95 0L10.346 10h-.346z"></path>
+                        </svg>
+                        پین شده
+                    </BaseBadge>
                 </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ formatDate(question.created_at) }}
+                <div class="flex items-center gap-3">
+                    <!-- Creation Date -->
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ formatDate(question.created_at) }}
+                    </div>
                 </div>
             </div>
 

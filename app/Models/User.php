@@ -179,4 +179,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(Verification::class);
     }
+
+    /**
+     * Get the questions pinned by this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function pinnedQuestions()
+    {
+        return $this->belongsToMany(Question::class, 'user_pinned_questions')
+            ->withTimestamps()
+            ->withPivot('pinned_at')
+            ->orderByPivot('pinned_at', 'desc');
+    }
 }
