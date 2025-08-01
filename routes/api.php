@@ -36,14 +36,17 @@ Route::apiResource('questions', QuestionController::class);
 Route::get('categories/popular', [CategoryController::class, 'popular']);
 
 Route::post('questions/{question}/vote', [QuestionController::class, 'vote']);
+Route::post('questions/{question}/publish', [QuestionController::class, 'publish']);
 
 Route::apiResource('tags', TagController::class)->only(['index']);
 
-Route::apiResource('questions.answers', AnswerController::class)->shallow()->only(['store', 'update', 'destroy']);
+Route::apiResource('questions.answers', AnswerController::class)->shallow()->only(['index', 'store', 'update', 'destroy']);
+Route::post('answers/{answer}/publish', [AnswerController::class, 'publish']);
 Route::apiResource('questions.comments', CommentController::class)->shallow()->only(['index', 'store']);
 Route::apiResource('answers.comments', CommentController::class)->shallow()->only(['index', 'store']);
 Route::apiResource('comments', CommentController::class)->shallow()->only(['update', 'destroy']);
 Route::post('comments/{comment}/vote', [CommentController::class, 'vote']);
+Route::post('comments/{comment}/publish', [CommentController::class, 'publish']);
 Route::post('answers/{answer}/vote', [AnswerController::class, 'vote']);
 
 Route::get('categories/{category:slug}/questions', [CategoryController::class, 'questions']);

@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Ybazli\Faker\Facades\Faker;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Category>
@@ -18,13 +17,13 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(2, true);
+        $name = $this->faker->unique()->words(2, true);
 
         return [
-            'name' => Faker::word(),
+            'name' => $name,
             'slug' => Str::slug($name),
             'parent_id' => null,
-            'last_activity' => fake()->dateTime(),
+            'last_activity' => $this->faker->dateTime(),
         ];
     }
 

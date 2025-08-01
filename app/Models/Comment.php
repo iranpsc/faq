@@ -73,4 +73,45 @@ class Comment extends Model
     {
         return $this->morphMany(Vote::class, 'votable');
     }
+
+    /**
+     * Scope a query to include only published comments.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('published', true);
+    }
+
+    /**
+     * Scope a query to include visible comments based on user authentication and level.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User|null $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeVisible($query, ?User $user)
+    {
+        // If user is not authenticated, only show published comments
+        if (!$user) {
+            return $query->published();
+        }
+
+        // For authenticated users, show:
+        // 1. All published comments
+        // 2. Their own unpublished comments
+        // 3. Unpublished comments from users with lower level
+        return $query->where(function ($q) use ($user) {
+            $q->published()
+              ->orWhere('user_id', $user->id)
+              ->orWhere(function ($subQuery) use ($user) {
+                  $subQuery->where('published', false)
+                           ->whereHas('user', function ($userQuery) use ($user) {
+                               $userQuery->where('level', '<', $user->level);
+                           });
+              });
+        });
+    }
 }

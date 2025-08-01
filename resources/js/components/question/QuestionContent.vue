@@ -109,6 +109,28 @@
           <span class="hidden sm:inline">حذف</span>
         </button>
 
+        <!-- Publish Status and Button -->
+        <div v-if="!question.published" class="flex items-center gap-2">
+          <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs rounded-full">
+            منتشر نشده
+          </span>
+          <button
+            v-if="question.can?.publish"
+            @click="publishQuestion"
+            :disabled="isPublishing"
+            class="flex items-center gap-1 hover:text-green-600 transition-colors whitespace-nowrap disabled:opacity-50"
+          >
+            <svg v-if="!isPublishing" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <svg v-else class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="hidden sm:inline">{{ isPublishing ? 'در حال انتشار...' : 'انتشار' }}</span>
+          </button>
+        </div>
+
         <!-- Solved indicator -->
         <div v-if="question.is_solved" class="flex items-center gap-1 text-green-600 whitespace-nowrap">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,7 +148,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import VoteButtons from '../ui/VoteButtons.vue'
 import { BaseAvatar } from '../ui'
@@ -143,9 +165,10 @@ export default {
       required: true
     }
   },
-  emits: ['edit', 'delete', 'vote', 'vote-changed'],
+  emits: ['edit', 'delete', 'vote', 'vote-changed', 'question-published'],
   setup(props, { emit }) {
     const { user, can } = useAuth()
+    const isPublishing = ref(false)
 
     const canEdit = computed(() => {
       // Use the permissions from the API response
@@ -178,13 +201,50 @@ export default {
       emit('vote-changed', voteData)
     }
 
+    const publishQuestion = async () => {
+      if (isPublishing.value) return
+
+      try {
+        isPublishing.value = true
+
+        const response = await window.$axios.post(`/api/questions/${props.question.id}/publish`)
+
+        // Update the question object
+        props.question.published = true
+
+        // Emit event to parent
+        emit('question-published', props.question)
+
+        // Show success message
+        window.$swal.fire({
+          title: 'موفق!',
+          text: 'سوال با موفقیت منتشر شد.',
+          icon: 'success',
+          timer: 3000,
+          showConfirmButton: false
+        })
+
+      } catch (error) {
+        console.error('Error publishing question:', error)
+        window.$swal.fire({
+          title: 'خطا!',
+          text: error.response?.data?.message || 'خطا در انتشار سوال',
+          icon: 'error'
+        })
+      } finally {
+        isPublishing.value = false
+      }
+    }
+
     return {
       canEdit,
       canDelete,
+      isPublishing,
       formatNumber,
       formatDate,
       handleVote,
-      handleVoteChanged
+      handleVoteChanged,
+      publishQuestion
     }
   }
 }

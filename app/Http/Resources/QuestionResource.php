@@ -26,6 +26,10 @@ class QuestionResource extends JsonResource
             'title' => $this->title,
             'content' => $this->content,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'published' => $this->published,
+            'published_at' => $this->published_at,
+            'published_by' => $this->published_by,
             'user' => new UserResource($this->whenLoaded('user')),
             'category' => new CategoryResource($this->whenLoaded('category')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
@@ -39,6 +43,7 @@ class QuestionResource extends JsonResource
             'views' => $this->views,
             'is_solved' => $this->isSolved(),
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
+            'comments' => \App\Http\Resources\CommentResource::collection($this->whenLoaded('comments')),
             'can' => [
                 'view' => $request->user()?->can('view', $this->resource) ?? false,
                 'publish' => $request->user()?->can('publish', $this->resource) ?? false,

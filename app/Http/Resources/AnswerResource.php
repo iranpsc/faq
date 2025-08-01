@@ -34,6 +34,7 @@ class AnswerResource extends JsonResource
             'can' => [
                 'update' => $request->user()?->can('update', $this->resource) ?? false,
                 'delete' => $request->user()?->can('delete', $this->resource) ?? false,
+                'publish' => $request->user()?->can('publish', $this->resource) ?? false,
             ],
             'comments' => $this->whenLoaded('comments') ? CommentResource::collection($this->comments) : [],
         ];

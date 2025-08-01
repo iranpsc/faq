@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Ybazli\Faker\Facades\Faker;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Question>
@@ -22,15 +21,31 @@ class QuestionFactory extends Factory
         return [
             'category_id' => Category::factory(),
             'user_id' => User::factory(),
-            'title' => Faker::sentence(),
-            'content' => Faker::paragraph(3, true),
-            'pinned' => fake()->boolean(10), // 10% chance of being pinned
-            'featured' => fake()->boolean(5), // 5% chance of being featured
-            'last_activity' => fake()->dateTime(),
-            'views' => fake()->numberBetween(0, 1000),
-            'published' => true, // Default to published for tests
-            'published_at' => now(), // Set to current time for tests
-            'published_by' => User::factory(),
+            'title' => $this->faker->sentence(),
+            'content' => $this->faker->paragraph(3, true),
+            'pinned' => $this->faker->boolean(10), // 10% chance of being pinned
+            'featured' => $this->faker->boolean(5), // 5% chance of being featured
+            'last_activity' => $this->faker->dateTime(),
+            'views' => $this->faker->numberBetween(0, 1000),
+            'published' => false, // Default to unpublished for tests
+            'published_at' => null, // Set to null for unpublished questions
+            'published_by' => null, // Set to null for unpublished questions
         ];
+    }
+
+    /**
+     * Indicate that the question is published.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    public function published()
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'published' => true,
+                'published_at' => now(),
+                'published_by' => User::factory(),
+            ];
+        });
     }
 }

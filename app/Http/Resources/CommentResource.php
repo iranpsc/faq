@@ -26,6 +26,9 @@ class CommentResource extends JsonResource
         return [
             'id' => $this->id,
             'content' => $this->content,
+            'published' => $this->published,
+            'published_at' => $this->published_at,
+            'published_by' => $this->published_by,
             'user' => new UserResource($this->whenLoaded('user')),
             'created_at' => $this->created_at->diffForHumans(),
             'updated_at' => $this->updated_at->diffForHumans(),
@@ -38,6 +41,7 @@ class CommentResource extends JsonResource
             'can' => [
                 'update' => $request->user() ? $request->user()->can('update', $this->resource) : false,
                 'delete' => $request->user() ? $request->user()->can('delete', $this->resource) : false,
+                'publish' => $request->user() ? $request->user()->can('publish', $this->resource) : false,
             ],
         ];
     }

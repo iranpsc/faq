@@ -67,4 +67,22 @@ class CommentPolicy
     {
         return $comment->user->is($user) || $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can publish the model.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Comment  $comment
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+    public function publish(User $user, Comment $comment)
+    {
+        // Cannot publish if already published
+        if ($comment->published) {
+            return false;
+        }
+
+        // Higher level users can publish comments from lower level users
+        return $user->level > $comment->user->level;
+    }
 }

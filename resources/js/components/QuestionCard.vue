@@ -30,6 +30,20 @@
               >
                 {{ question.category.name }}
               </BaseBadge>
+              <BaseBadge
+                v-if="!question.published"
+                variant="warning"
+                size="sm"
+              >
+                منتشر نشده
+              </BaseBadge>
+              <button
+                v-if="question.can?.publish"
+                @click.stop="publishQuestion"
+                class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              >
+                انتشار
+              </button>
             </div>
           </div>
 
@@ -85,10 +99,7 @@ export default {
       required: true
     }
   },
-  emits: ['click'],
-  computed: {
-    //
-  },
+  emits: ['click', 'published'],
   methods: {
     formatDate(dateString) {
       const date = new Date(dateString)
@@ -124,6 +135,36 @@ export default {
       // Rotate through different variants based on category ID
       const variants = ['primary', 'success', 'warning', 'info', 'secondary']
       return variants[categoryId % variants.length]
+    },
+    async publishQuestion() {
+      try {
+        const response = await this.$axios.post(`/api/questions/${this.question.id}/publish`)
+        if (response.data.success) {
+          // Update the question object to reflect published status
+          this.question.published = true
+          this.question.published_at = new Date().toISOString()
+          // Remove the publish permission since item is now published
+          if (this.question.can) {
+            this.question.can.publish = false
+          }
+          this.$emit('published', this.question)
+          // Show success message
+          this.$swal({
+            title: 'موفق',
+            text: response.data.message || 'سوال با موفقیت منتشر شد',
+            icon: 'success',
+            confirmButtonText: 'باشه'
+          })
+        }
+      } catch (error) {
+        console.error('Error publishing question:', error)
+        this.$swal({
+          title: 'خطا',
+          text: 'خطا در انتشار سوال',
+          icon: 'error',
+          confirmButtonText: 'باشه'
+        })
+      }
     }
   }
 }

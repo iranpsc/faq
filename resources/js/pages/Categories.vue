@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Categories</h1>
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">دسته بندی ها</h1>
         <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <div v-for="n in 8" :key="n" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 animate-pulse">
                 <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>

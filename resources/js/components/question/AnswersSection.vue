@@ -112,6 +112,15 @@
         <div class="bg-gray-50 dark:bg-gray-700/50 px-4 sm:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="flex items-center gap-2 sm:gap-6 flex-wrap">
             <span v-if="answer.is_solution || answer.is_best" class="text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">تایید شده</span>
+            <span v-if="!answer.published" class="text-sm font-medium text-yellow-600 dark:text-yellow-400 whitespace-nowrap">منتشر نشده</span>
+            <button
+              v-if="answer.can?.publish"
+              @click="publishAnswer(answer)"
+              :disabled="isPublishingAnswer === answer.id"
+              class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
+            >
+              {{ isPublishingAnswer === answer.id ? 'در حال انتشار...' : 'انتشار' }}
+            </button>
             <button
               v-if="canUpdate(answer)"
               @click="startEdit(answer)"
@@ -199,6 +208,7 @@ export default {
     const editingAnswer = ref(null)
     const editContent = ref('')
     const componentKey = ref(0)
+    const isPublishingAnswer = ref(null)
 
     // Sort answers by vote score and best answer
     const sortedAnswers = computed(() => {
@@ -395,6 +405,56 @@ export default {
       componentKey.value = Date.now()
     }
 
+    const publishAnswer = async (answer) => {
+      isPublishingAnswer.value = answer.id
+
+      try {
+        const response = await window.axios.post(`/api/answers/${answer.id}/publish`)
+
+        if (response.data.success) {
+          // Update the answer object
+          const answerIndex = props.answers.findIndex(a => a.id === answer.id)
+          if (answerIndex !== -1) {
+            props.answers[answerIndex].published = true
+            props.answers[answerIndex].published_at = new Date().toISOString()
+            // Remove publish permission
+            if (props.answers[answerIndex].can) {
+              props.answers[answerIndex].can.publish = false
+            }
+          }
+
+          // Show success message
+          const Swal = window.Swal || window.$swal;
+          if (Swal) {
+            Swal.fire({
+              title: 'موفقیت!',
+              text: response.data.message || 'پاسخ با موفقیت منتشر شد',
+              icon: 'success',
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error publishing answer:', error)
+
+        // Show error message
+        const Swal = window.Swal || window.$swal;
+        if (Swal) {
+          Swal.fire({
+            title: 'خطا!',
+            text: 'خطا در انتشار پاسخ',
+            icon: 'error',
+            confirmButtonText: 'باشه'
+          });
+        }
+      } finally {
+        isPublishingAnswer.value = null
+      }
+    }
+
     // Watch for changes in answers and update component key
     watch(() => props.answers, () => {
       componentKey.value = Date.now()
@@ -406,6 +466,7 @@ export default {
       isSubmittingAnswer,
       isUpdatingAnswer,
       isDeletingAnswer,
+      isPublishingAnswer,
       editingAnswer,
       editContent,
       componentKey,
@@ -415,6 +476,7 @@ export default {
       cancelEdit,
       saveEdit,
       deleteAnswerAction,
+      publishAnswer,
       handleAnswerVoteChanged,
       handleAnswerCommentAdded,
       canUpdate,

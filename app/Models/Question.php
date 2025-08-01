@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Question extends Model
 {
@@ -35,7 +36,7 @@ class Question extends Model
     protected $attributes = [
         'pinned' => false,
         'featured' => false,
-        'published' => true,
+        'published' => false,
         'last_activity' => null,
         'published_at' => null,
         'published_by' => null
@@ -178,5 +179,35 @@ class Question extends Model
     public function scopePublished($query)
     {
         return $query->where('published', true);
+    }
+
+    /**
+     * Scope a query to include visible questions based on user authentication and level.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User|null $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeVisible($query, ?User $user)
+    {
+        // If user is not authenticated, only show published questions
+        if (!$user) {
+            return $query->published();
+        }
+
+        // For authenticated users, show:
+        // 1. All published questions
+        // 2. Their own unpublished questions
+        // 3. Unpublished questions from users with lower level
+        return $query->where(function ($q) use ($user) {
+            $q->where('published', true)
+              ->orWhere('user_id', $user->id)
+              ->orWhere(function ($subQuery) use ($user) {
+                  $subQuery->where('published', false)
+                           ->whereHas('user', function ($userQuery) use ($user) {
+                               $userQuery->where('level', '<', $user->level);
+                           });
+              });
+        });
     }
 }

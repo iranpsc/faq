@@ -14,7 +14,28 @@ class AnswerController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+        $this->middleware('auth:sanctum')->except(['index']);
+        $this->middleware('auth.optional')->only(['index']);
+
+        $this->authorizeResource(Answer::class, 'answer', [
+            'except' => ['index', 'store']
+        ]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request, Question $question)
+    {
+        $user = $request->user();
+
+        $answers = $question->answers()
+            ->with('user', 'votes')
+            ->visible($user)
+            ->latest()
+            ->paginate(10);
+
+        return AnswerResource::collection($answers);
     }
 
     /**
@@ -25,6 +46,7 @@ class AnswerController extends Controller
         $answer = $question->answers()->create([
             'user_id' => $request->user()->id,
             'content' => $request->content,
+            'published' => false, // All answers are unpublished by default
         ]);
 
         $request->user()->increment('score', 5); // Increment score for answering
@@ -37,8 +59,6 @@ class AnswerController extends Controller
      */
     public function update(UpdateAnswerRequest $request, Answer $answer)
     {
-        $this->authorize('update', $answer);
-
         $answer->update($request->validated());
 
         return new AnswerResource($answer);
@@ -49,11 +69,34 @@ class AnswerController extends Controller
      */
     public function destroy(Answer $answer)
     {
-        $this->authorize('delete', $answer);
-
         $answer->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Publish an answer.
+     */
+    public function publish(Request $request, Answer $answer)
+    {
+        $this->authorize('publish', $answer);
+
+        $user = $request->user();
+
+        $answer->update([
+            'published' => true,
+            'published_at' => now(),
+            'published_by' => $user->id,
+        ]);
+
+        // Award 3 points for publishing an answer
+        $user->increment('score', 3);
+
+        return response()->json([
+            'success' => true,
+            'data' => new AnswerResource($answer),
+            'message' => 'پاسخ با موفقیت منتشر شد'
+        ]);
     }
 
     /**

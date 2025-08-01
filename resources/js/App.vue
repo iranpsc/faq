@@ -54,7 +54,7 @@ export default {
     },
     setup() {
         const { isDark, theme, setTheme, initializeTheme, setupSystemThemeListener } = useTheme();
-        const { isAuthenticated, initializeAuth } = useAuth();
+        const { isAuthenticated } = useAuth();
         const showQuestionModal = ref(false);
         const questionToEdit = ref(null);
         const mainContentRef = ref(null);
@@ -133,9 +133,6 @@ export default {
             // Initialize theme system
             initializeTheme();
             cleanupThemeListener.value = setupSystemThemeListener();
-
-            // Initialize authentication
-            await initializeAuth();
 
             // Set initial sidebar state based on screen size
             handleResize();

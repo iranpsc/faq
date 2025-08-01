@@ -33,4 +33,22 @@ class AnswerPolicy
     {
         return $answer->user->is($user) || $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can publish the model.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Answer  $answer
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+    public function publish(User $user, Answer $answer)
+    {
+        // Cannot publish if already published
+        if ($answer->published) {
+            return false;
+        }
+
+        // Higher level users can publish answers from lower level users
+        return $user->level > $answer->user->level;
+    }
 }

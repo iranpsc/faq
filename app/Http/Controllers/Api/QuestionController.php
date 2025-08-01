@@ -3,22 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\StoreQuestionRequest;
 
 class QuestionController extends Controller
 {
     public function __construct()
     {
+        $this->middleware('auth.optional')->only(['search', 'index', 'show']);
         $this->middleware('auth:sanctum')->except(['search', 'index', 'show']);
 
-        $this->middleware('auth.optional')->only(['search', 'index', 'show']);
-
         $this->authorizeResource(Question::class, 'question', [
-            'except' => ['search']
+            'except' => ['search', 'index', 'show']
         ]);
     }
 
@@ -29,6 +29,7 @@ class QuestionController extends Controller
     {
         $query = Question::with('user', 'category')
             ->withCount('votes', 'answers')
+            ->visible($request->user())
             ->latest();
 
         if ($request->filled('category_id')) {
@@ -69,10 +70,11 @@ class QuestionController extends Controller
      */
     public function store(StoreQuestionRequest $request)
     {
+        $user = $request->user();
 
         $question = Question::create([
             'category_id' => $request->category_id,
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'title' => $request->title,
             'content' => $request->content,
         ]);
@@ -81,15 +83,19 @@ class QuestionController extends Controller
 
         $question->tags()->sync($tagIds);
 
-        if ($request->user()->can('publish', $question)) {
+        // Auto-publish for users with level >= 2
+        if ($user->level >= 2) {
             $question->update([
                 'published' => true,
                 'published_at' => now(),
-                'published_by' => $request->user()->id,
+                'published_by' => $user->id,
             ]);
+
+            // Award 2 points for publishing a question
+            $user->increment('score', 2);
         }
 
-        $question->load('user', 'category', 'upVotes', 'downVotes');
+        $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
 
         return new QuestionResource($question);
     }
@@ -101,14 +107,20 @@ class QuestionController extends Controller
     {
         $question->increment('views');
 
+        $user = request()->user();
+
+        abort_if(!$user?->can('view', $question), 403, 'You do not have permission to view this question.');
+
         $question->load([
             'user',
             'category',
             'tags',
             'upVotes',
             'downVotes',
-            'answers.user',
-            'answers.votes'
+            'comments',
+            'answers' => function ($query) use ($user) {
+                $query->visible($user)->with(['user', 'votes']);
+            }
         ])->loadCount('votes', 'upVotes', 'downVotes', 'answers');
 
         return new QuestionResource($question);
@@ -141,6 +153,33 @@ class QuestionController extends Controller
         $question->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Publish a question.
+     */
+    public function publish(Request $request, Question $question)
+    {
+        $this->authorize('publish', $question);
+
+        $user = $request->user();
+
+        $question->update([
+            'published' => true,
+            'published_at' => now(),
+            'published_by' => $user->id,
+        ]);
+
+        // Award 2 points for publishing a question
+        $user->increment('score', 2);
+
+        $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
+
+        return response()->json([
+            'success' => true,
+            'data' => new QuestionResource($question),
+            'message' => 'سوال با موفقیت منتشر شد'
+        ]);
     }
 
     /**

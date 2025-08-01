@@ -17,27 +17,30 @@ class CommentController extends Controller
     public function __construct()
     {
         $this->middleware('auth:sanctum')->except(['index', 'show']);
+        $this->middleware('auth.optional')->only(['index', 'show']);
 
         $this->authorizeResource(Comment::class, 'comment', [
-            'except' => ['index', 'show']
+            'except' => ['index']
         ]);
     }
 
-    public function index($parent, $parentId = null)
+    public function index(Request $request, $parent, $parentId = null)
     {
+        $user = $request->user();
+
         // Handle both question comments and answer comments
         if ($parent instanceof Question) {
-            $comments = $parent->comments()->with('user', 'votes')->latest()->paginate(10);
+            $comments = $parent->comments()->visible($user)->with('user', 'votes')->latest()->paginate(10);
         } elseif ($parent instanceof Answer) {
-            $comments = $parent->comments()->with('user', 'votes')->latest()->paginate(10);
+            $comments = $parent->comments()->visible($user)->with('user', 'votes')->latest()->paginate(10);
         } else {
             // Legacy route binding - determine parent type
             if (request()->route()->getName() === 'questions.comments.index') {
                 $question = Question::findOrFail($parent);
-                $comments = $question->comments()->with('user', 'votes')->latest()->paginate(10);
+                $comments = $question->comments()->visible($user)->with('user', 'votes')->latest()->paginate(10);
             } elseif (request()->route()->getName() === 'answers.comments.index') {
                 $answer = Answer::findOrFail($parent);
-                $comments = $answer->comments()->with('user', 'votes')->latest()->paginate(10);
+                $comments = $answer->comments()->visible($user)->with('user', 'votes')->latest()->paginate(10);
             }
         }
 
@@ -46,36 +49,43 @@ class CommentController extends Controller
 
     public function store(StoreCommentRequest $request, $parent)
     {
+        $this->authorize('create', [Comment::class, $parent]);
+
+        $user = $request->user();
+        $commentData = [
+            'user_id' => $user->id,
+            'content' => $request->content,
+        ];
+
+        // Auto-publish for users with level >= 2
+        if ($user->level >= 2) {
+            $commentData['published'] = true;
+            $commentData['published_at'] = now();
+            $commentData['published_by'] = $user->id;
+        } else {
+            $commentData['published'] = false;
+        }
+
         // Handle both question comments and answer comments
         if ($parent instanceof Question) {
-            $comment = $parent->comments()->create([
-                'user_id' => $request->user()->id,
-                'content' => $request->content,
-            ]);
+            $comment = $parent->comments()->create($commentData);
         } elseif ($parent instanceof Answer) {
-            $comment = $parent->comments()->create([
-                'user_id' => $request->user()->id,
-                'content' => $request->content,
-            ]);
+            $comment = $parent->comments()->create($commentData);
         } else {
             // Legacy route binding - determine parent type
             if (request()->route()->getName() === 'questions.comments.store') {
                 $question = Question::findOrFail($parent);
-                $comment = $question->comments()->create([
-                    'user_id' => $request->user()->id,
-                    'content' => $request->content,
-                ]);
+                $comment = $question->comments()->create($commentData);
             } elseif (request()->route()->getName() === 'answers.comments.store') {
                 $answer = Answer::findOrFail($parent);
-                $comment = $answer->comments()->create([
-                    'user_id' => $request->user()->id,
-                    'content' => $request->content,
-                ]);
+                $comment = $answer->comments()->create($commentData);
             }
         }
 
-        // Increment user's score for commenting
-        $request->user()->increment('score', 2);
+        // Award 2 points if comment was auto-published
+        if ($user->level >= 2) {
+            $user->increment('score', 2);
+        }
 
         return new CommentResource($comment);
     }
@@ -96,6 +106,31 @@ class CommentController extends Controller
         $comment->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Publish a comment.
+     */
+    public function publish(Request $request, Comment $comment)
+    {
+        $this->authorize('publish', $comment);
+
+        $user = $request->user();
+
+        $comment->update([
+            'published' => true,
+            'published_at' => now(),
+            'published_by' => $user->id,
+        ]);
+
+        // Award 2 points for publishing a comment
+        $user->increment('score', 2);
+
+        return response()->json([
+            'success' => true,
+            'data' => new CommentResource($comment),
+            'message' => 'نظر با موفقیت منتشر شد'
+        ]);
     }
 
     public function vote(Request $request, Comment $comment)

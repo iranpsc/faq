@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Question;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Log;
 
 class QuestionPolicy
 {
@@ -59,19 +60,13 @@ class QuestionPolicy
      */
     public function publish(User $user, Question $question): bool
     {
-        if($question->published) {
+        // Cannot publish if already published
+        if ($question->published) {
             return false;
         }
 
-        if ($user->level >= 2 && $question->user->is($user)) {
-            return true;
-        }
-
-        if (($user->level > $question->user->level) && $question->user->isNot($user)) {
-            return true;
-        }
-
-        return false;
+        // Higher level users can publish questions from lower level users
+        return $user->level > $question->user->level;
     }
 
     /**

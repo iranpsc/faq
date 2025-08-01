@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Answer extends Model
 {
@@ -97,5 +98,46 @@ class Answer extends Model
     public function verifications()
     {
         return $this->morphMany(Verification::class, 'verifiable');
+    }
+
+    /**
+     * Scope a query to only include published answers.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('published', true);
+    }
+
+    /**
+     * Scope a query to include visible answers based on user authentication and level.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User|null $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeVisible($query, ?User $user)
+    {
+        // If user is not authenticated, only show published answers
+        if (!$user) {
+            return $query->published();
+        }
+
+        // For authenticated users, show:
+        // 1. All published answers
+        // 2. Their own unpublished answers
+        // 3. Unpublished answers from users with lower level
+        return $query->where(function ($q) use ($user) {
+            $q->published()
+              ->orWhere('user_id', $user->id)
+              ->orWhere(function ($subQuery) use ($user) {
+                  $subQuery->where('published', false)
+                           ->whereHas('user', function ($userQuery) use ($user) {
+                               $userQuery->where('level', '<', $user->level);
+                           });
+              });
+        });
     }
 }

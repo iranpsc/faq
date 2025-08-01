@@ -64,6 +64,19 @@
 
             <!-- Actions -->
             <div :class="parentType === 'question' ? 'flex items-center gap-4 mt-2' : 'flex items-center gap-3 mt-2'">
+              <!-- Publish Status and Button -->
+              <div class="flex items-center gap-2">
+                <span v-if="!comment.published" class="text-xs font-medium text-yellow-600 dark:text-yellow-400 whitespace-nowrap">منتشر نشده</span>
+                <button
+                  v-if="comment.can?.publish"
+                  @click="publishComment(comment)"
+                  :disabled="isPublishingComment === comment.id"
+                  class="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
+                >
+                  {{ isPublishingComment === comment.id ? 'در حال انتشار...' : 'انتشار' }}
+                </button>
+              </div>
+
               <!-- Voting -->
               <VoteButtons
                 resource-type="comment"
@@ -184,6 +197,7 @@ export default {
     const newComment = ref('')
     const editingComment = ref(null)
     const editContent = ref('')
+    const isPublishingComment = ref(null)
 
     // Computed property to get the parent ID
     const parentId = computed(() => {
@@ -377,6 +391,56 @@ export default {
       }
     }
 
+    const publishComment = async (comment) => {
+      isPublishingComment.value = comment.id
+
+      try {
+        const response = await window.axios.post(`/api/comments/${comment.id}/publish`)
+
+        if (response.data.success) {
+          // Update the comment object
+          const commentIndex = comments.value.findIndex(c => c.id === comment.id)
+          if (commentIndex !== -1) {
+            comments.value[commentIndex].published = true
+            comments.value[commentIndex].published_at = new Date().toISOString()
+            // Remove publish permission
+            if (comments.value[commentIndex].can) {
+              comments.value[commentIndex].can.publish = false
+            }
+          }
+
+          // Show success message
+          const Swal = window.Swal || window.$swal;
+          if (Swal) {
+            Swal.fire({
+              title: 'موفقیت!',
+              text: response.data.message || 'نظر با موفقیت منتشر شد',
+              icon: 'success',
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error publishing comment:', error)
+
+        // Show error message
+        const Swal = window.Swal || window.$swal;
+        if (Swal) {
+          Swal.fire({
+            title: 'خطا!',
+            text: 'خطا در انتشار نظر',
+            icon: 'error',
+            confirmButtonText: 'باشه'
+          });
+        }
+      } finally {
+        isPublishingComment.value = null
+      }
+    }
+
     // Fetch comments when component mounts
     onMounted(() => {
       fetchComments()
@@ -398,12 +462,14 @@ export default {
       editContent,
       isUpdating,
       isDeleting,
+      isPublishingComment,
       submitComment,
       handleCommentVoteChanged,
       startEdit,
       cancelEdit,
       saveEdit,
       deleteComment,
+      publishComment,
       formatNumber
     }
   }
