@@ -44,12 +44,15 @@ class QuestionResource extends JsonResource
             'is_solved' => $this->isSolved(),
             'is_pinned_by_user' => (bool) ($this->is_pinned_by_user ?? false),
             'pinned_at' => $this->pinned_at ? $this->pinned_at : null,
+            'is_featured_by_user' => (bool) ($this->is_featured_by_user ?? false),
+            'featured_at' => $this->featured_at ? $this->featured_at : null,
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
             'comments' => \App\Http\Resources\CommentResource::collection($this->whenLoaded('comments')),
             'can' => [
                 'view' => $request->user()?->can('view', $this->resource) ?? false,
                 'publish' => $request->user()?->can('publish', $this->resource) ?? false,
                 'feature' => $request->user()?->can('feature', $this->resource) ?? false,
+                'unfeature' => $request->user()?->can('unfeature', $this->resource) ?? false,
                 'update' => $request->user()?->can('update', $this->resource) ?? false,
                 'delete' => $request->user()?->can('delete', $this->resource) ?? false,
             ]

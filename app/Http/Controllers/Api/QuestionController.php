@@ -33,6 +33,7 @@ class QuestionController extends Controller
             ->withCount('votes', 'answers')
             ->visible($user)
             ->withUserPinStatus($user)
+            ->withUserFeatureStatus($user)
             ->orderByPinStatus($user);
 
         if ($request->filled('category_id')) {
@@ -112,6 +113,7 @@ class QuestionController extends Controller
 
         $this->checkQuestionVisibility($question, $user);
         $this->loadPinStatus($question, $user);
+        $this->loadFeatureStatus($question, $user);
         $this->loadQuestionRelations($question, $user);
 
         return new QuestionResource($question);
@@ -142,6 +144,22 @@ class QuestionController extends Controller
         if ($questionWithPinStatus) {
             $question->is_pinned_by_user = $questionWithPinStatus->is_pinned_by_user;
             $question->pinned_at = $questionWithPinStatus->pinned_at;
+        }
+    }
+
+    private function loadFeatureStatus(Question $question, $user): void
+    {
+        if (!$user) {
+            return;
+        }
+
+        $questionWithFeatureStatus = Question::where('questions.id', $question->id)
+            ->withUserFeatureStatus($user)
+            ->first();
+
+        if ($questionWithFeatureStatus) {
+            $question->is_featured_by_user = $questionWithFeatureStatus->is_featured_by_user;
+            $question->featured_at = $questionWithFeatureStatus->featured_at;
         }
     }
 
@@ -323,6 +341,115 @@ class QuestionController extends Controller
             'message' => 'پین سوال برداشته شد',
             'is_pinned_by_user' => false,
             'pinned_at' => null
+        ]);
+    }
+
+    /**
+     * Feature a question for the authenticated user.
+     */
+    public function feature(Request $request, Question $question)
+    {
+        $user = $request->user();
+
+        // Check authorization
+        if (!$user->can('feature', $question)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما مجاز به ویژه کردن این سوال نیستید'
+            ], 403);
+        }
+
+        // Check if user already featured this question
+        if ($user->featuredQuestions()->where('question_id', $question->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما قبلاً این سوال را ویژه کرده‌اید'
+            ], 409);
+        }
+
+        // Check feature limit (2 questions per user)
+        if ($user->featuredQuestions()->count() >= 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حداکثر تعداد سوالات ویژه (2 سوال) به حد نصاب رسیده است'
+            ], 422);
+        }
+
+        $user->featuredQuestions()->attach($question->id, [
+            'featured_at' => now()
+        ]);
+
+        // Update question's featured status
+        $question->update(['featured' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'سوال با موفقیت ویژه شد',
+            'is_featured_by_user' => true,
+            'featured_at' => now()->toISOString()
+        ]);
+    }
+
+    /**
+     * Unfeature a question for the authenticated user.
+     */
+    public function unfeature(Request $request, Question $question)
+    {
+        $user = $request->user();
+
+        // Check authorization
+        if (!$user->can('unfeature', $question)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما مجاز به برداشتن ویژگی این سوال نیستید'
+            ], 403);
+        }
+
+        // Check if user has reached the 2-action limit
+        if ($user->featuredQuestions()->count() >= 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما به حد نصاب عملیات (2 عملیات) رسیده‌اید'
+            ], 422);
+        }
+
+        $removedFeature = false;
+
+        // Check if this user has featured the question
+        if ($user->featuredQuestions()->where('question_id', $question->id)->exists()) {
+            $user->featuredQuestions()->detach($question->id);
+            $removedFeature = true;
+        } else {
+            // Higher level users can unfeature questions featured by lower level users
+            $lowerLevelFeaturedUsers = $question->featuredByUsers()
+                ->where('level', '<', $user->level)
+                ->get();
+
+            if ($lowerLevelFeaturedUsers->isNotEmpty()) {
+                // Remove the first lower level user's feature
+                $lowerLevelUser = $lowerLevelFeaturedUsers->first();
+                $question->featuredByUsers()->detach($lowerLevelUser->id);
+                $removedFeature = true;
+            }
+        }
+
+        if (!$removedFeature) {
+            return response()->json([
+                'success' => false,
+                'message' => 'این سوال ویژه نشده است یا شما مجاز به برداشتن ویژگی آن نیستید'
+            ], 404);
+        }
+
+        // Update question's featured status if no more users have featured it
+        if ($question->featuredByUsers()->count() === 0) {
+            $question->update(['featured' => false]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'ویژگی سوال برداشته شد',
+            'is_featured_by_user' => $user->featuredQuestions()->where('question_id', $question->id)->exists(),
+            'featured_at' => null
         ]);
     }
 

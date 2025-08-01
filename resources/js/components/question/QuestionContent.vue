@@ -58,16 +58,6 @@
                     <span>{{ formatNumber(question.answers_count) }}</span>
                 </div>
 
-                <!-- Report -->
-                <button class="flex items-center gap-1 hover:text-red-600 transition-colors whitespace-nowrap">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z">
-                        </path>
-                    </svg>
-                    <span class="hidden sm:inline">گزارش</span>
-                </button>
-
                 <!-- Edit -->
                 <button v-if="canEdit"
                     class="flex items-center gap-1 hover:text-blue-600 transition-colors whitespace-nowrap"
@@ -101,6 +91,30 @@
                     </svg>
                     <span class="hidden sm:inline">
                         {{ pinLoading ? 'در حال پردازش...' : (question.is_pinned_by_user ? 'برداشتن پین' : 'پین کردن') }}
+                    </span>
+                </button>
+
+                <!-- Feature Toggle -->
+                <button v-if="question.can?.feature || question.can?.unfeature" @click="toggleFeature" :disabled="featureLoading"
+                    :class="[
+                        'flex items-center gap-1 transition-colors whitespace-nowrap',
+                        question.is_featured_by_user
+                            ? 'text-orange-600 hover:text-gray-500'
+                            : 'text-gray-500 hover:text-orange-600',
+                        featureLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    ]"
+                    :title="question.is_featured_by_user ? 'برداشتن ویژگی' : 'ویژه کردن سوال'">
+                    <svg v-if="!featureLoading" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <!-- Use star icon for featured/unfeatured states -->
+                        <path v-if="question.is_featured_by_user" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        <path v-else d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+                    </svg>
+                    <svg v-else class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">
+                        {{ featureLoading ? 'در حال پردازش...' : (question.is_featured_by_user ? 'برداشتن ویژگی' : 'ویژه کردن') }}
                     </span>
                 </button>
 
@@ -182,11 +196,12 @@ export default {
             required: true
         }
     },
-    emits: ['edit', 'delete', 'vote', 'vote-changed', 'question-published', 'pin-changed'],
+    emits: ['edit', 'delete', 'vote', 'vote-changed', 'question-published', 'pin-changed', 'feature-changed'],
     setup(props, { emit }) {
         const { user, can } = useAuth()
         const isPublishing = ref(false)
         const pinLoading = ref(false)
+        const featureLoading = ref(false)
 
         // Get the current instance to access global properties
         const instance = getCurrentInstance()
@@ -327,18 +342,84 @@ export default {
             }
         }
 
+        const toggleFeature = async () => {
+            if (featureLoading.value || !user.value) return
+
+            featureLoading.value = true
+
+            try {
+                const url = `/api/questions/${props.question.id}/feature`
+                let response
+
+                if (props.question.is_featured_by_user) {
+                    // Unfeature the question
+                    response = await $axios.delete(url)
+                } else {
+                    // Feature the question
+                    response = await $axios.post(url)
+                }
+
+                if (response.data.success) {
+                    // Update the question object
+                    props.question.is_featured_by_user = response.data.is_featured_by_user
+                    props.question.featured_at = response.data.featured_at
+
+                    // Emit event to parent
+                    emit('feature-changed', {
+                        questionId: props.question.id,
+                        isFeatured: props.question.is_featured_by_user,
+                        featuredAt: props.question.featured_at
+                    })
+
+                    // Show success message
+                    if ($swal) {
+                        $swal.fire({
+                            title: 'موفق!',
+                            text: response.data.message,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        })
+                    }
+                } else {
+                    throw new Error(response.data.message || 'خطا در تغییر وضعیت ویژگی')
+                }
+            } catch (error) {
+                console.error('Error toggling feature:', error)
+
+                let errorMessage = 'خطا در تغییر وضعیت ویژگی'
+                if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message
+                } else if (error.message) {
+                    errorMessage = error.message
+                }
+
+                if ($swal) {
+                    $swal.fire({
+                        title: 'خطا!',
+                        text: errorMessage,
+                        icon: 'error'
+                    })
+                }
+            } finally {
+                featureLoading.value = false
+            }
+        }
+
         return {
             user,
             canEdit,
             canDelete,
             isPublishing,
             pinLoading,
+            featureLoading,
             formatNumber,
             formatDate,
             handleVote,
             handleVoteChanged,
             publishQuestion,
-            togglePin
+            togglePin,
+            toggleFeature
         }
     }
 }

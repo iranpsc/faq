@@ -192,4 +192,17 @@ class User extends Authenticatable
             ->withPivot('pinned_at')
             ->orderByPivot('pinned_at', 'desc');
     }
+
+    /**
+     * Get the questions featured by this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function featuredQuestions()
+    {
+        return $this->belongsToMany(Question::class, 'user_featured_questions')
+            ->withTimestamps()
+            ->withPivot('featured_at')
+            ->orderByPivot('featured_at', 'desc');
+    }
 }

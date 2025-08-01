@@ -2,7 +2,13 @@
     <BaseCard variant="bordered"
         :class="[
             'mb-4 hover:shadow-md transition-all duration-300',
-            question.is_pinned_by_user ? 'bg-green-250 dark:bg-green-900/20 border-green-200 dark:border-green-800' : ''
+            question.is_pinned_by_user && question.is_featured_by_user
+                ? 'bg-gradient-to-r from-green-50 to-orange-50 dark:from-green-900/20 dark:to-orange-900/20 border-green-300 dark:border-green-700'
+                : question.is_pinned_by_user
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    : question.is_featured_by_user
+                        ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
+                        : ''
         ]">
         <div class="p-6">
             <!-- Section 1: Category and Pin Badge (right), Creation Date and Pin Button (left) -->
@@ -23,6 +29,16 @@
                             <path d="M8 2a1.5 1.5 0 0 0-1.415.996l-.346 1.039a4 4 0 0 1-1.905 2.53l-.346.17a.5.5 0 0 0-.297.642l.774 2.316a.5.5 0 0 0 .475.354h2.064l1.173 3.52a.5.5 0 0 0 .95 0L10.346 10h-.346z"></path>
                         </svg>
                         پین شده
+                    </BaseBadge>
+                    <!-- Featured Badge -->
+                    <BaseBadge v-if="question.is_featured_by_user"
+                        variant="warning"
+                        size="sm"
+                        class="flex items-center gap-1 px-8 py-2 border-2 border-orange-400 dark:border-orange-200">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        ویژه
                     </BaseBadge>
                 </div>
                 <div class="flex items-center gap-3">

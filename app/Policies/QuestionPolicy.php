@@ -74,16 +74,51 @@ class QuestionPolicy
      */
     public function feature(User $user, Question $question): bool
     {
-        if ($question->featured) {
+        // Check if user has reached the 2-feature limit
+        if ($user->featuredQuestions()->count() >= 2) {
             return false;
         }
 
-        if ($question->user->is($user)) {
+        // Check if question is already featured by this user
+        if ($user->featuredQuestions()->where('question_id', $question->id)->exists()) {
             return false;
-        } elseif (($user->level > $question->user->level) && $question->user->isNot($user)) {
+        }
+
+        // User can feature their own questions
+        if ($question->user->is($user)) {
+            return true;
+        }
+
+        // User can feature questions from users with lower levels
+        if ($user->level > $question->user->level) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Determine whether the user can unfeature the model.
+     */
+    public function unfeature(User $user, Question $question): bool
+    {
+        // Check if user has reached the 2-action limit
+        if ($user->featuredQuestions()->count() >= 2) {
+            return false;
+        }
+
+        // Check if this user has featured the question
+        $userFeaturedQuestion = $user->featuredQuestions()->where('question_id', $question->id)->exists();
+
+        if ($userFeaturedQuestion) {
+            return true;
+        }
+
+        // Higher level users can unfeature questions featured by lower level users
+        $lowerLevelFeaturedUsers = $question->featuredByUsers()
+            ->where('level', '<', $user->level)
+            ->exists();
+
+        return $lowerLevelFeaturedUsers;
     }
 }

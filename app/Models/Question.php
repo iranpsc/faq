@@ -161,6 +161,18 @@ class Question extends Model
     }
 
     /**
+     * Get the users who have featured this question.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function featuredByUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_featured_questions')
+            ->withTimestamps()
+            ->withPivot('featured_at');
+    }
+
+    /**
      * Get all of the question's verifications.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany
@@ -264,5 +276,30 @@ class Question extends Model
         return $query->orderByRaw('is_pinned_by_user DESC')
                     ->orderByRaw('CASE WHEN is_pinned_by_user = 1 THEN user_pinned_questions.pinned_at END DESC')
                     ->orderBy('questions.created_at', 'desc');
+    }
+
+    /**
+     * Scope a query to get questions with user's feature status.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User|null $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithUserFeatureStatus($query, ?User $user)
+    {
+        if (!$user) {
+            return $query->addSelect([
+                DB::raw('false as is_featured_by_user'),
+                DB::raw('null as featured_at')
+            ]);
+        }
+
+        return $query->leftJoin('user_featured_questions', function ($join) use ($user) {
+            $join->on('questions.id', '=', 'user_featured_questions.question_id')
+                 ->where('user_featured_questions.user_id', '=', $user->id);
+        })->addSelect([
+            DB::raw('CASE WHEN user_featured_questions.id IS NOT NULL THEN 1 ELSE 0 END as is_featured_by_user'),
+            'user_featured_questions.featured_at as featured_at'
+        ]);
     }
 }
