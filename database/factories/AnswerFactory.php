@@ -26,7 +26,6 @@ class AnswerFactory extends Factory
             'published_at' => $this->faker->dateTime(),
             'published_by' => User::factory(),
             'is_correct' => $this->faker->boolean(),
-            'is_best' => $this->faker->boolean(),
         ];
     }
 }

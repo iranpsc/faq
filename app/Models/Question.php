@@ -19,7 +19,6 @@ class Question extends Model
         'user_id',
         'title',
         'content',
-        'pinned',
         'featured',
         'last_activity',
         'views',
@@ -34,7 +33,6 @@ class Question extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'pinned' => false,
         'featured' => false,
         'published' => false,
         'last_activity' => null,
@@ -50,7 +48,6 @@ class Question extends Model
     protected function casts(): array
     {
         return [
-            'pinned' => 'boolean',
             'featured' => 'boolean',
             'published' => 'boolean',
             'last_activity' => 'datetime',
@@ -190,7 +187,7 @@ class Question extends Model
     public function isSolved()
     {
         return $this->answers()->where(function ($query) {
-            $query->where('is_correct', true)->orWhere('is_best', true);
+            $query->where('is_correct', true);
         })->exists();
     }
 

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 
 class Answer extends Model
 {
@@ -22,7 +21,6 @@ class Answer extends Model
         'published_at',
         'published_by',
         'is_correct',
-        'is_best'
     ];
 
     /**
@@ -36,7 +34,6 @@ class Answer extends Model
             'published' => 'boolean',
             'published_at' => 'datetime',
             'is_correct' => 'boolean',
-            'is_best' => 'boolean',
         ];
     }
 

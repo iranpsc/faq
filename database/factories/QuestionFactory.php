@@ -23,7 +23,6 @@ class QuestionFactory extends Factory
             'user_id' => User::factory(),
             'title' => $this->faker->sentence(),
             'content' => $this->faker->paragraph(3, true),
-            'pinned' => $this->faker->boolean(10), // 10% chance of being pinned
             'featured' => $this->faker->boolean(5), // 5% chance of being featured
             'last_activity' => $this->faker->dateTime(),
             'views' => $this->faker->numberBetween(0, 1000),

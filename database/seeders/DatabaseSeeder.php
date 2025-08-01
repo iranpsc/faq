@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Question::factory(34)
+            ->published()
             ->hasComments(3)
             ->hasVotes(2)
             ->hasVerifications(1)

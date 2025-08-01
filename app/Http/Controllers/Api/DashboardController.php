@@ -21,11 +21,11 @@ class DashboardController extends Controller
     {
         try {
             $stats = [
-                'totalQuestions' => Question::count(),
+                'totalQuestions' => Question::published()->count(),
                 'totalAnswers' => Answer::count(),
-                'totalUsers' => User::count(),
+                'totalUsers' => User::published()->count(),
                 'solvedQuestions' => Question::whereHas('answers', function ($query) {
-                    $query->where('is_best', true);
+                    $query->where('is_correct', true);
                 })->count()
             ];
 

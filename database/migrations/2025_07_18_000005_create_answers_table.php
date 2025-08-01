@@ -17,7 +17,6 @@ return new class extends Migration
             $table->dateTime('published_at')->nullable();
             $table->unsignedBigInteger('published_by')->nullable();
             $table->boolean('is_correct')->default(false);
-            $table->boolean('is_best')->default(false);
             $table->timestamps();
 
             $table->foreign('question_id')->references('id')->on('questions')->onDelete('cascade');

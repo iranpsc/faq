@@ -17,7 +17,6 @@ return new class extends Migration
             $table->boolean('featured')->default(false);
             $table->dateTime('last_activity')->nullable();
             $table->bigInteger('views')->default(0);
-            $table->boolean('pinned')->default(false);
             $table->boolean('published')->default(false);
             $table->dateTime('published_at')->nullable();
             $table->unsignedBigInteger('published_by')->nullable();
