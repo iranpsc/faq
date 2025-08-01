@@ -5,7 +5,6 @@ namespace App\Policies;
 use App\Models\Question;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
-use Illuminate\Support\Facades\Log;
 
 class QuestionPolicy
 {
@@ -90,7 +89,7 @@ class QuestionPolicy
         }
 
         // User can feature questions from users with lower levels
-        if ($user->level > $question->user->level) {
+        if (($user->level > 4) && ($user->level > $question->user->level)) {
             return true;
         }
 
@@ -102,6 +101,11 @@ class QuestionPolicy
      */
     public function unfeature(User $user, Question $question): bool
     {
+        if($user->lelvel < 4 && $question->user->isNot($user)) {
+            // Only higher level users can unfeature questions
+            return false;
+        }
+
         // Check if user has reached the 2-action limit
         if ($user->featuredQuestions()->count() >= 2) {
             return false;
