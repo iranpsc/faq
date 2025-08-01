@@ -79,8 +79,7 @@ class QuestionController extends Controller
             'content' => $request->content,
         ]);
 
-        $tagIds = collect($request->tags)->pluck('id')->toArray();
-
+        $tagIds = $this->processTags($request->tags);
         $question->tags()->sync($tagIds);
 
         // Auto-publish for users with level >= 2
@@ -109,7 +108,11 @@ class QuestionController extends Controller
 
         $user = request()->user();
 
-        abort_if(!$user?->can('view', $question), 403, 'You do not have permission to view this question.');
+        // For published questions, anyone can view
+        // For unpublished questions, use policy to check permissions
+        if (!$question->published && (!$user || !$user->can('view', $question))) {
+            abort(403, 'You do not have permission to view this question.');
+        }
 
         $question->load([
             'user',
@@ -137,7 +140,7 @@ class QuestionController extends Controller
             'content' => $request->content,
         ]);
 
-        $tagIds = collect($request->tags)->pluck('id')->toArray();
+        $tagIds = $this->processTags($request->tags);
         $question->tags()->sync($tagIds);
 
         $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
@@ -231,5 +234,36 @@ class QuestionController extends Controller
             'downvotes' => $question->downVotes->count(),
             'user_vote' => $userVote
         ]);
+    }
+
+    /**
+     * Process tags array to handle both existing and new tags
+     *
+     * @param array $tags
+     * @return array Array of tag IDs
+     */
+    private function processTags(array $tags): array
+    {
+        $tagIds = [];
+
+        foreach ($tags as $tag) {
+            if (isset($tag['id']) && is_numeric($tag['id'])) {
+                // Existing tag
+                $tagIds[] = $tag['id'];
+            } elseif (isset($tag['name']) && !empty($tag['name'])) {
+                // New tag - create it if it doesn't exist
+                $tagName = trim($tag['name']);
+                $existingTag = \App\Models\Tag::where('name', $tagName)->first();
+
+                if ($existingTag) {
+                    $tagIds[] = $existingTag->id;
+                } else {
+                    $newTag = \App\Models\Tag::create(['name' => $tagName]);
+                    $tagIds[] = $newTag->id;
+                }
+            }
+        }
+
+        return array_unique($tagIds);
     }
 }

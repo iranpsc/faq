@@ -66,6 +66,7 @@ import CommentsSection from '../components/question/CommentsSection.vue'
 import AnswersSection from '../components/question/AnswersSection.vue'
 import QuestionModal from '../components/QuestionModal.vue'
 import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
+import questionService from '../services/questionService.js'
 import axios from 'axios'
 
 export default {
@@ -90,6 +91,7 @@ export default {
         const showEditModal = ref(false)
         const isUpdating = ref(false)
         const componentKey = ref(0)
+        const questionServiceCleanup = ref([])
 
         const questionId = computed(() => route.params.id)
 
@@ -232,6 +234,37 @@ export default {
             }
         }
 
+        const handleExternalQuestionUpdate = async (updatedQuestion) => {
+            // Only update if this is the same question we're currently viewing
+            if (question.value && updatedQuestion.id === question.value.id) {
+                // Set updating state for user feedback
+                isUpdating.value = true
+
+                try {
+                    // Refresh to get the complete updated data structure
+                    await refreshQuestionData()
+
+                    // Show a subtle notification that the question was updated
+                    const Swal = window.Swal || window.$swal;
+                    if (Swal) {
+                        Swal.fire({
+                            title: 'بروزرسانی!',
+                            text: 'این سوال به‌روزرسانی شده است.',
+                            icon: 'info',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error refreshing question after external update:', err)
+                } finally {
+                    isUpdating.value = false
+                }
+            }
+        }
+
         const handleDelete = async () => {
             const Swal = window.Swal || window.$swal;
 
@@ -332,11 +365,22 @@ export default {
             fetchQuestion()
             // Add keyboard event listener
             window.addEventListener('keydown', handleKeyDown)
+
+            // Subscribe to question service events
+            const unsubscribeQuestionUpdated = questionService.subscribe('question-updated', handleExternalQuestionUpdate)
+
+            // Store unsubscribe function to clean up later
+            questionServiceCleanup.value = [unsubscribeQuestionUpdated]
         })
 
         onBeforeUnmount(() => {
             // Clean up event listener
             window.removeEventListener('keydown', handleKeyDown)
+
+            // Clean up question service subscriptions
+            if (questionServiceCleanup.value) {
+                questionServiceCleanup.value.forEach(unsubscribe => unsubscribe())
+            }
         })
 
         // Watch for route parameter changes to handle navigation between different questions

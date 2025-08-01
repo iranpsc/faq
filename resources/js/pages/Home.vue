@@ -146,7 +146,7 @@
 </template>
 
 <script>
-import { onMounted, ref, computed, getCurrentInstance } from 'vue'
+import { onMounted, ref, computed, getCurrentInstance, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuestions, useUsers } from '../composables'
 import QuestionCard from '../components/QuestionCard.vue'
@@ -155,6 +155,7 @@ import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
 import PopularCategories from '../components/PopularCategories.vue'
 import FilterQuestion from '../components/FilterQuestion.vue'
 import { BaseButton, BaseAlert, BasePagination } from '../components/ui'
+import questionService from '../services/questionService.js'
 
 export default {
     name: 'Home',
@@ -245,10 +246,20 @@ export default {
 
         // Add a new question to the beginning of the list (for external use)
         const prependQuestion = (question) => {
-            questions.value.unshift(question)
-        }
+            // If we're on the first page and no specific sorting is applied,
+            // or if we're sorting by newest first, add the question to the beginning
+            const isFirstPage = !pagination.value.meta || pagination.value.meta.current_page === 1
+            const isSortedByNewest = !currentFilters.value.sort ||
+                                   (currentFilters.value.sort === 'created_at' &&
+                                    (!currentFilters.value.order || currentFilters.value.order === 'desc'))
 
-        // Update a question in the list (for external use)
+            if (isFirstPage && isSortedByNewest) {
+                questions.value.unshift(question)
+            } else {
+                // Otherwise, refresh the questions to ensure proper ordering
+                refreshQuestions()
+            }
+        }        // Update a question in the list (for external use)
         const updateQuestion = (questionId, updatedQuestion) => {
             const index = questions.value.findIndex(q => q.id === questionId)
             if (index > -1) {
@@ -262,6 +273,27 @@ export default {
 
             // Load active users
             await fetchActiveUsers(5)
+
+            // Subscribe to question service events
+            const unsubscribeQuestionCreated = questionService.subscribe('question-created', (newQuestion) => {
+                prependQuestion(newQuestion)
+            })
+
+            const unsubscribeQuestionUpdated = questionService.subscribe('question-updated', (updatedQuestion) => {
+                updateQuestion(updatedQuestion.id, updatedQuestion)
+            })
+
+            // Store unsubscribe functions to clean up later
+            questionServiceCleanup.value = [unsubscribeQuestionCreated, unsubscribeQuestionUpdated]
+        })
+
+        const questionServiceCleanup = ref([])
+
+        onBeforeUnmount(() => {
+            // Clean up question service subscriptions
+            if (questionServiceCleanup.value) {
+                questionServiceCleanup.value.forEach(unsubscribe => unsubscribe())
+            }
         })
 
         return {

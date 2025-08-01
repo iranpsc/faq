@@ -221,6 +221,50 @@ class QuestionControllerTest extends TestCase
                 ->assertJsonValidationErrors(['tags.0.id']);
     }
 
+    public function test_can_create_question_with_both_existing_and_new_tags()
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $existingTag = Tag::factory()->create(['name' => 'Existing Tag']);
+
+        Sanctum::actingAs($user);
+
+        $questionData = [
+            'category_id' => $category->id,
+            'title' => $this->faker->sentence(),
+            'content' => $this->faker->paragraphs(3, true),
+            'tags' => [
+                ['id' => $existingTag->id], // Existing tag
+                ['name' => 'Brand New Tag'], // New tag by name
+                ['name' => 'Another New Tag'] // Another new tag
+            ]
+        ];
+
+        $response = $this->postJson('/api/questions', $questionData);
+
+        $response->assertStatus(201);
+
+        $question = Question::where('title', $questionData['title'])->first();
+        $this->assertNotNull($question);
+
+        // Should have 3 tags total
+        $this->assertEquals(3, $question->tags()->count());
+
+        // Check that existing tag is attached
+        $this->assertTrue($question->tags->contains('id', $existingTag->id));
+
+        // Check that new tags were created
+        $this->assertDatabaseHas('tags', ['name' => 'Brand New Tag']);
+        $this->assertDatabaseHas('tags', ['name' => 'Another New Tag']);
+
+        // Check that new tags are attached to the question
+        $brandNewTag = Tag::where('name', 'Brand New Tag')->first();
+        $anotherNewTag = Tag::where('name', 'Another New Tag')->first();
+
+        $this->assertTrue($question->tags->contains('id', $brandNewTag->id));
+        $this->assertTrue($question->tags->contains('id', $anotherNewTag->id));
+    }
+
     public function test_question_owner_can_update_question()
     {
         $user = User::factory()->create();
@@ -264,6 +308,52 @@ class QuestionControllerTest extends TestCase
 
         $question->refresh();
         $this->assertEquals(3, $question->tags()->count());
+    }
+
+    public function test_can_update_question_with_both_existing_and_new_tags()
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $existingTag1 = Tag::factory()->create(['name' => 'Existing Tag 1']);
+        $existingTag2 = Tag::factory()->create(['name' => 'Existing Tag 2']);
+
+        $question = Question::factory()->create([
+            'user_id' => $user->id,
+            'category_id' => $category->id,
+        ]);
+        $question->tags()->attach([$existingTag1->id]);
+
+        Sanctum::actingAs($user);
+
+        $updateData = [
+            'category_id' => $category->id,
+            'title' => 'Updated Title',
+            'content' => 'Updated content',
+            'tags' => [
+                ['id' => $existingTag2->id], // Different existing tag
+                ['name' => 'New Update Tag'], // New tag by name
+            ]
+        ];
+
+        $response = $this->putJson("/api/questions/{$question->id}", $updateData);
+
+        $response->assertStatus(200);
+
+        $question->refresh();
+
+        // Should have 2 tags total
+        $this->assertEquals(2, $question->tags()->count());
+
+        // Should not have the original tag anymore
+        $this->assertFalse($question->tags->contains('id', $existingTag1->id));
+
+        // Should have the new existing tag
+        $this->assertTrue($question->tags->contains('id', $existingTag2->id));
+
+        // Check that new tag was created and attached
+        $this->assertDatabaseHas('tags', ['name' => 'New Update Tag']);
+        $newTag = Tag::where('name', 'New Update Tag')->first();
+        $this->assertTrue($question->tags->contains('id', $newTag->id));
     }
 
     public function test_update_question_validation_fails_without_all_required_fields()

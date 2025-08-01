@@ -126,10 +126,20 @@ export function useTags() {
 
   // Add a new tag to the options (for multiselect)
   const addTag = (newTagName) => {
+    // Check if tag already exists to avoid duplicates
+    const existingTag = tags.value.find(tag =>
+      tag.name.toLowerCase() === newTagName.toLowerCase()
+    )
+
+    if (existingTag) {
+      return existingTag
+    }
+
     const tag = {
       name: newTagName,
-      id: newTagName // For new tags, we can use the name as a temporary ID
+      id: newTagName // For new tags, we use the name as a temporary ID
     }
+
     tags.value.push(tag)
     return tag
   }

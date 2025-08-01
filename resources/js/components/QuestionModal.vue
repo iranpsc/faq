@@ -74,6 +74,11 @@
                   placeholder="برای سوال خود برچسب وارد کنید..."
                   label="name"
                   track-by="id"
+                  :searchable="true"
+                  :close-on-select="false"
+                  :clear-on-select="false"
+                  :preserve-search="true"
+                  tag-placeholder="برای افزودن برچسب جدید اینتر بزنید"
                   @search-change="handleFetchTags"
               />
               <p v-if="allErrors.tags" class="text-red-500 text-xs mt-1">{{ allErrors.tags }}</p>
@@ -303,8 +308,26 @@ export default {
       }
     },
     handleAddTag(newTag) {
+      // Check if tag already exists in form.tags to avoid duplicates
+      const existingTag = this.form.tags.find(tag =>
+        tag.name.toLowerCase() === newTag.toLowerCase()
+      );
+
+      if (existingTag) {
+        return; // Don't add duplicate
+      }
+
       const tag = this.addTag(newTag);
       this.form.tags.push(tag);
+
+      // Update tag options to include the new tag for future searches
+      const existingInOptions = this.tagOptions.find(opt =>
+        opt.name.toLowerCase() === newTag.toLowerCase()
+      );
+
+      if (!existingInOptions) {
+        this.tagOptions.push(tag);
+      }
     },
   },
 };

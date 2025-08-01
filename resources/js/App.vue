@@ -6,7 +6,7 @@
                 @toggle-sidebar="toggleSidebar"
                 @main-action="handleMainAction"
             />
-            <router-view @edit-question="handleEditQuestion" ref="mainContentRef" />
+            <router-view @edit-question="handleEditQuestion" />
             <Footer />
         </div>
         <Sidebar
@@ -34,7 +34,8 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
+import { ref, onMounted, onBeforeUnmount, getCurrentInstance, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import Sidebar from './components/Sidebar.vue';
@@ -42,6 +43,7 @@ import MainContent from './pages/Home.vue';
 import QuestionModal from './components/QuestionModal.vue';
 import { useTheme } from './composables/useTheme.js';
 import { useAuth } from './composables/useAuth.js';
+import questionService from './services/questionService.js';
 
 export default {
     name: 'App',
@@ -55,9 +57,9 @@ export default {
     setup() {
         const { isDark, theme, setTheme, initializeTheme, setupSystemThemeListener } = useTheme();
         const { isAuthenticated } = useAuth();
+        const router = useRouter();
         const showQuestionModal = ref(false);
         const questionToEdit = ref(null);
-        const mainContentRef = ref(null);
         const app = getCurrentInstance();
 
         const sidebarOpen = ref(window.innerWidth >= 768);
@@ -106,27 +108,19 @@ export default {
             showQuestionModal.value = true;
         };
 
-        const handleQuestionCreated = (newQuestion) => {
+        const handleQuestionCreated = async (newQuestion) => {
             showQuestionModal.value = false;
-            // Add the new question to the top of the list if Home component supports it
-            if (mainContentRef.value && mainContentRef.value.prependQuestion) {
-                mainContentRef.value.prependQuestion(newQuestion);
-            } else if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
-                // Fallback to refresh if prepend is not available
-                mainContentRef.value.refreshQuestions();
-            }
+
+            // Use the question service to notify other components
+            questionService.questionCreated(newQuestion);
         };
 
-        const handleQuestionUpdated = (updatedQuestion) => {
+        const handleQuestionUpdated = async (updatedQuestion) => {
             showQuestionModal.value = false;
             questionToEdit.value = null;
-            // Update the question in the list if Home component supports it
-            if (mainContentRef.value && mainContentRef.value.updateQuestion) {
-                mainContentRef.value.updateQuestion(updatedQuestion.id, updatedQuestion);
-            } else if (mainContentRef.value && mainContentRef.value.refreshQuestions) {
-                // Fallback to refresh if update is not available
-                mainContentRef.value.refreshQuestions();
-            }
+
+            // Use the question service to notify other components
+            questionService.questionUpdated(updatedQuestion);
         };
 
         onMounted(async () => {
@@ -167,7 +161,6 @@ export default {
             handleThemeChange,
             showQuestionModal,
             questionToEdit,
-            mainContentRef,
             handleEditQuestion,
             handleQuestionCreated,
             handleQuestionUpdated,
