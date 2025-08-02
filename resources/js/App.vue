@@ -1,35 +1,19 @@
 <template>
-    <div class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-        <div :class="{ 'md:mr-80': sidebarOpen, 'md:mr-16': !sidebarOpen, 'mr-0': true }" class="flex flex-col flex-grow transition-all duration-300">
-            <Header
-                :sidebarOpen="sidebarOpen"
-                @toggle-sidebar="toggleSidebar"
-                @main-action="handleMainAction"
-            />
+    <div
+        class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <div :class="{ 'md:mr-80': sidebarOpen, 'md:mr-16': !sidebarOpen, 'mr-0': true }"
+            class="flex flex-col flex-grow transition-all duration-300">
+            <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @main-action="handleMainAction" />
             <router-view @edit-question="handleEditQuestion" />
             <Footer />
         </div>
-        <Sidebar
-            :isOpen="sidebarOpen"
-            :theme="theme"
-            @toggle="toggleSidebar"
-            @theme-change="handleThemeChange"
-        />
+        <Sidebar :isOpen="sidebarOpen" :theme="theme" @toggle="toggleSidebar" @theme-change="handleThemeChange" />
 
-        <QuestionModal
-            v-if="showQuestionModal"
-            @close="showQuestionModal = false"
-            :question-to-edit="questionToEdit"
-            @question-created="handleQuestionCreated"
-            @question-updated="handleQuestionUpdated"
-        />
+        <QuestionModal v-if="showQuestionModal" @close="showQuestionModal = false" :question-to-edit="questionToEdit"
+            @question-created="handleQuestionCreated" @question-updated="handleQuestionUpdated" />
 
         <!-- Overlay for mobile/tablet -->
-        <div
-            v-if="sidebarOpen"
-            @click="closeSidebar"
-            class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-        ></div>
+        <div v-if="sidebarOpen" @click="closeSidebar" class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"></div>
     </div>
 </template>
 
@@ -56,7 +40,7 @@ export default {
     },
     setup() {
         const { isDark, theme, setTheme, initializeTheme, setupSystemThemeListener } = useTheme();
-        const { isAuthenticated } = useAuth();
+        const { isAuthenticated, handleLogin } = useAuth();
         const router = useRouter();
         const showQuestionModal = ref(false);
         const questionToEdit = ref(null);
@@ -90,9 +74,81 @@ export default {
                 questionToEdit.value = null;
                 showQuestionModal.value = true;
             } else {
-                app.appContext.config.globalProperties.$swal({
+                showAuthenticationDialog();
+            }
+        };
+
+        const showAuthenticationDialog = () => {
+            const swal = app.appContext.config.globalProperties.$swal;
+
+            swal({
+                html: `
+                    <div class="${isDark.value ? 'text-white' : 'text-gray-800'}">
+                        <h2 class="text-xl font-bold mb-2">وارد حساب کاربری شوید</h2>
+                        <p>برای ثبت سوال خود وارد حساب کاربری خود شوید و اگر حساب کاربری ندارید، ثبت نام کنید.</p>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'ورود',
+                cancelButtonText: 'ثبت نام',
+                confirmButtonColor: isDark.value ? '#60a5fa' : '#3b82f6',
+                cancelButtonColor: isDark.value ? '#34d399' : '#10b981',
+                reverseButtons: true,
+                focusConfirm: false,
+                focusCancel: false,
+                allowOutsideClick: true,
+                allowEscapeKey: true,
+                showLoaderOnConfirm: true,
+                backdrop: true,
+                background: isDark.value ? '#1f2937' : '#ffffff',
+                preConfirm: async () => {
+                    try {
+                        await handleLogin();
+                        return true;
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        swal.showValidationMessage('خطا در ورود. لطفاً دوباره تلاش کنید.');
+                        return false;
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Login was successful (handled in preConfirm)
+                } else if (result.dismiss === swal.DismissReason.cancel) {
+                    // User clicked register button - show loading and redirect
+                    handleRegisterRedirect();
+                }
+            });
+        };
+
+        const handleRegisterRedirect = async () => {
+            const swal = app.appContext.config.globalProperties.$swal;
+
+            // Show loading dialog for register
+            swal({
+                title: 'در حال انتقال...',
+                text: 'لطفاً صبر کنید',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    swal.showLoading();
+                }
+            });
+
+            try {
+                // Small delay to show loading state
+                await new Promise(resolve => setTimeout(resolve, 800));
+                window.open('https://accounts.irpsc.com/register', '_blank');
+                swal.close();
+            } catch (error) {
+                console.error('Register redirect error:', error);
+                swal({
                     title: 'خطا',
-                    text: 'برای پرسیدن سوال، ابتدا باید وارد شوید.',
+                    text: 'خطا در باز کردن صفحه ثبت نام.',
                     icon: 'error',
                     confirmButtonText: 'باشه'
                 });
@@ -158,6 +214,8 @@ export default {
             toggleSidebar,
             closeSidebar,
             handleMainAction,
+            showAuthenticationDialog,
+            handleRegisterRedirect,
             handleThemeChange,
             showQuestionModal,
             questionToEdit,
@@ -191,11 +249,14 @@ export default {
 /* Responsive adjustments */
 @media (min-width: 768px) {
     .mr-80 {
-        margin-right: 20rem; /* 320px */
+        margin-right: 20rem;
+        /* 320px */
         transition: all 0.3s ease;
     }
+
     .mr-16 {
-        margin-right: 4rem; /* 64px */
+        margin-right: 4rem;
+        /* 64px */
         transition: all 0.3s ease;
     }
 }
