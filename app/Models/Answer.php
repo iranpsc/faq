@@ -98,6 +98,16 @@ class Answer extends Model
     }
 
     /**
+     * Get all correctness marks for this answer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function correctnessMarks()
+    {
+        return $this->hasMany(AnswerCorrectnessMark::class);
+    }
+
+    /**
      * Scope a query to only include published answers.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query

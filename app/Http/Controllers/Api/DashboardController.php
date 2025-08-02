@@ -22,8 +22,8 @@ class DashboardController extends Controller
         try {
             $stats = [
                 'totalQuestions' => Question::published()->count(),
-                'totalAnswers' => Answer::count(),
-                'totalUsers' => User::published()->count(),
+                'totalAnswers' => Answer::published()->count(),
+                'totalUsers' => User::count(),
                 'solvedQuestions' => Question::whereHas('answers', function ($query) {
                     $query->where('is_correct', true);
                 })->count()

@@ -36,7 +36,8 @@
 
                         <!-- Answers Section -->
                         <AnswersSection :questionId="question.id" :answers="answers" @answer-added="refreshQuestionData"
-                            @vote-changed="handleAnswerVoteChanged" :key="`answers-${question.id}-${componentKey}`" />
+                            @vote-changed="handleAnswerVoteChanged" @answer-correctness-changed="handleAnswerCorrectnessChanged"
+                            :key="`answers-${question.id}-${componentKey}`" />
                     </div>
                 </div>
             </div>
@@ -361,6 +362,12 @@ export default {
             }
         }
 
+        const handleAnswerCorrectnessChanged = (data) => {
+            console.log('Answer correctness changed:', data)
+            // Refresh question data to update solved status
+            refreshQuestionData()
+        }
+
         onMounted(() => {
             fetchQuestion()
             // Add keyboard event listener
@@ -415,7 +422,8 @@ export default {
             handleDelete,
             handleVote,
             handleVoteChanged,
-            handleAnswerVoteChanged
+            handleAnswerVoteChanged,
+            handleAnswerCorrectnessChanged
         }
     }
 }

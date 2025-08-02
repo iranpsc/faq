@@ -181,6 +181,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all correctness marks made by this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function correctnessMarks()
+    {
+        return $this->hasMany(AnswerCorrectnessMark::class, 'marker_user_id');
+    }
+
+    /**
      * Get the questions pinned by this user.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany

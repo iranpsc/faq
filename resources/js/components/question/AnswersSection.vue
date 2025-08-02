@@ -111,7 +111,7 @@
 
         <div class="bg-gray-50 dark:bg-gray-700/50 px-4 sm:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="flex items-center gap-2 sm:gap-6 flex-wrap">
-            <span v-if="answer.is_solution || answer.is_best" class="text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">تایید شده</span>
+            <span v-if="answer.is_correct" class="text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">تایید شده</span>
             <span v-if="!answer.published" class="text-sm font-medium text-yellow-600 dark:text-yellow-400 whitespace-nowrap">منتشر نشده</span>
             <button
               v-if="answer.can?.publish"
@@ -135,6 +135,19 @@
               class="text-sm text-red-600 hover:text-red-800 whitespace-nowrap"
             >
               {{ isDeletingAnswer === answer.id ? 'در حال حذف...' : 'حذف' }}
+            </button>
+            <button
+              v-if="answer.can?.toggle_correctness"
+              @click="toggleAnswerCorrectness(answer)"
+              :disabled="isTogglingCorrectness === answer.id"
+              :class="[
+                'text-sm px-3 py-1 rounded whitespace-nowrap transition-colors',
+                answer.is_correct
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500'
+              ]"
+            >
+              {{ isTogglingCorrectness === answer.id ? 'در حال تغییر...' : (answer.is_correct ? 'صحیح ✓' : 'علامت‌گذاری صحیح') }}
             </button>
           </div>
 
@@ -192,7 +205,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['answer-added', 'vote-changed'],
+  emits: ['answer-added', 'vote-changed', 'answer-correctness-changed'],
   setup(props, { emit }) {
     const { isAuthenticated, user } = useAuth()
     const {
@@ -209,6 +222,7 @@ export default {
     const editContent = ref('')
     const componentKey = ref(0)
     const isPublishingAnswer = ref(null)
+    const isTogglingCorrectness = ref(null)
 
     // Sort answers by vote score and best answer
     const sortedAnswers = computed(() => {
@@ -455,6 +469,59 @@ export default {
       }
     }
 
+    const toggleAnswerCorrectness = async (answer) => {
+      isTogglingCorrectness.value = answer.id
+
+      try {
+        const response = await window.axios.post(`/api/answers/${answer.id}/toggle-correctness`)
+
+        if (response.data.success) {
+          // Update the answer object
+          const answerIndex = props.answers.findIndex(a => a.id === answer.id)
+          if (answerIndex !== -1) {
+            props.answers[answerIndex].is_correct = response.data.is_correct
+          }
+
+          // Emit event to parent to update question solved status
+          emit('answer-correctness-changed', {
+            answerId: answer.id,
+            isCorrect: response.data.is_correct
+          })
+
+          // Show success message
+          const Swal = window.Swal || window.$swal;
+          if (Swal) {
+            Swal.fire({
+              title: 'موفقیت!',
+              text: response.data.message,
+              icon: 'success',
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error toggling answer correctness:', error)
+
+        const errorMessage = error.response?.data?.message || 'خطا در علامت‌گذاری پاسخ'
+
+        // Show error message
+        const Swal = window.Swal || window.$swal;
+        if (Swal) {
+          Swal.fire({
+            title: 'خطا!',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'باشه'
+          });
+        }
+      } finally {
+        isTogglingCorrectness.value = null
+      }
+    }
+
     // Watch for changes in answers and update component key
     watch(() => props.answers, () => {
       componentKey.value = Date.now()
@@ -467,6 +534,7 @@ export default {
       isUpdatingAnswer,
       isDeletingAnswer,
       isPublishingAnswer,
+      isTogglingCorrectness,
       editingAnswer,
       editContent,
       componentKey,
@@ -477,6 +545,7 @@ export default {
       saveEdit,
       deleteAnswerAction,
       publishAnswer,
+      toggleAnswerCorrectness,
       handleAnswerVoteChanged,
       handleAnswerCommentAdded,
       canUpdate,

@@ -46,6 +46,7 @@ Route::apiResource('tags', TagController::class)->only(['index']);
 
 Route::apiResource('questions.answers', AnswerController::class)->shallow()->only(['index', 'store', 'update', 'destroy']);
 Route::post('answers/{answer}/publish', [AnswerController::class, 'publish']);
+Route::post('answers/{answer}/toggle-correctness', [AnswerController::class, 'toggleCorrectness']);
 Route::apiResource('questions.comments', CommentController::class)->shallow()->only(['index', 'store']);
 Route::apiResource('answers.comments', CommentController::class)->shallow()->only(['index', 'store']);
 Route::apiResource('comments', CommentController::class)->shallow()->only(['update', 'destroy']);

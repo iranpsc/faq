@@ -8,7 +8,10 @@ use App\Http\Requests\UpdateAnswerRequest;
 use App\Http\Resources\AnswerResource;
 use App\Models\Answer;
 use App\Models\Question;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AnswerController extends Controller
 {
@@ -136,5 +139,114 @@ class AnswerController extends Controller
         }
 
         return new AnswerResource($answer->load('votes'));
+    }
+
+    /**
+     * Toggle answer correctness marking.
+     */
+    public function toggleCorrectness(Request $request, Answer $answer)
+    {
+        $user = $request->user();
+
+        // Check permissions
+        if (!$user->can('markAsCorrect', $answer)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما مجوز علامت‌گذاری این پاسخ را ندارید'
+            ], 403);
+        }
+
+        try {
+            DB::transaction(function () use ($user, $answer) {
+                // Get current mark by this user
+                $currentMark = $answer->correctnessMarks()
+                    ->where('marker_user_id', $user->id)
+                    ->first();
+
+                // Store the original state before any changes
+                $originalIsCorrect = $currentMark ? $currentMark->is_correct : null;
+
+                // Determine new state
+                $newIsCorrect = $currentMark ? !$currentMark->is_correct : true;
+
+                if ($currentMark) {
+                    // Update existing mark
+                    $currentMark->update(['is_correct' => $newIsCorrect]);
+                } else {
+                    // Create new mark
+                    $answer->correctnessMarks()->create([
+                        'marker_user_id' => $user->id,
+                        'is_correct' => $newIsCorrect
+                    ]);
+                }
+
+                // Update answer's final correctness status
+                $this->updateAnswerCorrectnessStatus($answer);
+
+                // Process points - pass the original state
+                $this->processCorrectnessPoints($originalIsCorrect, $newIsCorrect, $answer->user, $user);
+            });
+
+            // Reload answer with fresh data
+            $answer->refresh();
+            $answer->load(['correctnessMarks.marker', 'user']);
+
+            return response()->json([
+                'success' => true,
+                'message' => $answer->is_correct ? 'پاسخ به عنوان صحیح علامت‌گذاری شد' : 'علامت صحیح از پاسخ حذف شد',
+                'is_correct' => $answer->is_correct,
+                'data' => new AnswerResource($answer)
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در علامت‌گذاری پاسخ'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update answer's correctness status based on all marks.
+     */
+    private function updateAnswerCorrectnessStatus(Answer $answer): void
+    {
+        // Get all marks for this answer ordered by user level (highest first)
+        $marks = $answer->correctnessMarks()
+            ->join('users', 'users.id', '=', 'answer_correctness_marks.marker_user_id')
+            ->orderBy('users.level', 'desc')
+            ->select('answer_correctness_marks.*')
+            ->get();
+
+        if ($marks->isEmpty()) {
+            $answer->update(['is_correct' => false]);
+            return;
+        }
+
+        // The highest level user's mark takes precedence
+        $highestLevelMark = $marks->first();
+        $answer->update(['is_correct' => $highestLevelMark->is_correct]);
+    }
+
+    /**
+     * Process points for correctness marking.
+     */
+    private function processCorrectnessPoints($originalIsCorrect, $newIsCorrect, $answerOwner, $marker)
+    {
+        if ($originalIsCorrect === $newIsCorrect) {
+            // No change in correctness, but marker still gets points for action
+            $marker->increment('score', 2);
+            return;
+        }
+
+        if ($newIsCorrect) {
+            // Answer was marked as correct
+            $answerOwner->increment('score', 10);
+            $marker->increment('score', 2);
+        } else {
+            // Answer was unmarked as correct
+            $answerOwner->decrement('score', 10);
+            $marker->increment('score', 2);
+        }
     }
 }
