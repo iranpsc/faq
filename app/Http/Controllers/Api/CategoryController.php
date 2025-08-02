@@ -23,7 +23,7 @@ class CategoryController extends Controller
 
         $categories = $query
             ? $categories->get()
-            : $categories->withCount('questions')->simplePaginate();
+            : $categories->withCount('questions')->paginate();
 
         return CategoryResource::collection($categories);
     }
@@ -96,7 +96,7 @@ class CategoryController extends Controller
             ->with(['user', 'category'])
             ->withCount('answers', 'votes')
             ->latest()
-            ->simplePaginate();
+            ->paginate(15);
 
         return QuestionResource::collection($questions);
     }

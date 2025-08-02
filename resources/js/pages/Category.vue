@@ -35,6 +35,17 @@
                         @click="handleQuestionClick(question)"
                     />
                 </div>
+
+                <!-- Pagination -->
+                <div v-if="pagination.meta" class="mt-8">
+                    <BasePagination
+                        :current-page="pagination.meta.current_page"
+                        :total-pages="pagination.meta.last_page"
+                        :total="pagination.meta.total"
+                        :per-page="pagination.meta.per_page"
+                        @page-changed="handlePageChange"
+                    />
+                </div>
             </div>
         </div>
     </div>
@@ -45,17 +56,20 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../services/api';
 import QuestionCard from '../components/QuestionCard.vue';
+import { BasePagination } from '../components/ui';
 
 export default {
     name: 'Category',
     components: {
         QuestionCard,
+        BasePagination,
     },
     setup() {
         const route = useRoute();
         const router = useRouter();
         const category = ref(null);
         const questions = ref([]);
+        const pagination = ref({});
         const loading = ref(true);
         const error = ref(null);
 
@@ -63,7 +77,7 @@ export default {
             router.push({ name: 'QuestionShow', params: { id: question.id } });
         };
 
-        const fetchData = async (slug) => {
+        const fetchData = async (slug, page = 1) => {
             try {
                 loading.value = true;
                 error.value = null;
@@ -71,10 +85,19 @@ export default {
                 category.value = categoryResponse.data.data;
 
                 if (category.value.children.length === 0) {
-                    const questionsResponse = await api.get(`/categories/${slug}/questions`);
+                    const questionsResponse = await api.get(`/categories/${slug}/questions`, {
+                        params: { page }
+                    });
                     questions.value = questionsResponse.data.data;
+
+                    // Handle pagination meta data from Laravel resource collection
+                    pagination.value = {
+                        meta: questionsResponse.data.meta,
+                        links: questionsResponse.data.links
+                    };
                 } else {
                     questions.value = [];
+                    pagination.value = {};
                 }
             } catch (e) {
                 error.value = e;
@@ -82,6 +105,12 @@ export default {
             } finally {
                 loading.value = false;
             }
+        };
+
+        const handlePageChange = async (page) => {
+            if (pagination.value.meta && page === pagination.value.meta.current_page) return;
+
+            await fetchData(route.params.slug, page);
         };
 
         onMounted(() => {
@@ -97,9 +126,11 @@ export default {
         return {
             category,
             questions,
+            pagination,
             loading,
             error,
             handleQuestionClick,
+            handlePageChange,
         };
     },
 };
