@@ -8,7 +8,7 @@
         @if(auth()->check())
             <meta name="user-data" content="{{ json_encode(auth()->user()) }}">
         @endif
-        <title>Laravel + Vue.js + Tailwind CSS</title>
+        <title>انجمن پرسش و پاسخ</title>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

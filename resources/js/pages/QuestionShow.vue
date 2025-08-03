@@ -62,6 +62,7 @@ import { ref, onMounted, computed, onBeforeUnmount, nextTick, watch, triggerRef 
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useQuestions } from '../composables/useQuestions'
+import { usePageTitle } from '../composables/usePageTitle'
 import QuestionContent from '../components/question/QuestionContent.vue'
 import CommentsSection from '../components/question/CommentsSection.vue'
 import AnswersSection from '../components/question/AnswersSection.vue'
@@ -84,6 +85,7 @@ export default {
         const router = useRouter()
         const { isAuthenticated } = useAuth()
         const { deleteQuestion } = useQuestions()
+        const { setTitle } = usePageTitle()
 
         const question = ref(null)
         const answers = ref([])
@@ -108,6 +110,11 @@ export default {
 
                 // Extract answers from the response
                 answers.value = response.data.data.answers || []
+
+                // Update page title with question title
+                if (question.value && question.value.title) {
+                    setTitle(question.value.title)
+                }
             } catch (err) {
                 error.value = 'خطا در بارگذاری سوال'
                 console.error('Error fetching question:', err)
@@ -149,6 +156,11 @@ export default {
                 // Force complete reactivity by creating entirely new objects
                 question.value = JSON.parse(JSON.stringify(data))
                 answers.value = JSON.parse(JSON.stringify(data.answers || []))
+
+                // Update page title with question title
+                if (question.value && question.value.title) {
+                    setTitle(question.value.title)
+                }
 
                 // Manually trigger reactivity
                 triggerRef(question)

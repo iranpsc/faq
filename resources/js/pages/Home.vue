@@ -147,6 +147,7 @@
 import { onMounted, ref, computed, getCurrentInstance, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuestions, useUsers } from '../composables'
+import { usePageTitle } from '../composables/usePageTitle'
 import QuestionCard from '../components/QuestionCard.vue'
 import UserCard from '../components/UserCard.vue'
 import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
@@ -171,9 +172,13 @@ export default {
     setup(props) {
         const router = useRouter()
         const instance = getCurrentInstance()
+        const { setTitle } = usePageTitle()
 
         const currentFilters = ref({})
         const selectedCategory = ref(null)
+
+        // Set home page title
+        setTitle('صفحه اصلی')
 
         // Computed property for landing image URL
         const landingImageUrl = computed(() => {

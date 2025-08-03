@@ -11,41 +11,47 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Home,
+    meta: { title: 'صفحه اصلی' }
   },
   {
     path: '/questions/:id',
     name: 'QuestionShow',
     component: QuestionShow,
-    props: true
+    props: true,
+    meta: { title: 'جزئیات سوال', dynamic: true }
   },
   {
     path: '/authors',
     name: 'Authors',
-    component: Authors
+    component: Authors,
+    meta: { title: 'نویسندگان' }
   },
   {
     path: '/authors/:id',
     name: 'AuthorShow',
     component: AuthorShow,
-    props: true
+    props: true,
+    meta: { title: 'پروفایل نویسنده', dynamic: true }
   },
   {
     path: '/categories',
     name: 'Categories',
-    component: Categories
+    component: Categories,
+    meta: { title: 'دسته‌بندی‌ها' }
   },
   {
     path: '/categories/:slug',
     name: 'Category',
     component: Category,
-    props: true
+    props: true,
+    meta: { title: 'دسته‌بندی', dynamic: true }
   },
   {
     path: '/profile',
     name: 'Profile',
     component: Profile,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, title: 'پروفایل کاربری' }
   }
 ]
 
@@ -54,20 +60,26 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard for authenticated routes
+// Navigation guard for authenticated routes and title updates
 router.beforeEach((to, from, next) => {
+  // Handle authentication
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // Check if user is authenticated
     const token = localStorage.getItem('auth_token')
     if (!token) {
       // Redirect to home page if not authenticated
       next('/')
-    } else {
-      next()
+      return
     }
-  } else {
-    next()
   }
+
+  // Set page title if not dynamic
+  if (to.meta.title && !to.meta.dynamic) {
+    const defaultTitle = 'انجمن پرسش و پاسخ'
+    document.title = `${to.meta.title} - ${defaultTitle}`
+  }
+
+  next()
 })
 
 export default router

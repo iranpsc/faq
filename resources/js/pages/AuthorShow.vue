@@ -53,6 +53,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthors } from '../composables/useAuthors'
+import { usePageTitle } from '../composables/usePageTitle'
 import AuthorCard from '../components/AuthorCard.vue'
 import QuestionCard from '../components/QuestionCard.vue'
 
@@ -72,6 +73,7 @@ export default {
         const route = useRoute()
         const router = useRouter()
         const { fetchAuthor, isLoading, errors } = useAuthors()
+        const { setTitle } = usePageTitle()
 
         const author = ref(null)
         const error = ref(null)
@@ -80,6 +82,10 @@ export default {
             const { success, data, error: fetchError } = await fetchAuthor(props.id)
             if (success) {
                 author.value = data
+                // Update page title with author name
+                if (author.value && author.value.name) {
+                    setTitle(`پروفایل ${author.value.name}`)
+                }
             } else {
                 error.value = fetchError
             }

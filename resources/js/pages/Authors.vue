@@ -155,6 +155,7 @@
 <script>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePageTitle } from '../composables/usePageTitle'
 import AuthorCard from '../components/AuthorCard.vue'
 import BasePagination from '../components/ui/BasePagination.vue'
 import { useAuthors } from '../composables/useAuthors.js'
@@ -167,6 +168,7 @@ export default {
     },
     setup() {
         const router = useRouter()
+        const { setTitle } = usePageTitle()
         const {
             authors,
             pagination,
@@ -175,6 +177,9 @@ export default {
             fetchAuthors,
             clearErrors
         } = useAuthors()
+
+        // Set page title
+        setTitle('نویسندگان')
 
         // Filters and search
         const searchQuery = ref('')

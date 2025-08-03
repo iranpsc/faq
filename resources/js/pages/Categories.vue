@@ -63,6 +63,7 @@
 <script>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { usePageTitle } from '../composables/usePageTitle';
 import api from '../services/api';
 import { BasePagination } from '../components/ui';
 
@@ -74,6 +75,10 @@ export default {
     setup() {
         const route = useRoute();
         const router = useRouter();
+        const { setTitle } = usePageTitle();
+
+        // Set page title
+        setTitle('دسته‌بندی‌ها');
 
         const categories = ref([]);
         const loading = ref(true);

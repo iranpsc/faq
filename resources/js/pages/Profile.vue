@@ -197,6 +197,7 @@
 <script>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth.js'
+import { usePageTitle } from '../composables/usePageTitle'
 import { BaseCard, BaseAvatar, BaseButton, BaseInput, BaseBadge, BaseAlert } from '../components/ui'
 
 export default {
@@ -211,6 +212,10 @@ export default {
     },
     setup() {
         const { user, updateUser } = useAuth()
+        const { setTitle } = usePageTitle()
+
+        // Set page title
+        setTitle('پروفایل کاربری')
 
         const profileData = ref({
             name: '',

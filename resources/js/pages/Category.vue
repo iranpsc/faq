@@ -54,6 +54,7 @@
 <script>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { usePageTitle } from '../composables/usePageTitle';
 import api from '../services/api';
 import QuestionCard from '../components/QuestionCard.vue';
 import { BasePagination } from '../components/ui';
@@ -67,6 +68,7 @@ export default {
     setup() {
         const route = useRoute();
         const router = useRouter();
+        const { setTitle } = usePageTitle();
         const category = ref(null);
         const questions = ref([]);
         const pagination = ref({});
@@ -83,6 +85,11 @@ export default {
                 error.value = null;
                 const categoryResponse = await api.get(`/categories/${slug}`);
                 category.value = categoryResponse.data.data;
+
+                // Update page title with category name
+                if (category.value && category.value.name) {
+                    setTitle(`دسته‌بندی ${category.value.name}`);
+                }
 
                 if (category.value.children.length === 0) {
                     const questionsResponse = await api.get(`/categories/${slug}/questions`, {
