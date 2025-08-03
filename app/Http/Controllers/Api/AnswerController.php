@@ -55,10 +55,7 @@ class AnswerController extends Controller
 
         $user->increment('score', 5); // Increment score for answering
 
-        // Send email notification to question owner (if not answering own question)
-        if ($question->user_id !== $user->id && $question->user && $question->user->email) {
-            $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
-        }
+        $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
 
         return new AnswerResource($answer);
     }
@@ -120,9 +117,9 @@ class AnswerController extends Controller
         $user = $request->user();
         $voteType = $request->input('vote');
 
-        if($voteType === 'up') {
+        if ($voteType === 'up') {
             $answer->user->increment('score', 10); // Increment score for upvote
-        } elseif($voteType === 'down') {
+        } elseif ($voteType === 'down') {
             $answer->user->decrement('score', 2); // Decrement score for downvote
         }
 
@@ -203,7 +200,6 @@ class AnswerController extends Controller
                 'is_correct' => $answer->is_correct,
                 'data' => new AnswerResource($answer)
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

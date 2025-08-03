@@ -93,10 +93,7 @@ class CommentController extends Controller
             $user->increment('score', 2);
         }
 
-        // Send email notification to question owner (if not commenting on own question)
-        if ($question && $question->user_id !== $user->id && $question->user && $question->user->email) {
-            $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
-        }
+        $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
 
         return new CommentResource($comment);
     }
