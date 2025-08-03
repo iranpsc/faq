@@ -8,10 +8,9 @@ use App\Http\Requests\UpdateAnswerRequest;
 use App\Http\Resources\AnswerResource;
 use App\Models\Answer;
 use App\Models\Question;
-use App\Models\User;
+use App\Notifications\QuestionInteractionNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class AnswerController extends Controller
 {
@@ -46,13 +45,20 @@ class AnswerController extends Controller
      */
     public function store(StoreAnswerRequest $request, Question $question)
     {
+        $user = $request->user();
+
         $answer = $question->answers()->create([
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'content' => $request->content,
             'published' => false, // All answers are unpublished by default
         ]);
 
-        $request->user()->increment('score', 5); // Increment score for answering
+        $user->increment('score', 5); // Increment score for answering
+
+        // Send email notification to question owner (if not answering own question)
+        if ($question->user_id !== $user->id && $question->user && $question->user->email) {
+            $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
+        }
 
         return new AnswerResource($answer);
     }

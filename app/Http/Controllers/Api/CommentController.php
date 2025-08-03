@@ -9,6 +9,7 @@ use App\Http\Resources\CommentResource;
 use App\Models\Answer;
 use App\Models\Comment;
 use App\Models\Question;
+use App\Notifications\QuestionInteractionNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -66,11 +67,15 @@ class CommentController extends Controller
             $commentData['published'] = false;
         }
 
+        $question = null;
+
         // Handle both question comments and answer comments
         if ($parent instanceof Question) {
             $comment = $parent->comments()->create($commentData);
+            $question = $parent;
         } elseif ($parent instanceof Answer) {
             $comment = $parent->comments()->create($commentData);
+            $question = $parent->question;
         } else {
             // Legacy route binding - determine parent type
             if (request()->route()->getName() === 'questions.comments.store') {
@@ -79,12 +84,18 @@ class CommentController extends Controller
             } elseif (request()->route()->getName() === 'answers.comments.store') {
                 $answer = Answer::findOrFail($parent);
                 $comment = $answer->comments()->create($commentData);
+                $question = $answer->question;
             }
         }
 
         // Award 2 points if comment was auto-published
         if ($user->level >= 2) {
             $user->increment('score', 2);
+        }
+
+        // Send email notification to question owner (if not commenting on own question)
+        if ($question && $question->user_id !== $user->id && $question->user && $question->user->email) {
+            $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
         }
 
         return new CommentResource($comment);
