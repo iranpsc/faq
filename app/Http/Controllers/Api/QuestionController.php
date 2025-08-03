@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
+use App\Services\QuestionFilterService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreQuestionRequest;
 
 class QuestionController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        private QuestionFilterService $questionFilterService
+    ) {
         $this->middleware('auth.optional')->only(['search', 'index', 'show']);
         $this->middleware('auth:sanctum')->except(['search', 'index', 'show']);
 
@@ -27,21 +28,7 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-
-        $query = Question::with('user', 'category')
-            ->withCount('votes', 'answers')
-            ->visible($user)
-            ->withUserPinStatus($user)
-            ->withUserFeatureStatus($user)
-            ->orderByPinStatus($user);
-
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        $questions = $query->paginate(10);
-
+        $questions = $this->questionFilterService->getPaginatedQuestions($request, 10);
         return QuestionResource::collection($questions);
     }
 

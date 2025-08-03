@@ -71,7 +71,7 @@ class UserController extends Controller
         $comments = $user->comments()
             ->with(['commentable' => function ($morphTo) {
                 $morphTo->morphWith([
-                    'App\Models\Question' => ['title'],
+                    'App\Models\Question' => [],
                     'App\Models\Answer' => ['question:id,title'],
                 ]);
             }])
@@ -80,9 +80,9 @@ class UserController extends Controller
             ->get()
             ->map(function ($comment) {
                 $title = '';
-                if ($comment->commentable_type === 'App\Models\Question') {
+                if ($comment->commentable_type === 'App\Models\Question' && $comment->commentable) {
                     $title = $comment->commentable->title;
-                } elseif ($comment->commentable_type === 'App\Models\Answer' && $comment->commentable->question) {
+                } elseif ($comment->commentable_type === 'App\Models\Answer' && $comment->commentable && $comment->commentable->question) {
                     $title = $comment->commentable->question->title;
                 }
 

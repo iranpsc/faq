@@ -22,25 +22,22 @@
 
                     <!-- Sort Dropdown -->
                     <div v-if="showSortFilter"
-                        class="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                        class="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
                         <div class="p-4">
                             <div class="space-y-2">
                                 <label v-for="option in sortOptions" :key="option.value"
                                     class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded">
-                                    <input type="checkbox" :value="option.value" v-model="selectedSortOptions"
-                                        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                    <input type="radio" :value="option.value" v-model="selectedSortOptions"
+                                        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                                        :name="'sortOptionRadio'">
                                     <span class="text-sm text-gray-700 dark:text-gray-300">{{ option.label }}</span>
                                 </label>
                             </div>
 
                             <div class="flex gap-2 mt-4">
                                 <button @click="applySortFilters"
-                                    class="flex-1 px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                                    انتخاب
-                                </button>
-                                <button @click="clearSortFilters"
-                                    class="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm">
-                                    حذف
+                                    class="w-full px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                    اعمال
                                 </button>
                             </div>
                         </div>
@@ -230,7 +227,7 @@ export default {
 
         const applySortFilters = () => {
             appliedSortOptions.value = sortOptions.value.filter(option =>
-                selectedSortOptions.value.includes(option.value)
+                option.value === selectedSortOptions.value
             )
             showSortFilter.value = false
             applyFilters()
@@ -250,7 +247,9 @@ export default {
         }
 
         const removeSortFilter = (sortValue) => {
-            selectedSortOptions.value = selectedSortOptions.value.filter(value => value !== sortValue)
+            if (selectedSortOptions.value === sortValue) {
+                selectedSortOptions.value = ''
+            }
             appliedSortOptions.value = appliedSortOptions.value.filter(option => option.value !== sortValue)
             applyFilters()
         }

@@ -11,29 +11,16 @@
                     <div class="flex flex-col md:flex-row gap-6">
                         <!-- Avatar Section -->
                         <div class="flex flex-col items-center space-y-4">
-                            <BaseAvatar
-                                :src="profileData.image_url"
-                                :name="profileData.name"
-                                size="2xl"
+                            <BaseAvatar :src="profileData.image_url" :name="profileData.name" size="2xl"
                                 :status="profileData.online ? 'online' : 'offline'"
-                                class="ring-4 ring-white dark:ring-gray-800 shadow-lg"
-                            />
+                                class="ring-4 ring-white dark:ring-gray-800 shadow-lg" />
 
                             <!-- Image Upload -->
                             <div class="text-center">
-                                <input
-                                    ref="imageInput"
-                                    type="file"
-                                    accept="image/*"
-                                    @change="handleImageUpload"
-                                    class="hidden"
-                                />
-                                <BaseButton
-                                    @click="$refs.imageInput.click()"
-                                    variant="outline"
-                                    size="sm"
-                                    :loading="uploadingImage"
-                                >
+                                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload"
+                                    class="hidden" />
+                                <BaseButton @click="$refs.imageInput.click()" variant="outline" size="sm"
+                                    :loading="uploadingImage">
                                     <template #icon>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -56,11 +43,8 @@
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         نام کاربری
                                     </label>
-                                    <BaseInput
-                                        :modelValue="profileData.name"
-                                        disabled
-                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700"
-                                    />
+                                    <BaseInput :modelValue="profileData.name" disabled
+                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700" />
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         نام کاربری قابل تغییر نیست
                                     </p>
@@ -70,12 +54,8 @@
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         ایمیل
                                     </label>
-                                    <BaseInput
-                                        :modelValue="profileData.email"
-                                        disabled
-                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700"
-                                        type="email"
-                                    />
+                                    <BaseInput :modelValue="profileData.email" disabled
+                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700" type="email" />
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         ایمیل قابل تغییر نیست
                                     </p>
@@ -85,12 +65,8 @@
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         شماره موبایل
                                     </label>
-                                    <BaseInput
-                                        :modelValue="profileData.mobile"
-                                        disabled
-                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700"
-                                        type="tel"
-                                    />
+                                    <BaseInput :modelValue="profileData.mobile" disabled
+                                        class="bg-gray-50 dark:bg-gray-700 dark:text-gray-700" type="tel" />
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         شماره موبایل قابل تغییر نیست
                                     </p>
@@ -146,16 +122,10 @@
 
                 <div class="p-6">
                     <div v-if="recentActivity.length > 0" class="space-y-4">
-                        <div
-                            v-for="activity in recentActivity"
-                            :key="activity.id"
-                            class="flex items-start space-x-3 space-x-reverse p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                        >
+                        <div v-for="activity in recentActivity" :key="activity.id"
+                            class="flex items-start space-x-3 space-x-reverse p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                             <div class="flex-shrink-0">
-                                <BaseBadge
-                                    :variant="getActivityBadgeVariant(activity.type)"
-                                    size="sm"
-                                >
+                                <BaseBadge :variant="getActivityBadgeVariant(activity.type)" size="sm">
                                     {{ getActivityTypeText(activity.type) }}
                                 </BaseBadge>
                             </div>
@@ -170,7 +140,8 @@
                         </div>
                     </div>
                     <div v-else class="text-center py-8">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
@@ -184,13 +155,8 @@
         </div>
 
         <!-- Success/Error Messages -->
-        <BaseAlert
-            v-if="alert.show"
-            :type="alert.type"
-            :message="alert.message"
-            @close="alert.show = false"
-            class="fixed bottom-4 right-4 z-50 max-w-sm"
-        />
+        <BaseAlert v-if="alert.show" :type="alert.type" :message="alert.message" @close="alert.show = false"
+            class="fixed bottom-4 right-4 z-50 max-w-sm" />
     </div>
 </template>
 
@@ -395,9 +361,24 @@ export default {
 
         const formatDate = (dateString) => {
             const date = new Date(dateString)
-            return new Intl.RelativeTimeFormat('fa', { numeric: 'auto' }).format(
-                Math.round((date - new Date()) / (1000 * 60 * 60 * 24)), 'day'
-            )
+            const now = new Date()
+            const diffMs = date - now
+            const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+
+            // If absolute days is less than 30, show days
+            if (Math.abs(diffDays) < 30) {
+                return new Intl.RelativeTimeFormat('fa', { numeric: 'auto' }).format(diffDays, 'day')
+            }
+
+            // If absolute months is less than 12, show months
+            const diffMonths = Math.round(diffDays / 30)
+            if (Math.abs(diffMonths) < 12) {
+                return new Intl.RelativeTimeFormat('fa', { numeric: 'auto' }).format(diffMonths, 'month')
+            }
+
+            // Otherwise, show years
+            const diffYears = Math.round(diffMonths / 12)
+            return new Intl.RelativeTimeFormat('fa', { numeric: 'auto' }).format(diffYears, 'year')
         }
 
         onMounted(() => {

@@ -1,42 +1,40 @@
 <template>
-    <BaseCard variant="bordered"
-        :class="[
-            'mb-4 hover:shadow-md transition-all duration-300',
-            question.is_pinned_by_user && question.is_featured_by_user
-                ? 'bg-gradient-to-r from-green-50 to-orange-50 dark:from-green-900/20 dark:to-orange-900/20 border-green-300 dark:border-green-700'
-                : question.is_pinned_by_user
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                    : question.is_featured_by_user
-                        ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
-                        : ''
-        ]">
+    <BaseCard variant="bordered" :class="[
+        'mb-4 hover:shadow-md transition-all duration-300',
+        question.is_pinned_by_user && question.is_featured_by_user
+            ? 'bg-gradient-to-r from-green-50 to-orange-50 dark:from-green-900/20 dark:to-orange-900/20 border-green-300 dark:border-green-700'
+            : question.is_pinned_by_user
+                ? 'bg-green-100 dark:bg-green-900/20 border-green-400 dark:border-green-800'
+                : question.is_featured_by_user
+                    ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
+                    : ''
+    ]">
         <div class="p-6">
             <!-- Section 1: Category and Pin Badge (right), Creation Date and Pin Button (left) -->
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                     <!-- Category Badge -->
-                    <BaseBadge v-if="question.category"
-                        size="lg"
+                    <BaseBadge v-if="question.category" size="lg"
                         class="cursor-pointer hover:-translate-y-0.5 transition-all duration-200 px-8 py-1 border-2 border-gray-400 dark:border-gray-200">
                         {{ question.category.name }}
                     </BaseBadge>
-                      <!-- Pin Badge -->
-                    <BaseBadge v-if="question.is_pinned_by_user"
-                        variant="success"
-                        size="sm"
+                    <!-- Pin Badge -->
+                    <BaseBadge v-if="question.is_pinned_by_user" variant="success" size="sm"
                         class="flex items-center gap-1 px-8 py-2 border-2 border-green-400 dark:border-green-200">
                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M8 2a1.5 1.5 0 0 0-1.415.996l-.346 1.039a4 4 0 0 1-1.905 2.53l-.346.17a.5.5 0 0 0-.297.642l.774 2.316a.5.5 0 0 0 .475.354h2.064l1.173 3.52a.5.5 0 0 0 .95 0L10.346 10h-.346z"></path>
+                            <path
+                                d="M8 2a1.5 1.5 0 0 0-1.415.996l-.346 1.039a4 4 0 0 1-1.905 2.53l-.346.17a.5.5 0 0 0-.297.642l.774 2.316a.5.5 0 0 0 .475.354h2.064l1.173 3.52a.5.5 0 0 0 .95 0L10.346 10h-.346z">
+                            </path>
                         </svg>
                         پین شده
                     </BaseBadge>
                     <!-- Featured Badge -->
-                    <BaseBadge v-if="question.is_featured_by_user"
-                        variant="warning"
-                        size="sm"
+                    <BaseBadge v-if="question.is_featured_by_user" variant="warning" size="sm"
                         class="flex items-center gap-1 px-8 py-2 border-2 border-orange-400 dark:border-orange-200">
                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            <path
+                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                            </path>
                         </svg>
                         ویژه
                     </BaseBadge>
@@ -56,6 +54,29 @@
                 </h3>
                 <div class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed content-preview"
                     v-html="getContentPreview(question.content)"></div>
+
+            </div>
+
+            <!-- Tags Section -->
+            <div v-if="question.tags && question.tags.length" class="flex flex-wrap gap-2 my-2">
+                <span class="text-sm text-gray-500 dark:text-gray-400">برچسب‌ها:</span>
+                <BaseBadge
+                    v-for="tag in showAllTags ? question.tags : question.tags.slice(0, 5)"
+                    :key="tag.id"
+                    size="sm"
+                    variant="info"
+                    class="px-4 py-1 border border-blue-300 dark:border-blue-700 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                >
+                    {{ tag.name }}
+                </BaseBadge>
+                <button
+                    v-if="question.tags.length > 5"
+                    @click="showAllTags = !showAllTags"
+                    class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                    style="align-self: center;"
+                >
+                    {{ showAllTags ? 'نمایش کمتر' : `+${question.tags.length - 5} بیشتر` }}
+                </button>
             </div>
 
             <!-- Section 3: User Info (right), Stats (right), Publish/Unpublished (left) -->
@@ -96,9 +117,12 @@
                         {{ question.views }} بازدید
                     </span>
                     <!-- Solved Badge -->
-                    <span v-if="question.is_solved" class="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                    <span v-if="question.is_solved"
+                        class="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
                         </svg>
                         #حل شده
                     </span>
@@ -135,6 +159,11 @@ export default {
         }
     },
     emits: ['click', 'published'],
+    data() {
+        return {
+            showAllTags: false
+        }
+    },
     methods: {
         formatDate(dateString) {
             const date = new Date(dateString)
