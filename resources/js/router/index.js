@@ -6,6 +6,7 @@ import AuthorShow from '../pages/AuthorShow.vue'
 import Categories from '../pages/Categories.vue'
 import Category from '../pages/Category.vue'
 import Profile from '../pages/Profile.vue'
+import DailyActivity from '../pages/DailyActivity.vue'
 
 const routes = [
   {
@@ -52,6 +53,12 @@ const routes = [
     name: 'Profile',
     component: Profile,
     meta: { requiresAuth: true, title: 'پروفایل کاربری' }
+  },
+  {
+    path: '/activities',
+    name: 'DailyActivity',
+    component: DailyActivity,
+    meta: { title: 'فعالیت ها' }
   }
 ]
 

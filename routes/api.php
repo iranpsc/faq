@@ -80,4 +80,5 @@ Route::middleware('auth:sanctum')->prefix('upload')->group(function () {
 Route::prefix('dashboard')->group(function () {
     Route::get('/stats', [DashboardController::class, 'stats']);
     Route::get('/active-users', [DashboardController::class, 'activeUsers']);
+    Route::get('/daily-activity', [DashboardController::class, 'dailyActivity']);
 });

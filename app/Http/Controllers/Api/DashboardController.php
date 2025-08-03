@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Answer;
+use App\Models\Comment;
 use App\Models\Question;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -216,6 +217,123 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'خطا در دریافت کاربران فعال',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get daily activity feed showing recent activities
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function dailyActivity(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 20);
+            $date = $request->get('date', now()->format('Y-m-d'));
+
+            $activities = collect();
+
+            // Get today's questions
+            $questions = Question::with('user', 'category')
+                ->whereDate('created_at', $date)
+                ->latest()
+                ->take($limit)
+                ->get()
+                ->map(function ($question) {
+                    return [
+                        'id' => 'question_' . $question->id,
+                        'type' => 'question',
+                        'user_name' => $question->user->name,
+                        'user_id' => $question->user->id,
+                        'user_image' => $question->user->image_url,
+                        'title' => $question->title,
+                        'question_id' => $question->id,
+                        'category_name' => $question->category->name ?? null,
+                        'description' => "کاربر '{$question->user->name}' سوال جدیدی با عنوان '{$question->title}' پرسید",
+                        'created_at' => $question->created_at,
+                        'url' => "/questions/{$question->id}"
+                    ];
+                });
+
+            // Get today's answers
+            $answers = Answer::with('user', 'question')
+                ->whereDate('created_at', $date)
+                ->latest()
+                ->take($limit)
+                ->get()
+                ->map(function ($answer) {
+                    return [
+                        'id' => 'answer_' . $answer->id,
+                        'type' => 'answer',
+                        'user_name' => $answer->user->name,
+                        'user_id' => $answer->user->id,
+                        'user_image' => $answer->user->image_url,
+                        'title' => $answer->question->title,
+                        'question_id' => $answer->question->id,
+                        'description' => "کاربر '{$answer->user->name}' به سوال '{$answer->question->title}' پاسخ داد",
+                        'created_at' => $answer->created_at,
+                        'url' => "/questions/{$answer->question->id}",
+                        'is_correct' => $answer->is_correct
+                    ];
+                });
+
+            // Get today's comments
+            $comments = DB::table('comments')
+                ->join('users', 'comments.user_id', '=', 'users.id')
+                ->whereDate('comments.created_at', $date)
+                ->orderBy('comments.created_at', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($comment) {
+                    $title = '';
+                    $questionId = null;
+
+                    if ($comment->commentable_type === 'App\Models\Question') {
+                        $question = Question::find($comment->commentable_id);
+                        $title = $question ? $question->title : 'سوال حذف شده';
+                        $questionId = $comment->commentable_id;
+                    } elseif ($comment->commentable_type === 'App\Models\Answer') {
+                        $answer = Answer::with('question')->find($comment->commentable_id);
+                        $title = $answer && $answer->question ? $answer->question->title : 'پاسخ حذف شده';
+                        $questionId = $answer ? $answer->question_id : null;
+                    }
+
+                    return [
+                        'id' => 'comment_' . $comment->id,
+                        'type' => 'comment',
+                        'user_name' => $comment->name,
+                        'user_id' => $comment->user_id,
+                        'user_image' => $comment->image ? asset('storage/' . $comment->image) : null,
+                        'title' => $title,
+                        'question_id' => $questionId,
+                        'description' => "کاربر '{$comment->name}' نظری در '{$title}' ثبت کرد",
+                        'created_at' => $comment->created_at,
+                        'url' => $questionId ? "/questions/{$questionId}" : null
+                    ];
+                });
+
+            // Merge and sort all activities
+            $allActivities = $activities
+                ->merge($questions)
+                ->merge($answers)
+                ->merge($comments)
+                ->sortByDesc('created_at')
+                ->take($limit)
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $allActivities,
+                'message' => 'فعالیت روزانه با موفقیت دریافت شد',
+                'date' => $date
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در دریافت فعالیت روزانه',
                 'error' => $e->getMessage()
             ], 500);
         }
