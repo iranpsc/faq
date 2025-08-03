@@ -15,17 +15,19 @@
           <div class="space-y-6">
             <!-- Category -->
             <div>
-              <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">دسته بندی</label>
-              <Multiselect
+              <BaseSelect2
                 v-model="form.category"
                 :options="categories"
                 placeholder="انتخاب دسته بندی"
-                label="name"
+                label="دسته بندی"
+                option-label="name"
                 track-by="id"
                 :searchable="true"
-                @search-change="handleFetchCategories"
+                :paginated="true"
+                :page-size="10"
+                :fetch-function="handleFetchCategories"
+                :error="allErrors.category"
               />
-              <p v-if="allErrors.category" class="text-red-500 text-xs mt-1">{{ allErrors.category }}</p>
             </div>
 
             <!-- Title -->
@@ -44,44 +46,32 @@
             <div>
               <label for="content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شرح سوال</label>
               <Editor
+                  id="content"
                   api-key="2sfprbtijd268hiw733k56v9bp9bpy8jgsqet6q8z4vvirow"
                   v-model="form.content"
-                  :init="{
-                      height: 250,
-                      menubar: false,
-                      directionality: 'rtl',
-                      plugins: [
-                          'advlist autolink lists link image charmap print preview anchor',
-                          'searchreplace visualblocks code fullscreen',
-                          'insertdatetime media table paste code help wordcount directionality'
-                      ],
-                      toolbar:
-                          'help | removeformat | ltr rtl | bullist numlist outdent indent | alignleft aligncenter alignright alignjustify | bold italic backcolor | formatselect | undo redo'
-                  }"
+                  :init="editorConfig"
               />
               <p v-if="allErrors.content" class="text-red-500 text-xs mt-1">{{ allErrors.content }}</p>
             </div>
 
             <!-- Tags -->
             <div>
-              <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">برچسب ها</label>
-              <Multiselect
-                  v-model="form.tags"
-                  :options="tagOptions"
-                  :multiple="true"
-                  :taggable="true"
-                  @tag="handleAddTag"
-                  placeholder="برای سوال خود برچسب وارد کنید..."
-                  label="name"
-                  track-by="id"
-                  :searchable="true"
-                  :close-on-select="false"
-                  :clear-on-select="false"
-                  :preserve-search="true"
-                  tag-placeholder="برای افزودن برچسب جدید اینتر بزنید"
-                  @search-change="handleFetchTags"
+              <BaseSelect2
+                v-model="form.tags"
+                :options="tagOptions"
+                :multiple="true"
+                :taggable="true"
+                @tag-add="handleAddTag"
+                placeholder="برای سوال خود برچسب وارد کنید..."
+                label="برچسب ها"
+                option-label="name"
+                track-by="id"
+                :searchable="true"
+                :paginated="true"
+                :page-size="10"
+                :fetch-function="handleFetchTags"
+                :error="allErrors.tags"
               />
-              <p v-if="allErrors.tags" class="text-red-500 text-xs mt-1">{{ allErrors.tags }}</p>
               <p class="text-xs text-gray-500 mt-1">مثال: سوالی درباره کود مناسب درختان نوشته اید پس برچسب ها میتواند (کود مناسب، تغذیه درختان، مواد غذایی برای درخت، کود برای رشد درخت، رشد بهتر درخت) باشد.</p>
             </div>
           </div>
@@ -106,7 +96,7 @@
 <script>
 import BaseInput from './ui/BaseInput.vue';
 import Editor from '@tinymce/tinymce-vue';
-import Multiselect from 'vue-multiselect';
+import BaseSelect2 from './ui/BaseSelect2.vue';
 import { useQuestions, useCategories, useTags } from '../composables';
 import { onMounted, watch, ref, computed } from 'vue';
 
@@ -115,7 +105,7 @@ export default {
   components: {
     BaseInput,
     Editor,
-    Multiselect
+    BaseSelect2
   },
   props: {
     questionToEdit: {
@@ -192,7 +182,7 @@ export default {
 
     // Lifecycle and Watchers
     onMounted(async () => {
-      await Promise.all([fetchCategories(), fetchTags()]);
+      // No need to fetch data upfront as Select2 will handle it with pagination
       if (props.questionToEdit) {
         populateForm(props.questionToEdit);
       }
@@ -216,6 +206,71 @@ export default {
     // Computed
     const isEditMode = computed(() => !!form.value.id);
 
+    // Image upload handler for TinyMCE
+    const handleImageUpload = (blobInfo, progress) => {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.withCredentials = false; // Set to false as per TinyMCE documentation
+        xhr.open('POST', '/api/upload/tinymce-image');
+
+        // Get the CSRF token from meta tag
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (token) {
+          xhr.setRequestHeader('X-CSRF-TOKEN', token);
+        }
+
+        // Set authorization header if user is authenticated
+        const authToken = localStorage.getItem('auth_token');
+        if (authToken) {
+          xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+        }
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            progress(e.loaded / e.total * 100);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 403) {
+            reject({ message: 'دسترسی مجاز نیست', remove: true });
+            return;
+          }
+
+          if (xhr.status < 200 || xhr.status >= 300) {
+            reject({ message: 'خطای HTTP: ' + xhr.status, remove: false });
+            return;
+          }
+
+          let json;
+          try {
+            json = JSON.parse(xhr.responseText);
+          } catch (e) {
+            reject({ message: 'خطا در پردازش پاسخ سرور', remove: false });
+            return;
+          }
+
+          if (!json || typeof json.location !== 'string') {
+            reject({ message: 'پاسخ نامعتبر از سرور: ' + xhr.responseText, remove: false });
+            return;
+          }
+
+          // Ensure the location is returned exactly as provided by the server
+          console.log('Image uploaded successfully:', json.location);
+          resolve(json.location);
+        };
+
+        xhr.onerror = () => {
+          reject({ message: 'خطا در آپلود تصویر. کد خطا: ' + xhr.status, remove: false });
+        };
+
+        const formData = new FormData();
+        formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+        xhr.send(formData);
+      });
+    };
+
     return {
       form,
       isEditMode,
@@ -237,6 +292,7 @@ export default {
       clearTagErrors,
       clearAllErrors,
       resetForm,
+      handleImageUpload,
     };
   },
   computed: {
@@ -247,11 +303,65 @@ export default {
         ...this.tagErrors,
       };
     },
+    editorConfig() {
+      return {
+        height: 300,
+        menubar: false,
+        directionality: 'rtl',
+        plugins: [
+          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor',
+          'searchreplace', 'visualblocks', 'code', 'fullscreen',
+          'insertdatetime', 'media', 'table', 'paste', 'help', 'wordcount', 'directionality'
+        ],
+        toolbar: 'removeformat | ltr rtl | bullist numlist outdent indent | alignleft aligncenter alignright alignjustify | bold italic backcolor | formatselect | image | undo redo',
+        // Image upload configuration
+        images_upload_handler: this.handleImageUpload,
+        automatic_uploads: true,
+        paste_data_images: true,
+        file_picker_types: 'image',
+        images_reuse_filename: false,
+        // Additional configuration for better image handling
+        convert_urls: false,
+        relative_urls: false,
+        remove_script_host: false,
+        setup: (editor) => {
+          editor.on('init', () => {
+            console.log('TinyMCE editor initialized with ID:', editor.id);
+          });
+          editor.on('ImageUploadSuccess', (e) => {
+            console.log('Image upload successful:', e.detail);
+          });
+          editor.on('ImageUploadError', (e) => {
+            console.error('Image upload error:', e.detail);
+          });
+        }
+      };
+    },
   },
   methods: {
     async handleSubmitQuestion() {
       if (this.isSubmitting) return;
       this.clearAllErrors();
+
+      // First, upload any images that are still in base64 format
+      // Use the proper way to access TinyMCE editor instance
+      if (window.tinymce) {
+        const editor = window.tinymce.get('content') || window.tinymce.activeEditor;
+        if (editor) {
+          try {
+            console.log('Uploading images before form submission...');
+            await editor.uploadImages();
+            console.log('Images uploaded successfully');
+          } catch (error) {
+            console.warn('خطا در آپلود تصاویر:', error);
+            // Continue with form submission even if image upload fails
+          }
+        } else {
+          console.warn('TinyMCE editor not found');
+        }
+      } else {
+        console.warn('TinyMCE not available');
+      }
 
       const action = this.isEditMode ? this.updateQuestion : this.submitQuestion;
       const result = await action(this.form);
@@ -279,8 +389,8 @@ export default {
         }
       }
     },
-    async handleFetchCategories(query = '') {
-      const result = await this.fetchCategories(query);
+    async handleFetchCategories(params = {}) {
+      const result = await this.fetchCategories(params);
       if (!result.success) {
         this.$swal.fire({
           title: 'خطا!',
@@ -292,9 +402,10 @@ export default {
           timer: 3000,
         });
       }
+      return result;
     },
-    async handleFetchTags(query = '') {
-      const result = await this.fetchTags(query);
+    async handleFetchTags(params = {}) {
+      const result = await this.fetchTags(params);
       if (!result.success) {
         this.$swal.fire({
           title: 'خطا!',
@@ -306,6 +417,7 @@ export default {
           timer: 3000,
         });
       }
+      return result;
     },
     handleAddTag(newTag) {
       // Check if tag already exists in form.tags to avoid duplicates
@@ -332,31 +444,3 @@ export default {
   },
 };
 </script>
-
-<style src="vue-multiselect/dist/vue-multiselect.css"></style>
-<style lang="postcss">
-.multiselect__tags {
-    @apply w-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-gray-700 dark:text-gray-300;
-}
-.multiselect__input {
-    @apply bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
-}
-.multiselect__single {
-    @apply bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
-}
-.multiselect__content-wrapper {
-    @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600;
-}
-.multiselect__option--highlight {
-    @apply bg-blue-500;
-}
-.multiselect__option--selected {
-    @apply bg-blue-600;
-}
-.multiselect__tag {
-    @apply bg-blue-500;
-}
-.multiselect__tag-icon:hover {
-    @apply bg-blue-600;
-}
-</style>

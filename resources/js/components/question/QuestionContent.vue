@@ -6,12 +6,11 @@
             <div class="flex items-center gap-3 min-w-0 flex-shrink-0">
                 <!-- User Info -->
                 <div class="text-right min-w-0">
-                    <div class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ question.user?.name }}
-                    </div>
+                    <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" />
+                    <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ question.user?.name }}</span>
                     <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{
                         formatNumber(question.user.score) }}</div>
                 </div>
-                <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" />
                 <!-- Category -->
                 <span v-if="question.category?.name"
                     class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap">

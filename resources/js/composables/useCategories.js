@@ -6,17 +6,26 @@ export function useCategories() {
   const isLoading = ref(false)
   const errors = ref({})
 
-  // Fetch categories with optional search query
-  const fetchCategories = async (query = '') => {
+  // Fetch categories with optional search query and pagination
+  const fetchCategories = async (params = {}) => {
     isLoading.value = true
     errors.value = {}
 
     try {
       const response = await axios.get('/api/categories', {
-        params: { query }
+        params: {
+          query: params.query || '',
+          page: params.page || 1,
+          per_page: params.per_page || 10,
+          ...params
+        }
       })
-      categories.value = response.data.data || response.data
-      return { success: true, data: categories.value }
+
+      const data = response.data.data || response.data
+
+      // For Select2 component, we don't manage state here - just return the data
+      // The component will handle its own state management
+      return { success: true, data: data }
     } catch (error) {
       console.error('Error fetching categories:', error)
       const errorMessage = 'خطا در بارگذاری دسته‌بندی‌ها'

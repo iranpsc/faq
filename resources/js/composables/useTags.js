@@ -6,17 +6,26 @@ export function useTags() {
   const isLoading = ref(false)
   const errors = ref({})
 
-  // Fetch tags with optional search query
-  const fetchTags = async (query = '') => {
+  // Fetch tags with optional search query and pagination
+  const fetchTags = async (params = {}) => {
     isLoading.value = true
     errors.value = {}
 
     try {
       const response = await axios.get('/api/tags', {
-        params: { query }
+        params: {
+          query: params.query || '',
+          page: params.page || 1,
+          per_page: params.per_page || 10,
+          ...params
+        }
       })
-      tags.value = response.data.data || response.data
-      return { success: true, data: tags.value }
+
+      const data = response.data.data || response.data
+
+      // For Select2 component, we don't manage state here - just return the data
+      // The component will handle its own state management
+      return { success: true, data: data }
     } catch (error) {
       console.error('Error fetching tags:', error)
       const errorMessage = 'خطا در بارگذاری برچسب‌ها'

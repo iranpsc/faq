@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuthorController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\FileUploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -66,6 +67,13 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
     Route::get('/stats', [UserController::class, 'stats']);
     Route::get('/activity', [UserController::class, 'activity']);
     Route::post('/update-image', [UserController::class, 'updateImage']);
+});
+
+// File upload routes
+Route::middleware('auth:sanctum')->prefix('upload')->group(function () {
+    Route::post('/tinymce-image', [FileUploadController::class, 'uploadTinyMCEImage']);
+    Route::post('/file', [FileUploadController::class, 'uploadFile']);
+    Route::delete('/file', [FileUploadController::class, 'deleteFile']);
 });
 
 // Dashboard routes

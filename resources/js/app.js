@@ -5,7 +5,6 @@ import UIComponents from './plugins/ui-components.js'
 import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import Editor from '@tinymce/tinymce-vue';
-import Multiselect from 'vue-multiselect';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import NProgress from 'nprogress';
@@ -38,7 +37,6 @@ app.use(UIComponents)
 app.use(VueSweetalert2);
 
 app.component('Editor', Editor);
-app.component('Multiselect', Multiselect);
 
 app.config.globalProperties.$axios = axios;
 
