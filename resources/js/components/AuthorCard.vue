@@ -1,20 +1,15 @@
 <template>
-    <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300
                cursor-pointer transform hover:-translate-y-1 border border-gray-200 dark:border-gray-700"
-        @click="$emit('click', author)"
-    >
+        @click="$emit('click', author)">
         <!-- Author Header -->
         <div class="p-6">
-            <div class="flex items-center space-x-4 space-x-reverse">
+            <div class="flex flex-col items-center space-y-2">
                 <!-- Avatar -->
                 <div class="relative">
-                    <img
-                        :src="authorImage"
-                        :alt="author.name"
+                    <img :src="authorImage" :alt="author.name"
                         class="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
-                        @error="handleImageError"
-                    >
+                        @error="handleImageError">
                     <!-- Level Badge -->
                     <div class="absolute -bottom-1 -left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full
                                 font-semibold shadow-lg border-2 border-white dark:border-gray-800">
@@ -22,29 +17,17 @@
                     </div>
                 </div>
 
-                <!-- Author Info -->
-                <div class="flex-1 min-w-0">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate mb-1">
-                        {{ author.name }}
-                    </h3>
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <!-- Role Badge -->
-                        <span
-                            :class="roleClasses"
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        >
-                            {{ roleText }}
-                        </span>
-                        <!-- Score -->
-                        <div class="flex items-center text-yellow-500">
-                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ author.score }}
-                            </span>
-                        </div>
-                    </div>
+                <!-- Author Name -->
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate mb-1 text-center">
+                    {{ author.name }}
+                </h3>
+
+                <!-- Score -->
+                <div class="flex items-center">
+                    امتیاز:
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ author.score }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -85,35 +68,22 @@
         </div>
 
         <!-- Recent Questions Preview -->
-        <div v-if="author.recent_questions && author.recent_questions.length > 0"
-             class="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div class="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 آخرین سوالات:
             </h4>
-            <div class="space-y-2">
-                <div
-                    v-for="question in author.recent_questions.slice(0, 2)"
-                    :key="question.id"
-                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
+            <div class="space-y-2" v-if="author.recent_questions && author.recent_questions.length">
+                <div v-for="question in author.recent_questions.slice(0, 2)" :key="question.id" class="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400
                            transition-colors duration-200 cursor-pointer truncate"
-                    @click.stop="handleQuestionClick(question)"
-                    :title="question.title"
-                >
-                    • {{ question.title }}
+                    @click.stop="handleQuestionClick(question)" :title="question.title">
+                    {{ question.title }}
                 </div>
-                <div v-if="author.recent_questions.length > 2"
-                     class="text-xs text-gray-500 dark:text-gray-500">
+                <div v-if="author.recent_questions.length > 2" class="text-xs text-gray-500 dark:text-gray-500">
                     و {{ author.recent_questions.length - 2 }} سوال دیگر...
                 </div>
             </div>
-        </div>
-
-        <!-- Member Since -->
-        <div class="border-t border-gray-200 dark:border-gray-700 px-6 py-3 bg-gray-50 dark:bg-gray-700/30
-                    rounded-b-lg">
-            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>عضو از:</span>
-                <span>{{ formatDate(author.created_at) }}</span>
+            <div v-else class="text-sm text-gray-500 dark:text-gray-400">
+                این کاربر هنوز سوالی نپرسیده است.
             </div>
         </div>
     </div>

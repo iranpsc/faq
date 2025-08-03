@@ -95,7 +95,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">فعالیتی یافت نشد</h3>
-                <p class="text-gray-500 dark:text-gray-400">در تاریخ انتخابی هیچ فعالیتی ثبت نشده است.</p>
             </div>
         </div>
 

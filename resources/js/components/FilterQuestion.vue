@@ -22,7 +22,7 @@
 
                     <!-- Sort Dropdown -->
                     <div v-if="showSortFilter"
-                        class="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                        class="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                         <div class="p-4">
                             <div class="space-y-2">
                                 <label v-for="option in sortOptions" :key="option.value"
