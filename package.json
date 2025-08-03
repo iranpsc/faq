@@ -17,6 +17,7 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@headlessui/vue": "^1.7.23",
         "@inertiajs/progress": "^0.1.2",
         "@inertiajs/vue3": "^2.0.17",
         "@primevue/themes": "^4.3.6",

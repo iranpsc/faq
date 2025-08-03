@@ -10,19 +10,11 @@
         پاسخ خود را ثبت کنید
       </h4>
       <form @submit.prevent="submitAnswer">
-        <Editor
-          api-key="2sfprbtijd268hiw733k56v9bp9bpy8jgsqet6q8z4vvirow"
+        <BaseEditor
           v-model="newAnswer"
-          :init="{
-            height: 300,
-            menubar: false,
-            plugins: 'lists link code help wordcount',
-            toolbar:
-              'undo redo | formatselect | bold italic | \
-              alignleft aligncenter alignright alignjustify | \
-              bullist numlist outdent indent | removeformat | help',
-            directionality: 'rtl'
-          }"
+          mode="simple"
+          :height="300"
+          placeholder="پاسخ خود را بنویسید..."
         />
         <div class="mt-4 flex justify-end">
           <button
@@ -76,18 +68,11 @@
 
               <!-- Edit Form -->
               <div v-else class="mt-6">
-                <Editor
-                  api-key="2sfprbtijd268hiw733k56v9bp9bpy8jgsqet6q8z4vvirow"
+                <BaseEditor
                   v-model="editContent"
-                  :init="{
-                    height: 200,
-                    menubar: false,
-                    plugins: 'lists link code help wordcount',
-                    toolbar:
-                      'undo redo | formatselect | bold italic | \
-                      alignleft aligncenter alignright alignjustify | \
-                      bullist numlist outdent indent | removeformat | help'
-                  }"
+                  mode="simple"
+                  :height="200"
+                  placeholder="پاسخ خود را ویرایش کنید..."
                 />
                 <div class="flex gap-2 mt-3">
                   <button
@@ -182,7 +167,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useAnswers } from '../../composables/useAnswers'
-import Editor from '@tinymce/tinymce-vue'
+import BaseEditor from '../ui/BaseEditor.vue'
 import VoteButtons from '../ui/VoteButtons.vue'
 import CommentsSection from './CommentsSection.vue'
 import { BaseAvatar } from '../ui'
@@ -190,7 +175,7 @@ import { BaseAvatar } from '../ui'
 export default {
   name: 'AnswersSection',
   components: {
-    Editor,
+    BaseEditor,
     VoteButtons,
     CommentsSection,
     BaseAvatar

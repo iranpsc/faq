@@ -5,7 +5,7 @@
       v-if="label"
       :for="inputId"
       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-      :class="{ 'text-red-600 dark:text-red-400': hasError }"
+      :class="{ 'text-red-600 dark:text-red-400': hasError, 'border-red-600': hasError }"
     >
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
