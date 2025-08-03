@@ -33,7 +33,6 @@
         </div>
 
         <!-- Comments Count -->
-        <!-- Comments Count -->
         <div class="mb-4">
             <svg class="inline w-4 h-4 text-green-500 dark:text-yellow-400 mr-1" fill="currentColor"
                 viewBox="0 0 20 20">

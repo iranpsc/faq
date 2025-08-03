@@ -1,5 +1,5 @@
 <template>
-    <BaseModal :visible="true" :title="isEditMode ? 'ویرایش سوال' : 'سوال جدید'"
+    <BaseModal :visible="true" :title="isEditMode ? 'ویرایش سوال' : 'سوال خود را وارد کنید'"
         subtitle="مشخصات مربوط به سوال خود را در کادرهای زیر وارد کنید." size="4xl" :closable="true"
         :close-on-backdrop="true" :close-on-escape="true" @close="$emit('close')">
         <div class="overflow-y-auto max-h-[60vh]" style="direction: rtl;">

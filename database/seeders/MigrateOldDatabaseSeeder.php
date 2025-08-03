@@ -208,8 +208,8 @@ class MigrateOldDatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['id' => $this->defaultUserId],
             [
-                'name' => 'System User',
-                'email' => 'system@faq.local',
+                'name' => 'حسین قدیری',
+                'email' => 'hosseinqadiri69@gmail.com',
                 'email_verified_at' => now(),
                 'mobile' => null,
                 'level' => 1,
@@ -232,6 +232,19 @@ class MigrateOldDatabaseSeeder extends Seeder
         $this->command->info('Migrating users...');
         $old_users = DB::connection('faq_main')->table('users')->get();
         $count = 0;
+        $usersFile = file_get_contents(storage_path('app/private/users.json'));
+        $usersData = json_decode($usersFile, true);
+
+        // Create email to display_name mapping from JSON data
+        $emailToDisplayName = [];
+        if (isset($usersData[2]['data']) && is_array($usersData[2]['data'])) {
+            foreach ($usersData[2]['data'] as $jsonUser) {
+                if (isset($jsonUser['user_email']) && isset($jsonUser['display_name']) &&
+                    !empty($jsonUser['user_email']) && !empty($jsonUser['display_name'])) {
+                    $emailToDisplayName[$jsonUser['user_email']] = $jsonUser['display_name'];
+                }
+            }
+        }
 
         foreach ($old_users as $old_user) {
             try {
@@ -244,8 +257,13 @@ class MigrateOldDatabaseSeeder extends Seeder
                 $level = is_numeric($old_user->level_id ?? 1) ? (int)$old_user->level_id : 1;
                 if ($level < 1) $level = 1;
 
-                // Concatenate name with last_name if exists
-                $fullName = trim($old_user->name . ($old_user->last_name ? ' ' . $old_user->last_name : ''));
+                // Get correct name from JSON file if email matches, otherwise concatenate name with last_name
+                $fullName = '';
+                if (!empty($old_user->email) && isset($emailToDisplayName[$old_user->email])) {
+                    $fullName = $emailToDisplayName[$old_user->email];
+                } else {
+                    $fullName = trim($old_user->name . ($old_user->last_name ? ' ' . $old_user->last_name : ''));
+                }
 
                 // Validate email
                 if (!filter_var($old_user->email, FILTER_VALIDATE_EMAIL)) {

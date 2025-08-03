@@ -1,92 +1,84 @@
 <template>
-    <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto main-content-container">
-        <!-- Landing Image Section -->
-        <div class="w-full max-w-7xl mx-auto mb-6 sm:mb-8 lg:mb-12">
+    <ContentArea layout="with-sidebar" :show-sidebar="true" main-width="3/4" sidebar-width="1/4">
+        <!-- Hero Section -->
+        <template #hero>
             <h1 class="text-center">انجمن حم بزرگترین انجمن پرسش و پاسخ ایران</h1>
-
             <div class="relative overflow-hidden rounded-lg shadow-sm">
-                <img :src="landingImageUrl" alt="خوش آمدید به سیستم پرسش و پاسخ"
-                    class="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
+                <img :src="landingImageUrl" alt="خوش آمدید به سیستم پرسش و پاسخ" class="w-full h-auto object-cover"
                     loading="lazy" />
-                <!-- Optional overlay for better text readability if needed -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
-                </div>
             </div>
-        </div>
+        </template>
 
-        <div class="max-w-7xl mx-auto">
+        <!-- Filters Section -->
+        <template #filters>
             <!-- Popular Categories Section -->
             <PopularCategories :limit="15" @category-click="handleCategoryClick" :selected-category="selectedCategory"
                 class="mb-6" />
             <!-- Header -->
             <FilterQuestion @filters-changed="handleFiltersChanged" />
-            <!-- Two Column Layout -->
-            <div class="flex gap-6">
-                <!-- Right Content (75% on medium+ screens, 100% on small screens) -->
-                <div class="flex-1 md:w-3/4">
+        </template>
 
-                    <!-- Initial Loading State -->
-                    <div v-if="isLoading" class="grid grid-cols-1 gap-4">
-                        <div v-for="n in 10" :key="n"
-                            class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm animate-pulse">
-                            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
-                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-                            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-4"></div>
-                            <div
-                                class="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-4">
-                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Error State -->
-                    <div v-else-if="errors.fetch">
-                        <BaseAlert variant="error" :message="errors.fetch" />
-                    </div>
-
-                    <!-- Question List -->
-                    <div v-else-if="questions.length > 0">
-                        <!-- Questions -->
-                        <div class="space-y-4">
-                            <TransitionGroup name="question" tag="div" class="space-y-4">
-                                <QuestionCard v-for="question in questions" :key="question.id" :question="question"
-                                    @click="handleQuestionClick(question)" />
-                            </TransitionGroup>
-                        </div>
-
-                        <!-- Pagination -->
-                        <div v-if="pagination.meta" class="mt-8">
-                            <BasePagination :current-page="pagination.meta.current_page"
-                                :total-pages="pagination.meta.last_page" :total="pagination.meta.total"
-                                :per-page="pagination.meta.per_page" @page-changed="handlePageChange" />
-                        </div>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div v-else class="text-center py-16">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" aria-hidden="true">
-                            <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">سوالی یافت نشد</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">با پرسیدن اولین سوال شروع کنید.</p>
+        <!-- Main Content -->
+        <template #main>
+            <!-- Initial Loading State -->
+            <div v-if="isLoading" class="grid grid-cols-1 gap-4">
+                <div v-for="n in 10" :key="n" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm animate-pulse">
+                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
+                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mb-4"></div>
+                    <div class="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
                     </div>
                 </div>
-
-                <!-- Left Sidebar (25% on medium+ screens, hidden on small screens) -->
-                <div class="w-1/4 hidden md:block">
-                    <HomeSidebar />
-                </div>
-
             </div>
 
+            <!-- Error State -->
+            <div v-else-if="errors.fetch">
+                <BaseAlert variant="error" :message="errors.fetch" />
+            </div>
+
+            <!-- Question List -->
+            <div v-else-if="questions.length > 0">
+                <!-- Questions -->
+                <div class="space-y-4">
+                    <TransitionGroup name="question" tag="div" class="space-y-4">
+                        <QuestionCard v-for="question in questions" :key="question.id" :question="question"
+                            @click="handleQuestionClick(question)" />
+                    </TransitionGroup>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="pagination.meta" class="mt-8">
+                    <BasePagination :current-page="pagination.meta.current_page"
+                        :total-pages="pagination.meta.last_page" :total="pagination.meta.total"
+                        :per-page="pagination.meta.per_page" @page-changed="handlePageChange" />
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="text-center py-16">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    aria-hidden="true">
+                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">سوالی یافت نشد</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">با پرسیدن اولین سوال شروع کنید.</p>
+            </div>
+        </template>
+
+        <!-- Sidebar -->
+        <template #sidebar>
+            <HomeSidebar />
+        </template>
+
+        <!-- Footer Section -->
+        <template #footer>
             <!-- Most Active Users Section -->
-            <div v-if="!isLoading && questions.length > 0" class="mt-12">
+            <div v-if="!isLoading && questions.length > 0">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
                         فعالان انجمن
@@ -138,9 +130,8 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400">هنوز کاربر فعالی یافت نشد</p>
                 </div>
             </div>
-
-        </div>
-    </main>
+        </template>
+    </ContentArea>
 </template>
 
 <script>
@@ -153,7 +144,7 @@ import UserCard from '../components/UserCard.vue'
 import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
 import PopularCategories from '../components/PopularCategories.vue'
 import FilterQuestion from '../components/FilterQuestion.vue'
-import { BaseButton, BaseAlert, BasePagination } from '../components/ui'
+import { BaseButton, BaseAlert, BasePagination, ContentArea } from '../components/ui'
 import questionService from '../services/questionService.js'
 
 export default {
@@ -166,7 +157,8 @@ export default {
         FilterQuestion,
         BaseButton,
         BaseAlert,
-        BasePagination
+        BasePagination,
+        ContentArea
     },
     emits: [],
     setup(props) {
@@ -216,6 +208,9 @@ export default {
             clearErrors()
 
             const params = { ...currentFilters.value, page }
+
+            // Scroll to top smoothly
+            window.scrollTo({ top: 400, behavior: 'smooth' });
 
             await fetchQuestions(params)
         }

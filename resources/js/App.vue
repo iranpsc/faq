@@ -1,7 +1,7 @@
 <template>
     <div
         class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-        <div :class="{ 'md:mr-80': sidebarOpen, 'md:mr-16': !sidebarOpen, 'mr-0': true }"
+        <div :class="{ 'lg:mr-80': sidebarOpen, 'lg:mr-16': !sidebarOpen, 'mr-0': true }"
             class="flex flex-col flex-grow transition-all duration-300">
             <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @main-action="handleMainAction" />
             <router-view @edit-question="handleEditQuestion" />
@@ -12,8 +12,8 @@
         <QuestionModal v-if="showQuestionModal" @close="showQuestionModal = false" :question-to-edit="questionToEdit"
             @question-created="handleQuestionCreated" @question-updated="handleQuestionUpdated" />
 
-        <!-- Overlay for mobile/tablet -->
-        <div v-if="sidebarOpen" @click="closeSidebar" class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"></div>
+        <!-- Overlay for mobile/tablet/medium screens -->
+        <div v-if="sidebarOpen" @click="closeSidebar" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"></div>
     </div>
 </template>
 
@@ -46,7 +46,7 @@ export default {
         const questionToEdit = ref(null);
         const app = getCurrentInstance();
 
-        const sidebarOpen = ref(window.innerWidth >= 768);
+        const sidebarOpen = ref(window.innerWidth >= 1024);
         const resizeTimeout = ref(null);
         const cleanupThemeListener = ref(null);
 
@@ -54,9 +54,11 @@ export default {
             // Debounce resize handler to avoid too many calls
             clearTimeout(resizeTimeout.value);
             resizeTimeout.value = setTimeout(() => {
-                // Force sidebar open on medium/large screens
-                if (window.innerWidth >= 768) {
+                // Force sidebar open only on large screens (1024px and above)
+                if (window.innerWidth >= 1024) {
                     sidebarOpen.value = true;
+                } else {
+                    sidebarOpen.value = false;
                 }
             }, 150);
         };
@@ -247,7 +249,7 @@ export default {
 }
 
 /* Responsive adjustments */
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .mr-80 {
         margin-right: 20rem;
         /* 320px */

@@ -1,3 +1,6 @@
+// Layout Components
+export { default as ContentArea } from '../ContentArea.vue'
+
 // Base UI Components
 export { default as BaseButton } from './BaseButton.vue'
 export { default as BaseCard } from './BaseCard.vue'
