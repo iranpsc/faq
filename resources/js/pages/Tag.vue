@@ -76,7 +76,7 @@ export default {
         const error = ref(null);
 
         const handleQuestionClick = (question) => {
-            router.push({ name: 'QuestionShow', params: { id: question.id } });
+            router.push({ name: 'QuestionShow', params: { slug: question.slug } });
         };
 
         const fetchData = async (tagSlug, page = 1) => {
