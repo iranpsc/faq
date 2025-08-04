@@ -267,7 +267,7 @@ export default {
 
         onMounted(async () => {
             // Load initial questions when component mounts
-            await fetchQuestions({ page: 1, sort: 'created_at', order: 'desc' })
+            await fetchQuestions()
 
             // Load active users
             await fetchActiveUsers(5)

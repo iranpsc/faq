@@ -1,131 +1,134 @@
 <template>
-    <div class="container mx-auto px-4 py-6">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">فعالیت ها</h1>
-        </div>
+    <ContentArea layout="centered" :show-sidebar="false">
+        <!-- Main Content -->
+        <template #main>
+            <!-- Page Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">فعالیت ها</h1>
+            </div>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="flex justify-center items-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
+            <!-- Loading State -->
+            <div v-if="loading" class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
 
-        <!-- Activities List -->
-        <div v-else-if="activities.length > 0" class="space-y-4">
-            <TransitionGroup name="list" tag="div" class="space-y-4">
-                <div
-                    v-for="activity in activities"
-                    :key="activity.id"
-                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200"
-                >
-                    <div class="flex items-start gap-4">
-                        <!-- User Avatar -->
-                        <BaseAvatar
-                            :src="activity.user_image"
-                            :name="activity.user_name"
-                            size="md"
-                        />
+            <!-- Activities List -->
+            <div v-else-if="activities.length > 0" class="space-y-4">
+                <TransitionGroup name="list" tag="div" class="space-y-4">
+                    <div
+                        v-for="activity in activities"
+                        :key="activity.id"
+                        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200"
+                    >
+                        <div class="flex items-start gap-4">
+                            <!-- User Avatar -->
+                            <BaseAvatar
+                                :src="activity.user_image"
+                                :name="activity.user_name"
+                                size="md"
+                            />
 
-                        <!-- Activity Content -->
-                        <div class="flex-1 min-w-0">
-                            <!-- Activity Description -->
-                            <p class="text-gray-900 dark:text-gray-100 mb-2">
-                                {{ activity.description }}
-                            </p>
+                            <!-- Activity Content -->
+                            <div class="flex-1 min-w-0">
+                                <!-- Activity Description -->
+                                <p class="text-gray-900 dark:text-gray-100 mb-2">
+                                    {{ activity.description }}
+                                </p>
 
-                            <!-- Activity Meta -->
-                            <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                <!-- Activity Type Badge -->
-                                <BaseBadge
-                                    :variant="getActivityBadgeVariant(activity.type)"
-                                    size="xs"
-                                >
-                                    {{ getActivityTypeLabel(activity.type) }}
-                                </BaseBadge>
+                                <!-- Activity Meta -->
+                                <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                    <!-- Activity Type Badge -->
+                                    <BaseBadge
+                                        :variant="getActivityBadgeVariant(activity.type)"
+                                        size="xs"
+                                    >
+                                        {{ getActivityTypeLabel(activity.type) }}
+                                    </BaseBadge>
 
-                                <!-- Correct Answer Badge -->
-                                <BaseBadge
-                                    v-if="activity.type === 'answer' && activity.is_correct"
-                                    variant="success"
-                                    size="xs"
-                                >
-                                    پاسخ صحیح
-                                </BaseBadge>
+                                    <!-- Correct Answer Badge -->
+                                    <BaseBadge
+                                        v-if="activity.type === 'answer' && activity.is_correct"
+                                        variant="success"
+                                        size="xs"
+                                    >
+                                        پاسخ صحیح
+                                    </BaseBadge>
 
-                                <!-- Category -->
-                                <span v-if="activity.category_name" class="flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                    </svg>
-                                    {{ activity.category_name }}
-                                </span>
+                                    <!-- Category -->
+                                    <span v-if="activity.category_name" class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                        {{ activity.category_name }}
+                                    </span>
 
-                                <!-- Time -->
-                                <span class="flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    {{ formatTime(activity.created_at) }}
-                                </span>
-                            </div>
+                                    <!-- Time -->
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        {{ formatTime(activity.created_at) }}
+                                    </span>
+                                </div>
 
-                            <!-- View Link -->
-                            <div v-if="activity.url" class="mt-3">
-                                <router-link
-                                    :to="activity.url"
-                                    class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors"
-                                >
-                                    مشاهده
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                </router-link>
+                                <!-- View Link -->
+                                <div v-if="activity.url" class="mt-3">
+                                    <router-link
+                                        :to="activity.url"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors"
+                                    >
+                                        مشاهده
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </router-link>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </TransitionGroup>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else class="text-center py-12">
-            <div class="max-w-md mx-auto">
-                <svg class="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">فعالیتی یافت نشد</h3>
+                </TransitionGroup>
             </div>
-        </div>
 
-        <!-- Load More Button -->
-        <div v-if="activities.length > 0 && activities.length >= limit" class="text-center mt-8">
-            <BaseButton
-                @click="loadMore"
-                variant="ghost"
-                size="lg"
-                :loading="loadingMore"
+            <!-- Empty State -->
+            <div v-else class="text-center py-12">
+                <div class="max-w-md mx-auto">
+                    <svg class="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">فعالیتی یافت نشد</h3>
+                </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div v-if="activities.length > 0 && activities.length >= limit" class="text-center mt-8">
+                <BaseButton
+                    @click="loadMore"
+                    variant="ghost"
+                    size="lg"
+                    :loading="loadingMore"
+                >
+                    بارگذاری بیشتر
+                </BaseButton>
+            </div>
+
+            <!-- Error Message -->
+            <BaseAlert
+                v-if="error"
+                variant="danger"
+                class="mt-4"
+                @dismiss="error = null"
             >
-                بارگذاری بیشتر
-            </BaseButton>
-        </div>
-
-        <!-- Error Message -->
-        <BaseAlert
-            v-if="error"
-            variant="danger"
-            class="mt-4"
-            @dismiss="error = null"
-        >
-            {{ error }}
-        </BaseAlert>
-    </div>
+                {{ error }}
+            </BaseAlert>
+        </template>
+    </ContentArea>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
-import { BaseAvatar, BaseBadge, BaseButton, BaseAlert } from '../components/ui'
+import { BaseAvatar, BaseBadge, BaseButton, BaseAlert, ContentArea } from '../components/ui'
 
 export default {
     name: 'DailyActivity',
@@ -133,7 +136,8 @@ export default {
         BaseAvatar,
         BaseBadge,
         BaseButton,
-        BaseAlert
+        BaseAlert,
+        ContentArea
     },
     setup() {
         const activities = ref([])

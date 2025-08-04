@@ -1,6 +1,7 @@
 <template>
-    <main class="flex-grow bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
-        <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <ContentArea layout="with-sidebar" :show-sidebar="true" main-width="2/3" sidebar-width="1/3">
+        <!-- Main Content -->
+        <template #main>
             <!-- Loading State -->
             <div v-if="isLoading" class="text-center py-12">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
@@ -17,36 +18,32 @@
                 </div>
             </div>
 
-            <!-- Author Content -->
-            <div v-else-if="author" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Right Column: Author Info -->
-                <div class="lg:col-span-1">
-                    <div class="sticky top-8">
-                        <AuthorCard :author="author" />
-                    </div>
+            <!-- Questions Section -->
+            <div v-else-if="author">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                    سوالات پرسیده شده توسط {{ author.name }}
+                </h2>
+                <div v-if="author.questions && author.questions.length > 0">
+                    <QuestionCard
+                        v-for="question in author.questions"
+                        :key="question.id"
+                        :question="question"
+                        @click="navigateToQuestion(question)"
+                    />
                 </div>
-
-                <!-- Left Column: Questions -->
-                <div class="lg:col-span-2">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                        سوالات پرسیده شده توسط {{ author.name }}
-                    </h2>
-                    <div v-if="author.questions && author.questions.length > 0">
-                        <QuestionCard
-                            v-for="question in author.questions"
-                            :key="question.id"
-                            :question="question"
-                            @click="navigateToQuestion(question)"
-                        />
-                    </div>
-                    <div v-else class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-                        <p class="text-gray-600 dark:text-gray-400">این نویسنده هنوز سوالی نپرسیده است.</p>
-                    </div>
+                <div v-else class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+                    <p class="text-gray-600 dark:text-gray-400">این نویسنده هنوز سوالی نپرسیده است.</p>
                 </div>
-
             </div>
-        </div>
-    </main>
+        </template>
+
+        <!-- Sidebar -->
+        <template #sidebar>
+            <div v-if="author" class="sticky top-8">
+                <AuthorCard :author="author" />
+            </div>
+        </template>
+    </ContentArea>
 </template>
 
 <script>
@@ -56,12 +53,14 @@ import { useAuthors } from '../composables/useAuthors'
 import { usePageTitle } from '../composables/usePageTitle'
 import AuthorCard from '../components/AuthorCard.vue'
 import QuestionCard from '../components/QuestionCard.vue'
+import { ContentArea } from '../components/ui'
 
 export default {
     name: 'AuthorShow',
     components: {
         AuthorCard,
         QuestionCard,
+        ContentArea,
     },
     props: {
         id: {

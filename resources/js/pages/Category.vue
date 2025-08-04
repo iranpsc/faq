@@ -1,54 +1,59 @@
 <template>
-    <div class="container mx-auto p-4">
-        <div v-if="loading">
-            <p>Loading...</p>
-        </div>
-        <div v-else-if="error">
-            <p class="text-red-500">Error loading data.</p>
-        </div>
-        <div v-else>
-            <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">{{ category.name }}</h1>
-
-            <!-- Subcategories -->
-            <div v-if="category.children && category.children.length > 0">
-                <h2 class="text-2xl font-semibold mb-4">زیردسته ها</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <router-link v-for="child in category.children" :key="child.id" :to="`/categories/${child.slug}`" class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                        <div class="p-5">
-                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ child.name }}</h3>
-                        </div>
-                        <div v-if="child.children_count > 0" class="bg-gray-50 dark:bg-gray-700 px-5 py-3 rounded-b-lg">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ child.children_count }} زیردسته</p>
-                        </div>
-                    </router-link>
+    <ContentArea layout="full-width" :show-sidebar="false">
+        <!-- Main Content -->
+        <template #main>
+            <div v-if="loading">
+                <div class="flex justify-center items-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
             </div>
+            <div v-else-if="error">
+                <p class="text-red-500">Error loading data.</p>
+            </div>
+            <div v-else>
+                <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">{{ category.name }}</h1>
 
-            <!-- Questions -->
-            <div v-if="questions.length > 0">
-                <h2 class="text-2xl font-semibold mb-4 mt-8">سوالات</h2>
-                <div class="space-y-4">
-                    <QuestionCard
-                        v-for="question in questions"
-                        :key="question.id"
-                        :question="question"
-                        @click="handleQuestionClick(question)"
-                    />
+                <!-- Subcategories -->
+                <div v-if="category.children && category.children.length > 0">
+                    <h2 class="text-2xl font-semibold mb-4">زیردسته ها</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <router-link v-for="child in category.children" :key="child.id" :to="`/categories/${child.slug}`" class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                            <div class="p-5">
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ child.name }}</h3>
+                            </div>
+                            <div v-if="child.children_count > 0" class="bg-gray-50 dark:bg-gray-700 px-5 py-3 rounded-b-lg">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ child.children_count }} زیردسته</p>
+                            </div>
+                        </router-link>
+                    </div>
                 </div>
 
-                <!-- Pagination -->
-                <div v-if="pagination.meta" class="mt-8">
-                    <BasePagination
-                        :current-page="pagination.meta.current_page"
-                        :total-pages="pagination.meta.last_page"
-                        :total="pagination.meta.total"
-                        :per-page="pagination.meta.per_page"
-                        @page-changed="handlePageChange"
-                    />
+                <!-- Questions -->
+                <div v-if="questions.length > 0">
+                    <h2 class="text-2xl font-semibold mb-4 mt-8">سوالات</h2>
+                    <div class="space-y-4">
+                        <QuestionCard
+                            v-for="question in questions"
+                            :key="question.id"
+                            :question="question"
+                            @click="handleQuestionClick(question)"
+                        />
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="pagination.meta" class="mt-8">
+                        <BasePagination
+                            :current-page="pagination.meta.current_page"
+                            :total-pages="pagination.meta.last_page"
+                            :total="pagination.meta.total"
+                            :per-page="pagination.meta.per_page"
+                            @page-changed="handlePageChange"
+                        />
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </template>
+    </ContentArea>
 </template>
 
 <script>
@@ -57,13 +62,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { usePageTitle } from '../composables/usePageTitle';
 import api from '../services/api';
 import QuestionCard from '../components/QuestionCard.vue';
-import { BasePagination } from '../components/ui';
+import { BasePagination, ContentArea } from '../components/ui';
 
 export default {
     name: 'Category',
     components: {
         QuestionCard,
         BasePagination,
+        ContentArea,
     },
     setup() {
         const route = useRoute();

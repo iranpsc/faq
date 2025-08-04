@@ -1,60 +1,53 @@
 <template>
-    <main class="flex-grow bg-gray-50 dark:bg-gray-900/50 overflow-hidden">
-        <div class="flex h-full">
-            <!-- Right Content Area - 75% on medium screens and larger, full width on smaller screens -->
-            <div class="w-full md:w-3/4 lg:w-3/4 xl:w-3/4 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-                <div class="max-w-4xl mx-auto w-full min-w-0">
-                    <!-- Loading State -->
-                    <div v-if="isLoading" class="animate-pulse">
-                        <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
-                        <div class="h-32 bg-gray-200 dark:bg-gray-700 rounded mb-6"></div>
-                    </div>
-
-                    <!-- Error State -->
-                    <div v-else-if="error" class="text-center py-16">
-                        <div class="text-red-500 text-lg">{{ error }}</div>
-                    </div>
-
-                    <!-- Question Content -->
-                    <div v-else-if="question && question.id">
-                        <!-- Updating Indicator -->
-                        <div v-if="isUpdating"
-                            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 flex items-center gap-3">
-                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                            <span class="text-blue-700 dark:text-blue-300">در حال بروزرسانی سوال...</span>
-                        </div>
-
-                        <!-- Question Content -->
-                        <QuestionContent :question="question" @edit="handleEdit" @delete="handleDelete"
-                            @vote="handleVote" @vote-changed="handleVoteChanged"
-                            :key="`question-${question.id}-${componentKey}`" />
-
-                        <!-- Comments Section -->
-                        <CommentsSection :questionId="question.id" parent-type="question"
-                            @comment-added="refreshQuestionData" :key="`comments-${question.id}-${componentKey}`" />
-
-                        <!-- Answers Section -->
-                        <AnswersSection :questionId="question.id" :answers="answers" @answer-added="refreshQuestionData"
-                            @vote-changed="handleAnswerVoteChanged" @answer-correctness-changed="handleAnswerCorrectnessChanged"
-                            :key="`answers-${question.id}-${componentKey}`" />
-                    </div>
-                </div>
+    <ContentArea layout="with-sidebar" :show-sidebar="true" main-width="3/4" sidebar-width="1/4">
+        <!-- Main Content -->
+        <template #main>
+            <!-- Loading State -->
+            <div v-if="isLoading" class="animate-pulse">
+                <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
+                <div class="h-32 bg-gray-200 dark:bg-gray-700 rounded mb-6"></div>
             </div>
 
-            <!-- Left Sidebar - 25% on medium screens and larger -->
-            <div
-                class="hidden md:block md:w-1/4 lg:w-1/4 xl:w-1/4 dark:border-gray-700 dark:bg-gray-800">
-                <div class="p-4 h-full overflow-y-auto">
-                    <HomeSidebar />
-                </div>
+            <!-- Error State -->
+            <div v-else-if="error" class="text-center py-16">
+                <div class="text-red-500 text-lg">{{ error }}</div>
             </div>
-        </div>
 
-        <!-- Question Modal -->
-        <QuestionModal v-if="showEditModal && question" :question-to-edit="question" @close="handleCloseModal"
-            @question-updated="handleQuestionUpdated" />
-    </main>
+            <!-- Question Content -->
+            <div v-else-if="question && question.id">
+                <!-- Updating Indicator -->
+                <div v-if="isUpdating"
+                    class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 flex items-center gap-3">
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span class="text-blue-700 dark:text-blue-300">در حال بروزرسانی سوال...</span>
+                </div>
+
+                <!-- Question Content -->
+                <QuestionContent :question="question" @edit="handleEdit" @delete="handleDelete"
+                    @vote="handleVote" @vote-changed="handleVoteChanged"
+                    :key="`question-${question.id}-${componentKey}`" />
+
+                <!-- Comments Section -->
+                <CommentsSection :questionId="question.id" parent-type="question"
+                    @comment-added="refreshQuestionData" :key="`comments-${question.id}-${componentKey}`" />
+
+                <!-- Answers Section -->
+                <AnswersSection :questionId="question.id" :answers="answers" @answer-added="refreshQuestionData"
+                    @vote-changed="handleAnswerVoteChanged" @answer-correctness-changed="handleAnswerCorrectnessChanged"
+                    :key="`answers-${question.id}-${componentKey}`" />
+            </div>
+        </template>
+
+        <!-- Sidebar -->
+        <template #sidebar>
+            <HomeSidebar />
+        </template>
+    </ContentArea>
+
+    <!-- Question Modal -->
+    <QuestionModal v-if="showEditModal && question" :question-to-edit="question" @close="handleCloseModal"
+        @question-updated="handleQuestionUpdated" />
 </template>
 
 <script>
@@ -68,6 +61,7 @@ import CommentsSection from '../components/question/CommentsSection.vue'
 import AnswersSection from '../components/question/AnswersSection.vue'
 import QuestionModal from '../components/QuestionModal.vue'
 import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
+import { ContentArea } from '../components/ui'
 import questionService from '../services/questionService.js'
 import axios from 'axios'
 
@@ -78,7 +72,8 @@ export default {
         CommentsSection,
         AnswersSection,
         QuestionModal,
-        HomeSidebar
+        HomeSidebar,
+        ContentArea
     },
     setup() {
         const route = useRoute()
@@ -123,11 +118,6 @@ export default {
                     isLoading.value = false
                 }
             }
-        }
-
-        const refreshComments = async () => {
-            // Comments are now managed by CommentsSection component
-            // This function is kept for compatibility but does nothing
         }
 
         const refreshAnswers = async () => {
@@ -425,7 +415,6 @@ export default {
             error,
             showEditModal,
             componentKey,
-            refreshComments,
             refreshAnswers,
             refreshQuestionData,
             handleEdit,

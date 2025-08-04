@@ -1,7 +1,7 @@
 <template>
-    <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto main-content-container">
-        <div class="max-w-7xl mx-auto">
-            <!-- Page Header -->
+    <ContentArea layout="full-width" :show-sidebar="false">
+        <!-- Page Header -->
+        <template #filters>
             <div class="mb-8">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -74,7 +74,10 @@
                     </div>
                 </div>
             </div>
+        </template>
 
+        <!-- Main Content -->
+        <template #main>
             <!-- Loading State -->
             <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div v-for="n in 12" :key="n"
@@ -148,8 +151,8 @@
                     {{ searchQuery ? 'هیچ نویسنده‌ای با این جستجو پیدا نشد.' : 'هنوز نویسنده‌ای در سیستم ثبت نشده است.' }}
                 </p>
             </div>
-        </div>
-    </main>
+        </template>
+    </ContentArea>
 </template>
 
 <script>
@@ -158,6 +161,7 @@ import { useRouter } from 'vue-router'
 import { usePageTitle } from '../composables/usePageTitle'
 import AuthorCard from '../components/AuthorCard.vue'
 import BasePagination from '../components/ui/BasePagination.vue'
+import { ContentArea } from '../components/ui'
 import { useAuthors } from '../composables/useAuthors.js'
 
 export default {
@@ -165,6 +169,7 @@ export default {
     components: {
         AuthorCard,
         BasePagination,
+        ContentArea,
     },
     setup() {
         const router = useRouter()

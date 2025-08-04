@@ -40,8 +40,11 @@ class QuestionFilterService
             });
         }
 
-        // Apply sorting filters
-        $this->applySortingFilters($request, $query, $user);
+        if ($this->hasActiveFilters($request)) {
+            $this->applySortingFilters($request, $query, $user);
+        } else {
+            $query->orderByPinStatus($user);
+        }
 
         return $query;
     }
@@ -56,9 +59,6 @@ class QuestionFilterService
      */
     private function applySortingFilters(Request $request, Builder $query, $user): void
     {
-        // Check if user is actively filtering (has any filter parameters)
-        $hasActiveFilters = $this->hasActiveFilters($request);
-
         // Handle filter-based parameters (unanswered, unsolved)
         if ($request->filled('filter')) {
             switch ($request->filter) {
@@ -99,35 +99,6 @@ class QuestionFilterService
                     break;
             }
             return;
-        }
-
-        // Legacy parameter support (backwards compatibility)
-        if ($request->has('newest')) {
-            $query->orderBy('created_at', 'desc');
-        } elseif ($request->has('oldest')) {
-            $query->orderBy('created_at', 'asc');
-        } elseif ($request->has('most_votes')) {
-            $query->orderBy('votes_count', 'desc');
-        } elseif ($request->has('most_answers')) {
-            $query->orderBy('answers_count', 'desc');
-        } elseif ($request->has('most_views')) {
-            $query->orderBy('views', 'desc');
-        } elseif ($request->has('unanswered')) {
-            $query->groupBy('questions.id')
-                ->having('answers_count', '=', 0)
-                ->orderBy('created_at', 'desc');
-        } elseif ($request->has('unsolved')) {
-            // Assuming unsolved means no accepted answer
-            $query->whereDoesntHave('answers', function ($q) {
-                $q->where('is_correct', true);
-            })->orderBy('created_at', 'desc');
-        } else {
-            // Only apply pin status ordering when no active filters are applied
-            if (!$hasActiveFilters) {
-                $query->orderByPinStatus($user);
-            }
-            // Default ordering when no specific sort is requested
-            $query->orderBy('created_at', 'desc');
         }
     }
 

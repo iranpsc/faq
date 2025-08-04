@@ -1,6 +1,7 @@
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <ContentArea layout="centered" :show-sidebar="false">
+        <!-- Main Content -->
+        <template #main>
             <!-- Profile Header -->
             <BaseCard class="mb-8">
                 <template #header>
@@ -152,19 +153,19 @@
                     </div>
                 </div>
             </BaseCard>
-        </div>
+        </template>
+    </ContentArea>
 
-        <!-- Success/Error Messages -->
-        <BaseAlert v-if="alert.show" :type="alert.type" :message="alert.message" @close="alert.show = false"
-            class="fixed bottom-4 right-4 z-50 max-w-sm" />
-    </div>
+    <!-- Success/Error Messages -->
+    <BaseAlert v-if="alert.show" :type="alert.type" :message="alert.message" @close="alert.show = false"
+        class="fixed bottom-4 right-4 z-50 max-w-sm" />
 </template>
 
 <script>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth.js'
 import { usePageTitle } from '../composables/usePageTitle'
-import { BaseCard, BaseAvatar, BaseButton, BaseInput, BaseBadge, BaseAlert } from '../components/ui'
+import { BaseCard, BaseAvatar, BaseButton, BaseInput, BaseBadge, BaseAlert, ContentArea } from '../components/ui'
 
 export default {
     name: 'Profile',
@@ -174,7 +175,8 @@ export default {
         BaseButton,
         BaseInput,
         BaseBadge,
-        BaseAlert
+        BaseAlert,
+        ContentArea
     },
     setup() {
         const { user, updateUser } = useAuth()

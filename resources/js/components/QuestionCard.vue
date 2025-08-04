@@ -14,10 +14,12 @@
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                     <!-- Category Badge -->
-                    <BaseBadge v-if="question.category" size="lg"
-                        class="cursor-pointer hover:-translate-y-0.5 transition-all duration-200 px-8 py-1 border-2 border-gray-400 dark:border-gray-200">
-                        {{ question.category.name }}
-                    </BaseBadge>
+                    <router-link v-if="question.category" :to="`/categories/${question.category.slug}`">
+                        <BaseBadge size="lg"
+                            class="cursor-pointer hover:-translate-y-0.5 transition-all duration-200 px-8 py-1 border-2 border-gray-400 dark:border-gray-200">
+                            {{ question.category.name }}
+                        </BaseBadge>
+                    </router-link>
                     <!-- Pin Badge -->
                     <BaseBadge v-if="question.is_pinned_by_user" variant="success" size="sm"
                         class="flex items-center gap-1 px-8 py-2 border-2 border-green-400 dark:border-green-200">
