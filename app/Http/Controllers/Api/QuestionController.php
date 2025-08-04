@@ -161,10 +161,7 @@ class QuestionController extends Controller
             'tags',
             'upVotes',
             'downVotes',
-            'comments',
-            'answers' => function ($query) use ($user) {
-                $query->visible($user)->with(['user', 'votes']);
-            }
+            'comments'
         ])->loadCount('votes', 'upVotes', 'downVotes', 'answers');
     }
 

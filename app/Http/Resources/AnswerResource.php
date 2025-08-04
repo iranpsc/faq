@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class AnswerResource extends JsonResource
 {
@@ -31,9 +32,7 @@ class AnswerResource extends JsonResource
                 'user_vote' => $this->votes->where('user_id', $request->user()?->id)->first()?->type,
             ],
             'can' => [
-                'mark_as_correct' => $request->user()?->can('markAsCorrect', $this->resource) ?? false,
-                'mark_as_incorrect' => $request->user()?->can('markAsIncorrect', $this->resource) ?? false,
-                'toggle_correctness' => $request->user()?->can('markAsCorrect', $this->resource) ?? false,
+                'toggle_correctness' => $request->user()?->can('canMarkCorrectness', $this->resource) ?? false,
                 'update' => $request->user()?->can('update', $this->resource) ?? false,
                 'delete' => $request->user()?->can('delete', $this->resource) ?? false,
                 'publish' => $request->user()?->can('publish', $this->resource) ?? false,

@@ -129,11 +129,14 @@
               :class="[
                 'text-sm px-3 py-1 rounded whitespace-nowrap transition-colors',
                 answer.is_correct
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500'
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-green-600 text-white hover:bg-green-700'
               ]"
             >
-              {{ isTogglingCorrectness === answer.id ? 'در حال تغییر...' : (answer.is_correct ? 'صحیح ✓' : 'علامت‌گذاری صحیح') }}
+              {{ isTogglingCorrectness === answer.id
+                ? 'در حال تغییر...'
+                : (answer.is_correct ? 'رد پاسخ' : 'تایید پاسخ')
+              }}
             </button>
           </div>
 
@@ -290,52 +293,45 @@ export default {
       editContent.value = ''
     }
 
-    const saveEdit = async (answer) => {
-      if (!editContent.value.trim()) return
+        const saveEdit = async (answer) => {
+            if (!editContent.value.trim()) return
 
-      const result = await updateAnswer(answer.id, editContent.value)
+            const result = await updateAnswer(answer.id, editContent.value)
 
-      if (result.success) {
-        // Find and update the answer in the answers array
-        const answerIndex = props.answers.findIndex(a => a.id === answer.id)
-        if (answerIndex !== -1) {
-          props.answers[answerIndex].content = editContent.value
-          props.answers[answerIndex].updated_at = result.data?.updated_at || props.answers[answerIndex].updated_at
+            if (result.success) {
+                editingAnswer.value = null
+                editContent.value = ''
+
+                // Show success message
+                const Swal = window.Swal || window.$swal;
+                if (Swal) {
+                    Swal.fire({
+                        title: 'موفقیت!',
+                        text: result.message,
+                        icon: 'success',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+
+                emit('answer-added') // Trigger refresh to get fresh data from API
+            } else {
+                // Show error message
+                const Swal = window.Swal || window.$swal;
+                if (Swal) {
+                    Swal.fire({
+                        title: 'خطا!',
+                        text: result.message,
+                        icon: 'error',
+                        confirmButtonText: 'باشه'
+                    });
+                }
+            }
         }
 
-        editingAnswer.value = null
-        editContent.value = ''
-
-        // Show success message
-        const Swal = window.Swal || window.$swal;
-        if (Swal) {
-          Swal.fire({
-            title: 'موفقیت!',
-            text: result.message,
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-          });
-        }
-
-        emit('answer-added') // Trigger refresh
-      } else {
-        // Show error message
-        const Swal = window.Swal || window.$swal;
-        if (Swal) {
-          Swal.fire({
-            title: 'خطا!',
-            text: result.message,
-            icon: 'error',
-            confirmButtonText: 'باشه'
-          });
-        }
-      }
-    }
-
-    const deleteAnswerAction = async (answer) => {
+        const deleteAnswerAction = async (answer) => {
       const Swal = window.Swal || window.$swal;
 
       if (Swal) {
@@ -405,110 +401,95 @@ export default {
       componentKey.value = Date.now()
     }
 
-    const publishAnswer = async (answer) => {
-      isPublishingAnswer.value = answer.id
+        const publishAnswer = async (answer) => {
+            isPublishingAnswer.value = answer.id
 
-      try {
-        const response = await window.axios.post(`/api/answers/${answer.id}/publish`)
+            try {
+                const response = await window.axios.post(`/api/answers/${answer.id}/publish`)
 
-        if (response.data.success) {
-          // Update the answer object
-          const answerIndex = props.answers.findIndex(a => a.id === answer.id)
-          if (answerIndex !== -1) {
-            props.answers[answerIndex].published = true
-            props.answers[answerIndex].published_at = new Date().toISOString()
-            // Remove publish permission
-            if (props.answers[answerIndex].can) {
-              props.answers[answerIndex].can.publish = false
+                if (response.data.success) {
+                    // Show success message
+                    const Swal = window.Swal || window.$swal;
+                    if (Swal) {
+                        Swal.fire({
+                            title: 'موفقیت!',
+                            text: response.data.message || 'پاسخ با موفقیت منتشر شد',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+
+                    emit('answer-added') // Trigger refresh to get fresh data from API
+                }
+            } catch (error) {
+                console.error('Error publishing answer:', error)
+
+                // Show error message
+                const Swal = window.Swal || window.$swal;
+                if (Swal) {
+                    Swal.fire({
+                        title: 'خطا!',
+                        text: 'خطا در انتشار پاسخ',
+                        icon: 'error',
+                        confirmButtonText: 'باشه'
+                    });
+                }
+            } finally {
+                isPublishingAnswer.value = null
             }
-          }
-
-          // Show success message
-          const Swal = window.Swal || window.$swal;
-          if (Swal) {
-            Swal.fire({
-              title: 'موفقیت!',
-              text: response.data.message || 'پاسخ با موفقیت منتشر شد',
-              icon: 'success',
-              toast: true,
-              position: 'top-end',
-              showConfirmButton: false,
-              timer: 3000
-            });
-          }
         }
-      } catch (error) {
-        console.error('Error publishing answer:', error)
 
-        // Show error message
-        const Swal = window.Swal || window.$swal;
-        if (Swal) {
-          Swal.fire({
-            title: 'خطا!',
-            text: 'خطا در انتشار پاسخ',
-            icon: 'error',
-            confirmButtonText: 'باشه'
-          });
-        }
-      } finally {
-        isPublishingAnswer.value = null
-      }
-    }
+        const toggleAnswerCorrectness = async (answer) => {
+            isTogglingCorrectness.value = answer.id
 
-    const toggleAnswerCorrectness = async (answer) => {
-      isTogglingCorrectness.value = answer.id
+            try {
+                const response = await window.axios.post(`/api/answers/${answer.id}/toggle-correctness`)
 
-      try {
-        const response = await window.axios.post(`/api/answers/${answer.id}/toggle-correctness`)
+                if (response.data.success) {
+                    // Emit event to parent to update question solved status
+                    emit('answer-correctness-changed', {
+                        answerId: answer.id,
+                        isCorrect: response.data.is_correct
+                    })
 
-        if (response.data.success) {
-          // Update the answer object
-          const answerIndex = props.answers.findIndex(a => a.id === answer.id)
-          if (answerIndex !== -1) {
-            props.answers[answerIndex].is_correct = response.data.is_correct
-          }
+                    // Show success message
+                    const Swal = window.Swal || window.$swal;
+                    if (Swal) {
+                        Swal.fire({
+                            title: 'موفقیت!',
+                            text: response.data.message,
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
 
-          // Emit event to parent to update question solved status
-          emit('answer-correctness-changed', {
-            answerId: answer.id,
-            isCorrect: response.data.is_correct
-          })
+                    emit('answer-added') // Trigger refresh to get fresh data from API
+                }
+            } catch (error) {
+                console.error('Error toggling answer correctness:', error)
 
-          // Show success message
-          const Swal = window.Swal || window.$swal;
-          if (Swal) {
-            Swal.fire({
-              title: 'موفقیت!',
-              text: response.data.message,
-              icon: 'success',
-              toast: true,
-              position: 'top-end',
-              showConfirmButton: false,
-              timer: 3000
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error toggling answer correctness:', error)
+                const errorMessage = error.response?.data?.message || 'خطا در علامت‌گذاری پاسخ'
 
-        const errorMessage = error.response?.data?.message || 'خطا در علامت‌گذاری پاسخ'
-
-        // Show error message
-        const Swal = window.Swal || window.$swal;
-        if (Swal) {
-          Swal.fire({
-            title: 'خطا!',
-            text: errorMessage,
-            icon: 'error',
-            confirmButtonText: 'باشه'
-          });
-        }
-      } finally {
-        isTogglingCorrectness.value = null
-      }
-    }
-
-    // Watch for changes in answers and update component key
+                // Show error message
+                const Swal = window.Swal || window.$swal;
+                if (Swal) {
+                    Swal.fire({
+                        title: 'خطا!',
+                        text: errorMessage,
+                        icon: 'error',
+                        confirmButtonText: 'باشه'
+                    });
+                }
+            } finally {
+                isTogglingCorrectness.value = null
+            }
+        }    // Watch for changes in answers and update component key
     watch(() => props.answers, () => {
       componentKey.value = Date.now()
     }, { deep: true })

@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Answer;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Support\Facades\Log;
 
 class AnswerPolicy
 {
@@ -59,7 +60,7 @@ class AnswerPolicy
      * @param  \App\Models\Answer  $answer
      * @return bool
      */
-    private function canMarkCorrectness(User $user, Answer $answer): bool
+    public function canMarkCorrectness(User $user, Answer $answer): bool
     {
         // Rule 1: Must be level 4 or above
         if ($user->level < 4) {
@@ -67,30 +68,25 @@ class AnswerPolicy
         }
 
         // Rule 2: Cannot mark own answers
-        if ($user->id === $answer->user_id) {
+        if ($answer->user->is($user)) {
+            return false;
+        }
+
+        // Check if the user has already marked this answer
+        $existingMark = $answer->correctnessMarks()
+            ->where('marker_user_id', $user->id)
+            ->exists();
+
+        // If user has already marked this answer, they can't mark it again
+        if ($existingMark) {
             return false;
         }
 
         // Rule 3: Check if user has remaining quota
         $usedMarks = $user->correctnessMarks()->count();
-        $existingMark = $answer->correctnessMarks()
-            ->where('marker_user_id', $user->id)
-            ->first();
 
-        // If changing existing mark, don't count against quota
-        if (!$existingMark && $usedMarks >= $user->level) {
-            return false;
-        }
-
-        // Rule 4: Check if user can override existing marks
-        $highestLevelMark = $answer->correctnessMarks()
-            ->join('users', 'users.id', '=', 'answer_correctness_marks.marker_user_id')
-            ->where('marker_user_id', '!=', $user->id)
-            ->orderBy('users.level', 'desc')
-            ->first();
-
-        // If there's a higher or equal level mark and user doesn't have own mark, deny
-        if ($highestLevelMark && !$existingMark && $user->level <= $highestLevelMark->level) {
+        // If user is running out of remaining quota, they can't mark correctness
+        if ($usedMarks >= $user->level) {
             return false;
         }
 

@@ -33,7 +33,7 @@
                     @comment-added="refreshQuestionData" :key="`comments-${question.id}-${componentKey}`" />
 
                 <!-- Answers Section -->
-                <AnswersSection :questionId="question.id" :answers="answers" @answer-added="refreshQuestionData"
+                <AnswersSection :questionId="question.id" :answers="answers" @answer-added="refreshAnswers"
                     @vote-changed="handleAnswerVoteChanged" @answer-correctness-changed="handleAnswerCorrectnessChanged"
                     :key="`answers-${question.id}-${componentKey}`" />
             </div>
@@ -110,13 +110,13 @@ export default {
                 const response = await axios.get(`/api/questions/${questionSlug.value}`)
                 question.value = response.data.data
 
-                // Extract answers from the response
-                answers.value = response.data.data.answers || []
-
                 // Update page title with question title
                 if (question.value && question.value.title) {
                     setTitle(question.value.title)
                 }
+
+                // Fetch answers separately
+                await fetchAnswers()
             } catch (err) {
                 error.value = 'خطا در بارگذاری سوال'
                 console.error('Error fetching question:', err)
@@ -127,10 +127,38 @@ export default {
             }
         }
 
+        const fetchAnswers = async () => {
+            try {
+                if (question.value && question.value.id) {
+                    const response = await axios.get(`/api/questions/${question.value.id}/answers`)
+
+                    // Handle paginated response structure
+                    if (response.data && response.data.data) {
+                        answers.value = response.data.data || []
+                    } else {
+                        // Fallback for non-paginated structure
+                        answers.value = response.data || []
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching answers:', err)
+                answers.value = []
+            }
+        }
+
         const refreshAnswers = async () => {
             try {
-                const response = await axios.get(`/api/questions/${questionSlug.value}`)
-                answers.value = response.data.data.answers || []
+                if (question.value && question.value.id) {
+                    const response = await axios.get(`/api/questions/${question.value.id}/answers`)
+
+                    // Handle paginated response structure
+                    if (response.data && response.data.data) {
+                        answers.value = response.data.data || []
+                    } else {
+                        // Fallback for non-paginated structure
+                        answers.value = response.data || []
+                    }
+                }
             } catch (err) {
                 console.error('Error refreshing answers:', err)
             }
@@ -152,12 +180,14 @@ export default {
 
                 // Force complete reactivity by creating entirely new objects
                 question.value = JSON.parse(JSON.stringify(data))
-                answers.value = JSON.parse(JSON.stringify(data.answers || []))
 
                 // Update page title with question title
                 if (question.value && question.value.title) {
                     setTitle(question.value.title)
                 }
+
+                // Fetch answers separately
+                await fetchAnswers()
 
                 // Manually trigger reactivity
                 triggerRef(question)
@@ -375,7 +405,8 @@ export default {
 
         const handleAnswerCorrectnessChanged = (data) => {
             console.log('Answer correctness changed:', data)
-            // Refresh question data to update solved status
+            // Refresh both answers and question data to update solved status
+            refreshAnswers()
             refreshQuestionData()
         }
 
@@ -424,6 +455,7 @@ export default {
             error,
             showEditModal,
             componentKey,
+            fetchAnswers,
             refreshAnswers,
             refreshQuestionData,
             handleEdit,
