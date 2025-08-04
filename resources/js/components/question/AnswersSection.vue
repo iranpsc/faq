@@ -49,6 +49,7 @@
             <BaseAvatar
               :src="answer.user?.image_url"
               :name="answer.user?.name"
+              :score="answer.user?.score"
               size="md"
               class="flex-shrink-0"
             />
@@ -56,7 +57,7 @@
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
                   <span class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ answer.user?.name }}</span>
-                  <span class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{ formatNumber(answer.user?.points || 0) }}</span>
+                  <span class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{ formatNumber(answer.user?.score || 0) }}</span>
                 </div>
                 <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ formatDate(answer.created_at) }}</span>
               </div>

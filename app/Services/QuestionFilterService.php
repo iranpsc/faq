@@ -56,10 +56,52 @@ class QuestionFilterService
      */
     private function applySortingFilters(Request $request, Builder $query, $user): void
     {
-        // Default ordering by pin status
-        $query->orderByPinStatus($user);
+        // Check if user is actively filtering (has any filter parameters)
+        $hasActiveFilters = $this->hasActiveFilters($request);
 
-        // Apply additional sorting based on parameters
+        // Handle filter-based parameters (unanswered, unsolved)
+        if ($request->filled('filter')) {
+            switch ($request->filter) {
+                case 'unanswered':
+                    $query->groupBy('questions.id')
+                        ->having('answers_count', '=', 0)
+                        ->orderBy('created_at', 'desc');
+                    return;
+                case 'unsolved':
+                    // Assuming unsolved means no accepted answer
+                    $query->whereDoesntHave('answers', function ($q) {
+                        $q->where('is_correct', true);
+                    })->orderBy('created_at', 'desc');
+                    return;
+            }
+        }
+
+        // Handle sort and order parameters
+        if ($request->filled('sort') && $request->filled('order')) {
+            $sortField = $request->sort;
+            $sortOrder = $request->order;
+
+            switch ($sortField) {
+                case 'created_at':
+                    $query->orderBy('created_at', $sortOrder);
+                    break;
+                case 'votes':
+                    $query->orderBy('votes_count', $sortOrder);
+                    break;
+                case 'answers_count':
+                    $query->orderBy('answers_count', $sortOrder);
+                    break;
+                case 'views_count':
+                    $query->orderBy('views', $sortOrder);
+                    break;
+                default:
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+            return;
+        }
+
+        // Legacy parameter support (backwards compatibility)
         if ($request->has('newest')) {
             $query->orderBy('created_at', 'desc');
         } elseif ($request->has('oldest')) {
@@ -71,17 +113,43 @@ class QuestionFilterService
         } elseif ($request->has('most_views')) {
             $query->orderBy('views', 'desc');
         } elseif ($request->has('unanswered')) {
-            $query->having('answers_count', '=', 0)
+            $query->groupBy('questions.id')
+                ->having('answers_count', '=', 0)
                 ->orderBy('created_at', 'desc');
         } elseif ($request->has('unsolved')) {
             // Assuming unsolved means no accepted answer
             $query->whereDoesntHave('answers', function ($q) {
-                $q->where('is_accepted', true);
+                $q->where('is_correct', true);
             })->orderBy('created_at', 'desc');
         } else {
+            // Only apply pin status ordering when no active filters are applied
+            if (!$hasActiveFilters) {
+                $query->orderByPinStatus($user);
+            }
             // Default ordering when no specific sort is requested
             $query->orderBy('created_at', 'desc');
         }
+    }
+
+    /**
+     * Check if the request has any active filtering parameters
+     *
+     * @param Request $request
+     * @return bool
+     */
+    private function hasActiveFilters(Request $request): bool
+    {
+        return $request->filled('category_id') ||
+               $request->filled('tags') ||
+               $request->filled('filter') ||
+               $request->filled('sort') ||
+               $request->has('newest') ||
+               $request->has('oldest') ||
+               $request->has('most_votes') ||
+               $request->has('most_answers') ||
+               $request->has('most_views') ||
+               $request->has('unanswered') ||
+               $request->has('unsolved');
     }
 
     /**
