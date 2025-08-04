@@ -63,13 +63,18 @@ class QuestionFilterService
         if ($request->filled('filter')) {
             switch ($request->filter) {
                 case 'unanswered':
-                    $query->groupBy('questions.id')
-                        ->having('answers_count', '=', 0)
+                    $query->whereDoesntHave('answers')
                         ->orderBy('created_at', 'desc');
                     return;
                 case 'unsolved':
                     // Assuming unsolved means no accepted answer
                     $query->whereDoesntHave('answers', function ($q) {
+                        $q->where('is_correct', true);
+                    })->orderBy('created_at', 'desc');
+                    return;
+                case 'solved':
+                    // Assuming solved means at least one accepted answer
+                    $query->whereHas('answers', function ($q) {
                         $q->where('is_correct', true);
                     })->orderBy('created_at', 'desc');
                     return;

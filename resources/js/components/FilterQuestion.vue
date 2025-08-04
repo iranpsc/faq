@@ -187,6 +187,7 @@ export default {
             { value: 'most_answers', label: 'پاسخ ها' },
             { value: 'most_views', label: 'بازدید ها' },
             { value: 'unanswered', label: 'بی پاسخ' },
+            { value: 'solved', label: 'حل شده'},
             { value: 'unsolved', label: 'حل نشده' }
         ])
 
@@ -288,6 +289,9 @@ export default {
                         break
                     case 'unanswered':
                         params.filter = 'unanswered'
+                        break
+                    case 'solved':
+                        params.filter = 'solved'
                         break
                     case 'unsolved':
                         params.filter = 'unsolved'
