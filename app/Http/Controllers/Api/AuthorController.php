@@ -81,6 +81,7 @@ class AuthorController extends Controller
                         return [
                             'id' => $question->id,
                             'title' => $question->title,
+                            'slug' => $question->slug,
                             'created_at' => $question->created_at,
                         ];
                     }),
@@ -140,6 +141,7 @@ class AuthorController extends Controller
                     return [
                         'id' => $question->id,
                         'title' => $question->title,
+                        'slug' => $question->slug,
                         'content' => $question->content,
                         'created_at' => $question->created_at,
                         'updated_at' => $question->updated_at,

@@ -275,7 +275,7 @@ class DashboardController extends Controller
                         'question_id' => $answer->question->id,
                         'description' => "کاربر '{$answer->user->name}' به سوال '{$answer->question->title}' پاسخ داد",
                         'created_at' => $answer->created_at,
-                        'url' => "/questions/{$answer->question->id}",
+                        'url' => "/questions/{$answer->question->slug}",
                         'is_correct' => $answer->is_correct
                     ];
                 });
