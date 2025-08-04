@@ -21,11 +21,8 @@ export function useTags() {
         }
       })
 
-      const data = response.data.data || response.data
-
-      // For Select2 component, we don't manage state here - just return the data
-      // The component will handle its own state management
-      return { success: true, data: data }
+      // Return the complete response data which includes pagination meta
+      return { success: true, data: response.data }
     } catch (error) {
       console.error('Error fetching tags:', error)
       const errorMessage = 'خطا در بارگذاری برچسب‌ها'

@@ -18,6 +18,7 @@ class Question extends Model
         'category_id',
         'user_id',
         'title',
+        'slug',
         'content',
         'featured',
         'last_activity',
@@ -222,13 +223,13 @@ class Question extends Model
         // 3. Unpublished questions from users with lower level
         return $query->where(function ($q) use ($user) {
             $q->where('questions.published', true)
-              ->orWhere('questions.user_id', $user->id)
-              ->orWhere(function ($subQuery) use ($user) {
-                  $subQuery->where('questions.published', false)
-                           ->whereHas('user', function ($userQuery) use ($user) {
-                               $userQuery->where('level', '<', $user->level);
-                           });
-              });
+                ->orWhere('questions.user_id', $user->id)
+                ->orWhere(function ($subQuery) use ($user) {
+                    $subQuery->where('questions.published', false)
+                        ->whereHas('user', function ($userQuery) use ($user) {
+                            $userQuery->where('level', '<', $user->level);
+                        });
+                });
         });
     }
 
@@ -250,7 +251,7 @@ class Question extends Model
 
         return $query->leftJoin('user_pinned_questions', function ($join) use ($user) {
             $join->on('questions.id', '=', 'user_pinned_questions.question_id')
-                 ->where('user_pinned_questions.user_id', '=', $user->id);
+                ->where('user_pinned_questions.user_id', '=', $user->id);
         })->addSelect([
             DB::raw('CASE WHEN user_pinned_questions.id IS NOT NULL THEN 1 ELSE 0 END as is_pinned_by_user'),
             'user_pinned_questions.pinned_at as pinned_at'
@@ -271,8 +272,8 @@ class Question extends Model
         }
 
         return $query->orderByRaw('is_pinned_by_user DESC')
-                    ->orderByRaw('CASE WHEN is_pinned_by_user = 1 THEN user_pinned_questions.pinned_at END DESC')
-                    ->orderBy('questions.created_at', 'desc');
+            ->orderByRaw('CASE WHEN is_pinned_by_user = 1 THEN user_pinned_questions.pinned_at END DESC')
+            ->orderBy('questions.created_at', 'desc');
     }
 
     /**
@@ -293,10 +294,42 @@ class Question extends Model
 
         return $query->leftJoin('user_featured_questions', function ($join) use ($user) {
             $join->on('questions.id', '=', 'user_featured_questions.question_id')
-                 ->where('user_featured_questions.user_id', '=', $user->id);
+                ->where('user_featured_questions.user_id', '=', $user->id);
         })->addSelect([
             DB::raw('CASE WHEN user_featured_questions.id IS NOT NULL THEN 1 ELSE 0 END as is_featured_by_user'),
             'user_featured_questions.featured_at as featured_at'
         ]);
+    }
+
+    /**
+     * Generate a unique slug from the title.
+     *
+     * @param string $title
+     * @return string
+     */
+    public static function generateSlug(string $title): string
+    {
+        // Replace spaces with hyphens and make lowercase
+        $slug = strtolower(str_replace(' ', '-', trim($title)));
+        $originalSlug = $slug;
+        $counter = 1;
+
+        // Ensure uniqueness
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 }

@@ -96,7 +96,7 @@ export default {
         const componentKey = ref(0)
         const questionServiceCleanup = ref([])
 
-        const questionId = computed(() => route.params.id)
+        const questionSlug = computed(() => route.params.slug)
 
         const fetchQuestion = async (skipLoadingState = false) => {
             if (!skipLoadingState) {
@@ -105,7 +105,7 @@ export default {
             error.value = null
 
             try {
-                const response = await axios.get(`/api/questions/${questionId.value}`)
+                const response = await axios.get(`/api/questions/${questionSlug.value}`)
                 question.value = response.data.data
 
                 // Extract answers from the response
@@ -132,7 +132,7 @@ export default {
 
         const refreshAnswers = async () => {
             try {
-                const response = await axios.get(`/api/questions/${questionId.value}`)
+                const response = await axios.get(`/api/questions/${questionSlug.value}`)
                 answers.value = response.data.data.answers || []
             } catch (err) {
                 console.error('Error refreshing answers:', err)
@@ -143,7 +143,7 @@ export default {
             try {
                 // Add cache busting parameter to ensure fresh data
                 const timestamp = Date.now()
-                const response = await axios.get(`/api/questions/${questionId.value}?_t=${timestamp}`)
+                const response = await axios.get(`/api/questions/${questionSlug.value}?_t=${timestamp}`)
                 const data = response.data.data
 
                 // Clear existing data first
@@ -295,7 +295,7 @@ export default {
                 });
 
                 if (result.isConfirmed) {
-                    const deleteResult = await deleteQuestion(questionId.value);
+                    const deleteResult = await deleteQuestion(questionSlug.value);
 
                     if (deleteResult.success) {
                         // Show success message
@@ -322,7 +322,7 @@ export default {
             } else {
                 // Fallback to browser confirm if SweetAlert is not available
                 if (confirm('آیا از حذف این سوال اطمینان دارید؟')) {
-                    const deleteResult = await deleteQuestion(questionId.value);
+                    const deleteResult = await deleteQuestion(questionSlug.value);
 
                     if (deleteResult.success) {
                         router.push('/')
@@ -403,8 +403,8 @@ export default {
         })
 
         // Watch for route parameter changes to handle navigation between different questions
-        watch(() => route.params.id, (newId, oldId) => {
-            if (newId && newId !== oldId) {
+        watch(() => route.params.slug, (newSlug, oldSlug) => {
+            if (newSlug && newSlug !== oldSlug) {
                 // Reset state
                 question.value = null
                 answers.value = []

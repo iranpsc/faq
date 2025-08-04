@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TagResource;
+use App\Http\Resources\QuestionResource;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 
@@ -22,11 +23,15 @@ class TagController extends Controller
     public function index(Request $request)
     {
         $query = $request->input('query');
-        $tags = Tag::when($query, function ($q) use ($query) {
-            return $q->where('name', 'like', "%{$query}%");
-        });
+        $perPage = $request->input('per_page', 12); // Default to 12 tags per page
 
-        $tags = $query ? $tags->get() : $tags->simplePaginate();
+        $tags = Tag::withCount('questions')
+            ->when($query, function ($q) use ($query) {
+                return $q->where('name', 'like', "%{$query}%");
+            });
+
+        // Use paginate instead of simplePaginate to get full metadata
+        $tags = $tags->paginate($perPage);
 
         return TagResource::collection($tags);
     }
@@ -52,6 +57,30 @@ class TagController extends Controller
     public function show(Tag $tag)
     {
         return new TagResource($tag);
+    }
+
+    /**
+     * Get questions for a specific tag
+     */
+    public function questions(Request $request, Tag $tag)
+    {
+        $questions = $tag->questions()
+            ->with('user', 'category', 'tags')
+            ->withCount('votes', 'answers')
+            ->published()
+            ->whereHas('tags', function ($query) use ($tag) {
+                $query->where('tags.id', $tag->id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        $questionsCollection = QuestionResource::collection($questions);
+
+        // Add tag information to the response
+        $response = $questionsCollection->toResponse($request)->getData(true);
+        $response['tag'] = new TagResource($tag);
+
+        return response()->json($response);
     }
 
     /**

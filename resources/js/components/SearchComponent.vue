@@ -407,7 +407,7 @@ export default {
                 emit('select', question)
 
                 // Navigate to the question page
-                const targetRoute = `/questions/${question.id}`
+                const targetRoute = `/questions/${question.slug}`
 
                 // Use router.push and handle potential navigation errors
                 router.push(targetRoute).catch(error => {

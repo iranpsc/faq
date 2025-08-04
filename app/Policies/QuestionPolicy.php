@@ -83,9 +83,9 @@ class QuestionPolicy
             return false;
         }
 
-        // User can feature their own questions
+        // User can not feature their own questions
         if ($question->user->is($user)) {
-            return true;
+            return false;
         }
 
         // User can feature questions from users with lower levels

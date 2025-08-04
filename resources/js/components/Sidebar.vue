@@ -122,6 +122,19 @@
         <div class="flex-1 overflow-y-auto scrollable-menu">
             <nav :class="{ 'p-4': isOpen, 'p-2': !isOpen }">
                 <ul class="space-y-2">
+                    <!-- Home -->
+                    <li>
+                        <router-link to="/" class="flex items-center rounded-lg transition-colors"
+                            :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
+                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 12l2.293 2.293a1 1 0 001.414 0L12 8.414l5.293 5.293a1 1 0 001.414 0L21 12m0 0v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6m16 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v3"></path>
+                            </svg>
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                                :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">خانه</span>
+                        </router-link>
+                    </li>
                     <!-- Categories -->
                     <li>
                         <router-link to="/categories" class="flex items-center rounded-lg transition-colors"
@@ -133,6 +146,20 @@
                             </svg>
                             <span class="text-sm transition-all duration-300 whitespace-nowrap"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">دسته بندی ها</span>
+                        </router-link>
+                    </li>
+
+                    <!-- Tags -->
+                    <li>
+                        <router-link to="/tags" class="flex items-center rounded-lg transition-colors"
+                            :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
+                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                                :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">برچسب ها</span>
                         </router-link>
                     </li>
 

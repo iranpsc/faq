@@ -31,7 +31,8 @@ Route::prefix('questions')->group(function () {
     Route::get('/search', [QuestionController::class, 'search']);
 });
 
-Route::apiResource('questions', QuestionController::class);
+Route::apiResource('questions', QuestionController::class)
+    ->scoped(['question' => 'slug']);
 
 // Category popular route (must be before resource routes)
 Route::get('categories/popular', [CategoryController::class, 'popular']);
@@ -43,6 +44,7 @@ Route::delete('questions/{question}/pin', [QuestionController::class, 'unpin']);
 Route::post('questions/{question}/feature', [QuestionController::class, 'feature']);
 Route::delete('questions/{question}/feature', [QuestionController::class, 'unfeature']);
 
+Route::get('tags/{tag:slug}/questions', [TagController::class, 'questions']);
 Route::apiResource('tags', TagController::class)->only(['index']);
 
 Route::apiResource('questions.answers', AnswerController::class)->shallow()->only(['index', 'store', 'update', 'destroy']);

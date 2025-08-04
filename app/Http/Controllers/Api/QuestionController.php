@@ -67,6 +67,7 @@ class QuestionController extends Controller
             'category_id' => $request->category_id,
             'user_id' => $user->id,
             'title' => $request->title,
+            'slug' => Question::generateSlug($request->title),
             'content' => $request->content,
         ]);
 
@@ -170,11 +171,18 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Question $question)
     {
-        $question->update([
+        $updateData = [
             'category_id' => $request->category_id,
             'title' => $request->title,
             'content' => $request->content,
-        ]);
+        ];
+
+        // If title has changed, generate a new slug
+        if ($question->title !== $request->title) {
+            $updateData['slug'] = Question::generateSlug($request->title);
+        }
+
+        $question->update($updateData);
 
         $tagIds = $this->processTags($request->tags);
         $question->tags()->sync($tagIds);

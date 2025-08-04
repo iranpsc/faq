@@ -5,6 +5,8 @@ import Authors from '../pages/Authors.vue'
 import AuthorShow from '../pages/AuthorShow.vue'
 import Categories from '../pages/Categories.vue'
 import Category from '../pages/Category.vue'
+import Tags from '../pages/Tags.vue'
+import Tag from '../pages/Tag.vue'
 import Profile from '../pages/Profile.vue'
 import DailyActivity from '../pages/DailyActivity.vue'
 
@@ -16,7 +18,7 @@ const routes = [
     meta: { title: 'صفحه اصلی' }
   },
   {
-    path: '/questions/:id',
+    path: '/questions/:slug',
     name: 'QuestionShow',
     component: QuestionShow,
     props: true,
@@ -47,6 +49,19 @@ const routes = [
     component: Category,
     props: true,
     meta: { title: 'دسته‌بندی', dynamic: true }
+  },
+  {
+    path: '/tags',
+    name: 'Tags',
+    component: Tags,
+    meta: { title: 'برچسب‌ها' }
+  },
+  {
+    path: '/tags/:slug',
+    name: 'Tag',
+    component: Tag,
+    props: true,
+    meta: { title: 'برچسب', dynamic: true }
   },
   {
     path: '/profile',

@@ -216,7 +216,7 @@ export default {
         }
 
         const handleQuestionClick = (question) => {
-            router.push(`/questions/${question.id}`)
+            router.push(`/questions/${question.slug}`)
         }
 
         const handleUserClick = (user) => {
