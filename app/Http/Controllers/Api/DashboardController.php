@@ -65,6 +65,7 @@ class DashboardController extends Controller
                     return [
                         'id' => $question->id,
                         'title' => $question->title,
+                        'slug' => $question->slug,
                         'created_at' => $question->created_at,
                         'answers_count' => $question->answers_count,
                         'votes_count' => $question->votes_count,
@@ -143,6 +144,7 @@ class DashboardController extends Controller
                     return [
                         'id' => $question->id,
                         'title' => $question->title,
+                        'slug' => $question->slug,
                         'created_at' => $question->created_at,
                         'answers_count' => $question->answers_count,
                         'votes_count' => $question->votes_count,
@@ -250,6 +252,7 @@ class DashboardController extends Controller
                         'user_id' => $question->user->id,
                         'user_image' => $question->user->image_url,
                         'title' => $question->title,
+                        'slug' => $question->slug,
                         'question_id' => $question->id,
                         'category_name' => $question->category->name ?? null,
                         'description' => "کاربر '{$question->user->name}' سوال جدیدی با عنوان '{$question->title}' پرسید",
