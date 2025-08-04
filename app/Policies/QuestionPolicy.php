@@ -65,7 +65,7 @@ class QuestionPolicy
         }
 
         // Higher level users can publish questions from lower level users
-        return $user->level > $question->user->level;
+        return ($user->level == 2) && ($user->level > $question->user->level);
     }
 
     /**

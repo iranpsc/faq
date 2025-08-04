@@ -50,7 +50,8 @@ Route::delete('questions/{question}', [QuestionController::class, 'destroy']);
 Route::get('tags/{tag:slug}/questions', [TagController::class, 'questions']);
 Route::apiResource('tags', TagController::class)->only(['index']);
 
-Route::apiResource('questions.answers', AnswerController::class)->shallow()->only(['index', 'store', 'update', 'destroy']);
+Route::apiResource('questions.answers', AnswerController::class)->shallow()->parameters(['questions' => 'question:id']);
+
 Route::post('answers/{answer}/publish', [AnswerController::class, 'publish']);
 Route::post('answers/{answer}/toggle-correctness', [AnswerController::class, 'toggleCorrectness']);
 Route::apiResource('questions.comments', CommentController::class)->shallow()->only(['index', 'store']);

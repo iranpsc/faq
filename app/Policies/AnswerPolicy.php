@@ -53,30 +53,6 @@ class AnswerPolicy
     }
 
     /**
-     * Determine whether the user can mark the answer as correct.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Answer  $answer
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function markAsCorrect(User $user, Answer $answer)
-    {
-        return $this->canMarkCorrectness($user, $answer);
-    }
-
-    /**
-     * Determine whether the user can mark the answer as incorrect.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Answer  $answer
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function markAsIncorrect(User $user, Answer $answer)
-    {
-        return $this->canMarkCorrectness($user, $answer);
-    }
-
-    /**
      * Check if user can mark answer correctness.
      *
      * @param  \App\Models\User  $user

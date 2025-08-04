@@ -149,15 +149,9 @@ class AnswerController extends Controller
      */
     public function toggleCorrectness(Request $request, Answer $answer)
     {
-        $user = $request->user();
+        $this->authorize('canMarkCorrectness', $answer);
 
-        // Check permissions
-        if (!$user->can('markAsCorrect', $answer)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'شما مجوز علامت‌گذاری این پاسخ را ندارید'
-            ], 403);
-        }
+        $user = $request->user();
 
         try {
             DB::transaction(function () use ($user, $answer) {

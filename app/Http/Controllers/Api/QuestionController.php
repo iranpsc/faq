@@ -96,7 +96,14 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
-        $this->incrementViews($question);
+        // Check if this view is already counted in the current session
+        $viewKey = 'question_view_' . $question->id . '_' . request()->ip();
+        if (!cache()->has($viewKey)) {
+            // Store view in cache for 24 hours and increment count
+            cache()->put($viewKey, true, now()->addHours(24));
+            $question->increment('views');
+        }
+
         $user = request()->user();
 
         $this->checkQuestionVisibility($question, $user);
@@ -105,11 +112,6 @@ class QuestionController extends Controller
         $this->loadQuestionRelations($question, $user);
 
         return new QuestionResource($question);
-    }
-
-    private function incrementViews(Question $question): void
-    {
-        $question->increment('views');
     }
 
     private function checkQuestionVisibility(Question $question, $user): void
@@ -344,31 +346,9 @@ class QuestionController extends Controller
      */
     public function feature(Request $request, Question $question)
     {
+        $this->authorize('feature', $question);
+
         $user = $request->user();
-
-        // Check authorization
-        if (!$user->can('feature', $question)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'شما مجاز به ویژه کردن این سوال نیستید'
-            ], 403);
-        }
-
-        // Check if user already featured this question
-        if ($user->featuredQuestions()->where('question_id', $question->id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'شما قبلاً این سوال را ویژه کرده‌اید'
-            ], 409);
-        }
-
-        // Check feature limit (2 questions per user)
-        if ($user->featuredQuestions()->count() >= 2) {
-            return response()->json([
-                'success' => false,
-                'message' => 'حداکثر تعداد سوالات ویژه (2 سوال) به حد نصاب رسیده است'
-            ], 422);
-        }
 
         $user->featuredQuestions()->attach($question->id, [
             'featured_at' => now()
@@ -390,50 +370,9 @@ class QuestionController extends Controller
      */
     public function unfeature(Request $request, Question $question)
     {
+        $this->authorize('unfeature', $question);
+
         $user = $request->user();
-
-        // Check authorization
-        if (!$user->can('unfeature', $question)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'شما مجاز به برداشتن ویژگی این سوال نیستید'
-            ], 403);
-        }
-
-        // Check if user has reached the 2-action limit
-        if ($user->featuredQuestions()->count() >= 2) {
-            return response()->json([
-                'success' => false,
-                'message' => 'شما به حد نصاب عملیات (2 عملیات) رسیده‌اید'
-            ], 422);
-        }
-
-        $removedFeature = false;
-
-        // Check if this user has featured the question
-        if ($user->featuredQuestions()->where('question_id', $question->id)->exists()) {
-            $user->featuredQuestions()->detach($question->id);
-            $removedFeature = true;
-        } else {
-            // Higher level users can unfeature questions featured by lower level users
-            $lowerLevelFeaturedUsers = $question->featuredByUsers()
-                ->where('level', '<', $user->level)
-                ->get();
-
-            if ($lowerLevelFeaturedUsers->isNotEmpty()) {
-                // Remove the first lower level user's feature
-                $lowerLevelUser = $lowerLevelFeaturedUsers->first();
-                $question->featuredByUsers()->detach($lowerLevelUser->id);
-                $removedFeature = true;
-            }
-        }
-
-        if (!$removedFeature) {
-            return response()->json([
-                'success' => false,
-                'message' => 'این سوال ویژه نشده است یا شما مجاز به برداشتن ویژگی آن نیستید'
-            ], 404);
-        }
 
         // Update question's featured status if no more users have featured it
         if ($question->featuredByUsers()->count() === 0) {

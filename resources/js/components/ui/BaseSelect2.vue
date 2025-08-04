@@ -383,7 +383,23 @@ export default {
         })
 
         if (result.success) {
-          const newOptions = result.data || []
+          // Handle different response structures (plain array vs paginated response)
+          let newOptions = []
+          let paginationMeta = null
+
+          if (result.data) {
+            if (Array.isArray(result.data)) {
+              // Plain array response
+              newOptions = result.data
+            } else if (result.data.data && Array.isArray(result.data.data)) {
+              // Laravel paginated response
+              newOptions = result.data.data
+              paginationMeta = result.data.meta
+            } else {
+              // Single object response
+              newOptions = [result.data]
+            }
+          }
 
           if (reset) {
             allOptions.value = newOptions
@@ -395,7 +411,13 @@ export default {
           }
 
           // Update pagination state
-          hasMorePages.value = newOptions.length >= props.pageSize
+          if (paginationMeta) {
+            // Use pagination meta information if available
+            hasMorePages.value = paginationMeta.current_page < paginationMeta.last_page
+          } else {
+            // Fallback to checking array length
+            hasMorePages.value = newOptions.length >= props.pageSize
+          }
           currentPage.value = page
         } else {
           // On error, stop pagination

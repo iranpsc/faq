@@ -67,6 +67,13 @@ import axios from 'axios'
 
 export default {
     name: 'QuestionShow',
+    props: {
+        slug: {
+            type: String,
+            required: true
+        }
+    },
+    emits: ['editQuestion'],
     components: {
         QuestionContent,
         CommentsSection,
@@ -75,7 +82,7 @@ export default {
         HomeSidebar,
         ContentArea
     },
-    setup() {
+    setup(props, { emit }) {
         const route = useRoute()
         const router = useRouter()
         const { isAuthenticated } = useAuth()
@@ -91,7 +98,7 @@ export default {
         const componentKey = ref(0)
         const questionServiceCleanup = ref([])
 
-        const questionSlug = computed(() => route.params.slug)
+        const questionSlug = computed(() => props.slug || route.params.slug)
 
         const fetchQuestion = async (skipLoadingState = false) => {
             if (!skipLoadingState) {
@@ -173,6 +180,8 @@ export default {
         const handleEdit = () => {
             // Open the edit modal
             showEditModal.value = true
+            // Emit the editQuestion event for parent components
+            emit('editQuestion', question.value)
         }
 
         const handleCloseModal = () => {
@@ -285,7 +294,7 @@ export default {
                 });
 
                 if (result.isConfirmed) {
-                    const deleteResult = await deleteQuestion(questionSlug.value);
+                    const deleteResult = await deleteQuestion(question.value.id);
 
                     if (deleteResult.success) {
                         // Show success message
@@ -312,7 +321,7 @@ export default {
             } else {
                 // Fallback to browser confirm if SweetAlert is not available
                 if (confirm('آیا از حذف این سوال اطمینان دارید؟')) {
-                    const deleteResult = await deleteQuestion(questionSlug.value);
+                    const deleteResult = await deleteQuestion(question.value.id);
 
                     if (deleteResult.success) {
                         router.push('/')
@@ -392,8 +401,8 @@ export default {
             }
         })
 
-        // Watch for route parameter changes to handle navigation between different questions
-        watch(() => route.params.slug, (newSlug, oldSlug) => {
+        // Watch for route parameter changes or prop changes to handle navigation between different questions
+        watch(() => props.slug || route.params.slug, (newSlug, oldSlug) => {
             if (newSlug && newSlug !== oldSlug) {
                 // Reset state
                 question.value = null

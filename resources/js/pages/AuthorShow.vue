@@ -91,7 +91,7 @@ export default {
         }
 
         const navigateToQuestion = (question) => {
-            router.push({ name: 'QuestionShow', params: { id: question.id } })
+            router.push({ name: 'QuestionShow', params: { slug: question.slug } })
         }
 
         onMounted(loadAuthor)
