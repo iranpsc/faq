@@ -383,12 +383,10 @@ export default {
         }
 
         const handleAnswerVoteChanged = (voteData) => {
-            console.log('QuestionShow - Answer vote changed:', voteData)
             // Update the answer vote data in real-time
             if (voteData.type === 'answer') {
                 const answerIndex = answers.value.findIndex(a => a.id === voteData.id)
                 if (answerIndex !== -1) {
-                    console.log('Updating answer at index:', answerIndex, 'with votes:', voteData.votes)
                     // Create a new answer object to ensure reactivity
                     const existingAnswer = answers.value[answerIndex]
                     const updatedAnswer = {
@@ -405,9 +403,29 @@ export default {
 
         const handleAnswerCorrectnessChanged = (data) => {
             console.log('Answer correctness changed:', data)
-            // Refresh both answers and question data to update solved status
-            refreshAnswers()
-            refreshQuestionData()
+
+            // Update the answer locally instead of refreshing everything
+            const answerIndex = answers.value.findIndex(answer => answer.id === data.answerId)
+            if (answerIndex !== -1) {
+                // Create a new array to trigger reactivity
+                const newAnswers = [...answers.value]
+                // Update the specific answer's correctness status
+                newAnswers[answerIndex] = {
+                    ...newAnswers[answerIndex],
+                    is_correct: data.isCorrect
+                }
+                answers.value = newAnswers
+
+                // Update component key to force re-render if needed
+                componentKey.value = Date.now()
+            }
+
+            // Only update question solved status, not the entire question data
+            if (question.value) {
+                // Check if any answer is now marked as correct
+                const hasCorrectAnswer = answers.value.some(answer => answer.is_correct)
+                question.value.is_solved = hasCorrectAnswer
+            }
         }
 
         onMounted(() => {

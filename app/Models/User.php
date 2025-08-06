@@ -64,6 +64,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'image_url',
+        'level_name',
     ];
 
     /**
@@ -74,6 +75,32 @@ class User extends Authenticatable
     public function getImageUrlAttribute(): ?string
     {
         return $this->image ? asset('storage/' . $this->image) : null;
+    }
+
+    /**
+     * Get the user's level name based on level number.
+     *
+     * @return string
+     */
+    public function getLevelNameAttribute(): string
+    {
+        $levelNames = [
+            1 => 'شهروند',
+            2 => 'خبرنگار',
+            3 => 'مشارکت کننده',
+            4 => 'توسعه دهنده',
+            5 => 'بازرس',
+            6 => 'تاجر',
+            7 => 'وکیل',
+            8 => 'شورای شهر',
+            9 => 'شهردار',
+            10 => 'فرماندار',
+            11 => 'وزیر',
+            12 => 'قاضی',
+            13 => 'قانون گذار',
+        ];
+
+        return $levelNames[$this->level] ?? 'نامشخص';
     }
 
     /**

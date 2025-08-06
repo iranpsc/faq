@@ -124,7 +124,12 @@
                 <div class="p-6">
                     <div v-if="recentActivity.length > 0" class="space-y-4">
                         <div v-for="activity in recentActivity" :key="activity.id"
-                            class="flex items-start space-x-3 space-x-reverse p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            @click="handleActivityClick(activity)"
+                            :title="activity.question_slug ? 'کلیک کنید تا به سوال مربوطه بروید' : ''"
+                            :class="[
+                                'flex items-start space-x-3 space-x-reverse p-4 bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-200',
+                                activity.question_slug ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 hover:shadow-md' : 'cursor-default'
+                            ]">
                             <div class="flex-shrink-0">
                                 <BaseBadge :variant="getActivityBadgeVariant(activity.type)" size="sm">
                                     {{ getActivityTypeText(activity.type) }}
@@ -137,6 +142,11 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {{ formatDate(activity.created_at) }}
                                 </p>
+                            </div>
+                            <div v-if="activity.question_slug" class="flex-shrink-0">
+                                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
@@ -163,6 +173,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
 import { usePageTitle } from '../composables/usePageTitle'
 import { BaseCard, BaseAvatar, BaseButton, BaseInput, BaseBadge, BaseAlert, ContentArea } from '../components/ui'
@@ -181,6 +192,7 @@ export default {
     setup() {
         const { user, updateUser } = useAuth()
         const { setTitle } = usePageTitle()
+        const router = useRouter()
 
         // Set page title
         setTitle('پروفایل کاربری')
@@ -383,6 +395,16 @@ export default {
             return new Intl.RelativeTimeFormat('fa', { numeric: 'auto' }).format(diffYears, 'year')
         }
 
+        const handleActivityClick = (activity) => {
+            // Only navigate if the activity has a question_slug
+            if (activity.question_slug) {
+                router.push({
+                    name: 'QuestionShow',
+                    params: { slug: activity.question_slug }
+                })
+            }
+        }
+
         onMounted(() => {
             loadUserData()
             fetchUserProfile()
@@ -400,6 +422,7 @@ export default {
             getActivityBadgeVariant,
             getActivityTypeText,
             formatDate,
+            handleActivityClick,
             fetchUserProfile
         }
     }

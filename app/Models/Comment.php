@@ -75,6 +75,26 @@ class Comment extends Model
     }
 
     /**
+     * Get the upvotes for the comment.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function upVotes()
+    {
+        return $this->morphMany(Vote::class, 'votable')->where('type', 'up');
+    }
+
+    /**
+     * Get the downvotes for the comment.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function downVotes()
+    {
+        return $this->morphMany(Vote::class, 'votable')->where('type', 'down');
+    }
+
+    /**
      * Scope a query to include only published comments.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query

@@ -124,22 +124,34 @@
             >
               {{ isDeletingAnswer === answer.id ? 'در حال حذف...' : 'حذف' }}
             </button>
-            <button
+            <div
               v-if="answer.can?.toggle_correctness"
-              @click="toggleAnswerCorrectness(answer)"
-              :disabled="isTogglingCorrectness === answer.id"
-              :class="[
-                'text-sm px-3 py-1 rounded whitespace-nowrap transition-colors',
-                answer.is_correct
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              ]"
+              class="flex items-center gap-2 whitespace-nowrap"
             >
-              {{ isTogglingCorrectness === answer.id
-                ? 'در حال تغییر...'
-                : (answer.is_correct ? 'رد پاسخ' : 'تایید پاسخ')
-              }}
-            </button>
+              <input
+                type="checkbox"
+                :id="`correctness-${answer.id}`"
+                :checked="answer.is_correct"
+                @change="toggleAnswerCorrectness(answer, $event)"
+                :disabled="isTogglingCorrectness === answer.id"
+                class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded transition-colors disabled:opacity-50"
+              />
+              <label
+                :for="`correctness-${answer.id}`"
+                :class="[
+                  'text-sm cursor-pointer transition-colors select-none',
+                  answer.is_correct
+                    ? 'text-green-600 dark:text-green-400 font-medium'
+                    : 'text-gray-600 dark:text-gray-400',
+                  isTogglingCorrectness === answer.id && 'opacity-50'
+                ]"
+              >
+                {{ isTogglingCorrectness === answer.id
+                  ? 'در حال تغییر...'
+                  : 'پاسخ صحیح'
+                }}
+              </label>
+            </div>
           </div>
 
           <!-- Voting Section -->
@@ -161,7 +173,7 @@
             :answer-id="answer.id"
             parent-type="answer"
             @comment-added="handleAnswerCommentAdded"
-            :key="`answer-comments-${answer.id}-${componentKey}`"
+            :key="`answer-comments-${answer.id}`"
           />
         </div>
       </div>
@@ -222,10 +234,17 @@ export default {
         if (a.is_best && !b.is_best) return -1
         if (!a.is_best && b.is_best) return 1
 
+        // Correct answers next (if not best)
+        if (a.is_correct && !b.is_correct) return -1
+        if (!a.is_correct && b.is_correct) return 1
+
         // Then by vote score
         const aScore = (a.votes?.upvotes || 0) - (a.votes?.downvotes || 0)
         const bScore = (b.votes?.upvotes || 0) - (b.votes?.downvotes || 0)
-        return bScore - aScore
+        if (aScore !== bScore) return bScore - aScore
+
+        // Finally by creation date (newer first)
+        return new Date(b.created_at) - new Date(a.created_at)
       })
     })
 
@@ -385,7 +404,6 @@ export default {
     }
 
     const handleAnswerVoteChanged = (answerId, voteData) => {
-      console.log('Answer vote changed:', { answerId, voteData })
       // Emit an event to parent component to update the answer's vote data
       emit('vote-changed', {
         type: 'answer',
@@ -396,11 +414,24 @@ export default {
           user_vote: voteData.userVote
         }
       })
+
+      // Update local answer data immediately for better UX
+      const answerIndex = props.answers.findIndex(answer => answer.id === answerId)
+      if (answerIndex !== -1) {
+        const updatedAnswer = { ...props.answers[answerIndex] }
+        updatedAnswer.votes = {
+          upvotes: voteData.upvotes,
+          downvotes: voteData.downvotes,
+          user_vote: voteData.userVote
+        }
+        // Since we can't mutate props directly, we rely on parent component to update
+        // But we've already emitted the event above for parent to handle
+      }
     }
 
     const handleAnswerCommentAdded = () => {
-      // Force component re-render to show new comments
-      componentKey.value = Date.now()
+      // No need to force component re-render since comments are managed independently
+      // The CommentsSection component handles its own state updates
     }
 
         const publishAnswer = async (answer) => {
@@ -444,17 +475,18 @@ export default {
             }
         }
 
-        const toggleAnswerCorrectness = async (answer) => {
+        const toggleAnswerCorrectness = async (answer, event) => {
             isTogglingCorrectness.value = answer.id
 
             try {
                 const response = await window.axios.post(`/api/answers/${answer.id}/toggle-correctness`)
 
                 if (response.data.success) {
-                    // Emit event to parent to update question solved status
+                    // Emit event to parent to update question solved status and answer locally
                     emit('answer-correctness-changed', {
                         answerId: answer.id,
-                        isCorrect: response.data.is_correct
+                        isCorrect: response.data.is_correct,
+                        message: response.data.message
                     })
 
                     // Show success message
@@ -471,10 +503,15 @@ export default {
                         });
                     }
 
-                    emit('answer-added') // Trigger refresh to get fresh data from API
+                    // Don't emit 'answer-added' to avoid full refresh
                 }
             } catch (error) {
                 console.error('Error toggling answer correctness:', error)
+
+                // Revert checkbox state on error
+                if (event && event.target) {
+                    event.target.checked = !event.target.checked;
+                }
 
                 const errorMessage = error.response?.data?.message || 'خطا در علامت‌گذاری پاسخ'
 
@@ -492,7 +529,25 @@ export default {
                 isTogglingCorrectness.value = null
             }
         }    // Watch for changes in answers and update component key
-    watch(() => props.answers, () => {
+    // Only update component key for significant changes, not vote updates
+    watch(() => props.answers, (newAnswers, oldAnswers) => {
+      // Don't trigger re-render for vote-only changes or if arrays have same structure
+      if (newAnswers && oldAnswers && newAnswers.length === oldAnswers.length) {
+        const hasNonVoteChanges = newAnswers.some((newAnswer, index) => {
+          const oldAnswer = oldAnswers[index]
+          if (!oldAnswer || newAnswer.id !== oldAnswer.id) return true
+
+          // Check for changes other than votes (and comments since those are handled separately)
+          const { votes: newVotes, comments: newComments, ...newRest } = newAnswer
+          const { votes: oldVotes, comments: oldComments, ...oldRest } = oldAnswer
+
+          return JSON.stringify(newRest) !== JSON.stringify(oldRest)
+        })
+
+        if (!hasNonVoteChanges) return // Don't update component key for vote-only changes
+      }
+
+      // Only update for significant changes like new answers, deleted answers, content changes
       componentKey.value = Date.now()
     }, { deep: true })
 

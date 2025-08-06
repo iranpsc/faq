@@ -122,7 +122,7 @@ export function useAnswers() {
     isVoting.value = answerId
     try {
       const response = await axios.post(`/api/answers/${answerId}/vote`, {
-        vote: voteType
+        type: voteType
       })
       return {
         success: true,

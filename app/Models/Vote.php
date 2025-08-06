@@ -11,7 +11,7 @@ class Vote extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = ['user_id', 'votable_type', 'votable_id', 'type'];
+    protected $fillable = ['user_id', 'votable_type', 'votable_id', 'type', 'last_voted_at'];
 
     /**
      * Get the attributes that should be cast.
@@ -22,6 +22,7 @@ class Vote extends Model
     {
         return [
             'type' => 'string',
+            'last_voted_at' => 'datetime',
         ];
     }
 

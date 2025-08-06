@@ -275,7 +275,7 @@ class AnswerControllerTest extends TestCase
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
-        ])->postJson("/api/answers/{$answer->id}/vote", ['vote' => 'up']);
+        ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'up']);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('votes', [
@@ -299,7 +299,7 @@ class AnswerControllerTest extends TestCase
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
-        ])->postJson("/api/answers/{$answer->id}/vote", ['vote' => 'down']);
+        ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'down']);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('votes', [
@@ -323,7 +323,7 @@ class AnswerControllerTest extends TestCase
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
-        ])->postJson("/api/answers/{$answer->id}/vote", ['vote' => 'up']);
+        ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'up']);
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('votes', [
@@ -342,7 +342,7 @@ class AnswerControllerTest extends TestCase
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
-        ])->postJson("/api/answers/{$answer->id}/vote", ['vote' => 'down']);
+        ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'down']);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('votes', [
@@ -360,9 +360,9 @@ class AnswerControllerTest extends TestCase
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
-        ])->postJson("/api/answers/{$answer->id}/vote", ['vote' => 'invalid']);
+        ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'invalid']);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['vote']);
+            ->assertJsonValidationErrors(['type']);
     }
 }

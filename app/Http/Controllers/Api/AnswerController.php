@@ -110,37 +110,44 @@ class AnswerController extends Controller
     public function vote(Request $request, Answer $answer)
     {
         $request->validate([
-            'vote' => 'required|in:up,down',
+            'type' => 'required|in:up,down'
         ]);
 
-        $user = $request->user();
-        $voteType = $request->input('vote');
+        $userId = $request->user()->id;
+        $voteType = $request->type;
 
-        if ($voteType === 'up') {
-            $answer->user->increment('score', 10); // Increment score for upvote
-        } elseif ($voteType === 'down') {
-            $answer->user->decrement('score', 2); // Decrement score for downvote
-        }
-
-        $existingVote = $answer->votes()->where('user_id', $user->id)->first();
+        $existingVote = $answer->votes()->where('user_id', $userId)->first();
 
         if ($existingVote) {
-            if ($existingVote->type === $voteType) {
-                // User is casting the same vote again, so remove it (toggle off)
-                $existingVote->delete();
-            } else {
-                // User is changing their vote
-                $existingVote->update(['type' => $voteType]);
-            }
-        } else {
-            // New vote
-            $answer->votes()->create([
-                'user_id' => $user->id,
-                'type' => $voteType,
-            ]);
+            $lastVotedAt = $existingVote->last_voted_at->diffInMinutes(now());
+            // abort_if($lastVotedAt < 60, 429, 'شما هر ساعت یک بار مجاز به تغییر رای خود هستید');
         }
 
-        return new AnswerResource($answer->load('votes'));
+        $answer->votes()->updateOrCreate([
+            'user_id' => $userId
+        ], [
+            'type' => $voteType,
+            'last_voted_at' => now()
+        ]);
+
+        if ($voteType == 'up') {
+            $answer->user->increment('score', 10);
+        } elseif ($voteType == 'down') {
+            $answer->user->decrement('score', 2);
+        }
+
+        // Return updated vote counts and user vote status
+        $answer->load('upVotes', 'downVotes');
+
+        // Get user's current vote
+        $userVoteRecord = $answer->votes()->where('user_id', $userId)->first();
+        $userVote = $userVoteRecord ? $userVoteRecord->type : null;
+
+        return response()->json([
+            'upvotes' => $answer->upVotes->count(),
+            'downvotes' => $answer->downVotes->count(),
+            'user_vote' => $userVote
+        ]);
     }
 
     /**
@@ -151,34 +158,35 @@ class AnswerController extends Controller
         // Get current correctness state
         $currentCorrectness = $answer->is_correct;
 
-        $action = $currentCorrectness ? 'markAsCorrect' : 'markAsIncorrect';
+        $action = $currentCorrectness ? 'markAsIncorrect' : 'markAsCorrect';
 
         $this->authorize('toggleCorrectness', [$answer, $action]);
 
         $user = $request->user();
 
-        // Toggle the correctness
+        // Create new mark
+        $user->correctnessMarks()->create([
+            'answer_id' => $answer->id,
+            'is_correct' => !$currentCorrectness,
+        ]);
+
+        // Update the correctness
         $answer->update(['is_correct' => !$currentCorrectness]);
 
         // Process points
-        if ($currentCorrectness) {
-            // Answer was marked as correct
+        if (!$currentCorrectness) {
+            // Answer was marked as correct (previously false, now true)
             $answer->user->increment('score', 10);
             $user->increment('score', 2);
         } else {
-            // Answer was unmarked as correct
+            // Answer was unmarked as correct (previously true, now false)
             $answer->user->decrement('score', 10);
             $user->increment('score', 2);
         }
 
-        $user->correctnessMarks()->create([
-            'answer_id' => $answer->id,
-            'is_correct' => $currentCorrectness,
-        ]);
-
         return response()->json([
             'success' => true,
-            'message' => $answer->is_correct ? 'پاسخ به عنوان صحیح علامت‌گذاری شد' : 'علامت صحیح از پاسخ حذف شد',
+            'message' => $answer->is_correct ? 'پاسخ به صحیح تغییر داده شد' : 'پاسخ به عادی تغییر داده شد.',
             'is_correct' => $answer->is_correct,
             'data' => new AnswerResource($answer)
         ]);

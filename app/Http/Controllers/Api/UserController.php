@@ -49,6 +49,7 @@ class UserController extends Controller
                     'type' => 'question',
                     'description' => 'سوال جدید: ' . $question->title,
                     'created_at' => $question->created_at,
+                    'question_slug' => $question->slug,
                 ];
             });
 
@@ -64,6 +65,7 @@ class UserController extends Controller
                     'type' => 'answer',
                     'description' => 'پاسخ جدید به: ' . $answer->question->title,
                     'created_at' => $answer->created_at,
+                    'question_slug' => $answer->question->slug,
                 ];
             });
 
@@ -72,7 +74,7 @@ class UserController extends Controller
             ->with(['commentable' => function ($morphTo) {
                 $morphTo->morphWith([
                     'App\Models\Question' => [],
-                    'App\Models\Answer' => ['question:id,title'],
+                    'App\Models\Answer' => ['question:id,title,slug'],
                 ]);
             }])
             ->latest()
@@ -80,10 +82,13 @@ class UserController extends Controller
             ->get()
             ->map(function ($comment) {
                 $title = '';
+                $questionSlug = null;
                 if ($comment->commentable_type === 'App\Models\Question' && $comment->commentable) {
                     $title = $comment->commentable->title;
+                    $questionSlug = $comment->commentable->slug;
                 } elseif ($comment->commentable_type === 'App\Models\Answer' && $comment->commentable && $comment->commentable->question) {
                     $title = $comment->commentable->question->title;
+                    $questionSlug = $comment->commentable->question->slug;
                 }
 
                 return [
@@ -91,6 +96,7 @@ class UserController extends Controller
                     'type' => 'comment',
                     'description' => 'دیدگاه جدید در: ' . $title,
                     'created_at' => $comment->created_at,
+                    'question_slug' => $questionSlug,
                 ];
             });
 

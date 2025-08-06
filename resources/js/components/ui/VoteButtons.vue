@@ -290,6 +290,7 @@ export default {
             upvotes: upvotes.value,
             downvotes: downvotes.value,
             userVote: userVote.value,
+            user_vote: userVote.value, // Keep both for compatibility
             message: result.message || 'رای شما ثبت شد'
           })
 
@@ -303,6 +304,9 @@ export default {
           // Handle error - including authentication errors from API
           if (result.error === 'authentication') {
             showLoginAlert()
+          } else if (result.error === 'rate_limit') {
+            // Handle rate limiting error
+            showErrorAlert(result.message)
           } else {
             console.error('Voting error:', result.error)
             showErrorAlert(result.message || 'خطا در ثبت رای. لطفا دوباره تلاش کنید.')
@@ -314,6 +318,10 @@ export default {
         // Check if it's a 401 authentication error
         if (error.response && error.response.status === 401) {
           showLoginAlert()
+        } else if (error.response && error.response.status === 429) {
+          // Handle rate limiting error (too many requests)
+          const errorMessage = error.response.data?.message || 'شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.'
+          showErrorAlert(errorMessage)
         } else {
           showErrorAlert('خطا در ثبت رای. لطفا دوباره تلاش کنید.')
         }

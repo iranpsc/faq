@@ -128,7 +128,7 @@ export function useComments() {
     isVoting.value = commentId
     try {
       const response = await axios.post(`/api/comments/${commentId}/vote`, {
-        vote: voteType
+        type: voteType
       })
       return {
         success: true,

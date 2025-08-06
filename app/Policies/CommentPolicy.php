@@ -82,9 +82,14 @@ class CommentPolicy
             return false;
         }
 
-        // User level < 3 cannot publish comments
-        if ($user->level < 3) {
+        // User level < 2 cannot publish comments
+        if ($user->level < 2) {
             return false;
+        }
+
+        // User level > 2 comments will auto published
+        if ($user->level >= 2) {
+            return true;
         }
 
         // user can not publish their own comments
@@ -92,11 +97,11 @@ class CommentPolicy
             return false;
         }
 
-        // User level more than 3 can publish comments from lower level users
-        if (($user->level > 3) && ($user->level > $comment->user->level)) {
-            return true;
+        // User level < comment user level cannot publish comments
+        if ($user->level < $comment->user->level) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 }

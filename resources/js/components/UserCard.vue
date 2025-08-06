@@ -20,6 +20,15 @@
             </span>
         </div>
 
+        <!-- User Level Badge -->
+        <div class="flex justify-center mb-4" v-if="user.level_name">
+            <span
+                class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-sm font-medium border border-green-300 dark:border-green-600">
+                <span class="ml-2">{{ user.level_name }}</span>
+                <span class="ml-2 text-xs font-normal">سطح</span>
+            </span>
+        </div>
+
         <!-- Answers Count -->
         <div class="mb-2">
             <svg class="inline w-4 h-4 text-blue-500 dark:text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">

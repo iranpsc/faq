@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
         // $this->call(MigrateOldDatabaseSeeder::class);
 
         // Populate question slugs after migration
-        $this->command->info('Populating question slugs...');
-        Artisan::call('questions:populate-slugs');
-        $this->command->info('Question slugs populated successfully.');
+        // $this->command->info('Populating question slugs...');
+        // Artisan::call('questions:populate-slugs');
+        // $this->command->info('Question slugs populated successfully.');
     }
 }

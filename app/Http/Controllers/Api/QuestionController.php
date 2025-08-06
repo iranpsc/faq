@@ -222,29 +222,24 @@ class QuestionController extends Controller
         $userId = $request->user()->id;
         $voteType = $request->type;
 
+        $existingVote = $question->votes()->where('user_id', $userId)->first();
+
+        if($existingVote) {
+            $lastVotedAt = $existingVote->last_voted_at->diffInMinutes(now());
+            abort_if($lastVotedAt < 60, 429, 'شما هر ساعت یک بار مجاز به تغییر رای خود هستید');
+        }
+
+        $question->votes()->updateOrCreate([
+            'user_id' => $userId
+        ], [
+            'type' => $voteType,
+            'last_voted_at' => now()
+        ]);
+
         if ($voteType == 'up') {
             $question->user->increment('score', 10);
         } elseif ($voteType == 'down') {
             $question->user->decrement('score', 2);
-        }
-
-        // Check if user has already voted on this question
-        $existingVote = $question->votes()->where('user_id', $userId)->first();
-
-        if ($existingVote) {
-            // If same vote type, remove the vote (toggle off)
-            if ($existingVote->type === $voteType) {
-                $existingVote->delete();
-            } else {
-                // If different vote type, update the vote
-                $existingVote->update(['type' => $voteType]);
-            }
-        } else {
-            // Create new vote
-            $question->votes()->create([
-                'user_id' => $userId,
-                'type' => $voteType
-            ]);
         }
 
         // Return updated vote counts and user vote status

@@ -257,7 +257,7 @@ class DashboardController extends Controller
                         'category_name' => $question->category->name ?? null,
                         'description' => "کاربر '{$question->user->name}' سوال جدیدی با عنوان '{$question->title}' پرسید",
                         'created_at' => $question->created_at,
-                        'url' => "/questions/{$question->id}"
+                        'url' => "/questions/{$question->slug}"
                     ];
                 });
 
@@ -292,16 +292,16 @@ class DashboardController extends Controller
                 ->get()
                 ->map(function ($comment) {
                     $title = '';
-                    $questionId = null;
+                    $questionSlug = null;
 
                     if ($comment->commentable_type === 'App\Models\Question') {
                         $question = Question::find($comment->commentable_id);
                         $title = $question ? $question->title : 'سوال حذف شده';
-                        $questionId = $comment->commentable_id;
+                        $questionSlug = $question ? $question->slug : null;
                     } elseif ($comment->commentable_type === 'App\Models\Answer') {
                         $answer = Answer::with('question')->find($comment->commentable_id);
                         $title = $answer && $answer->question ? $answer->question->title : 'پاسخ حذف شده';
-                        $questionId = $answer ? $answer->question_id : null;
+                        $questionSlug = $answer && $answer->question ? $answer->question->slug : null;
                     }
 
                     return [
@@ -311,10 +311,10 @@ class DashboardController extends Controller
                         'user_id' => $comment->user_id,
                         'user_image' => $comment->image ? asset('storage/' . $comment->image) : null,
                         'title' => $title,
-                        'question_id' => $questionId,
+                        'question_slug' => $questionSlug,
                         'description' => "کاربر '{$comment->name}' نظری در '{$title}' ثبت کرد",
                         'created_at' => $comment->created_at,
-                        'url' => $questionId ? "/questions/{$questionId}" : null
+                        'url' => $questionSlug ? "/questions/{$questionSlug}" : null
                     ];
                 });
 

@@ -88,6 +88,26 @@ class Answer extends Model
     }
 
     /**
+     * Get the upvotes for the answer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function upVotes()
+    {
+        return $this->morphMany(Vote::class, 'votable')->where('type', 'up');
+    }
+
+    /**
+     * Get the downvotes for the answer.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function downVotes()
+    {
+        return $this->morphMany(Vote::class, 'votable')->where('type', 'down');
+    }
+
+    /**
      * Get all of the answer's verifications.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany

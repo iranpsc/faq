@@ -11,7 +11,6 @@ use App\Models\Comment;
 use App\Models\Question;
 use App\Notifications\QuestionInteractionNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
@@ -136,30 +135,37 @@ class CommentController extends Controller
     public function vote(Request $request, Comment $comment)
     {
         $request->validate([
-            'vote' => 'required|in:up,down',
+            'type' => 'required|in:up,down'
         ]);
 
-        $user = $request->user();
-        $voteType = $request->input('vote');
+        $userId = $request->user()->id;
+        $voteType = $request->type;
 
-        $existingVote = $comment->votes()->where('user_id', $user->id)->first();
+        $existingVote = $comment->votes()->where('user_id', $userId)->first();
 
-        if ($existingVote) {
-            if ($existingVote->type === $voteType) {
-                // User is casting the same vote again, so remove it (toggle off)
-                $existingVote->delete();
-            } else {
-                // User is changing their vote
-                $existingVote->update(['type' => $voteType]);
-            }
-        } else {
-            // New vote
-            $comment->votes()->create([
-                'user_id' => $user->id,
-                'type' => $voteType,
-            ]);
+        if($existingVote) {
+            $lastVotedAt = $existingVote->last_voted_at->diffInMinutes(now());
+            // abort_if($lastVotedAt < 60, 429, 'شما هر ساعت یک بار مجاز به تغییر رای خود هستید');
         }
 
-        return new CommentResource($comment->load('votes'));
+        $comment->votes()->updateOrCreate([
+            'user_id' => $userId
+        ], [
+            'type' => $voteType,
+            'last_voted_at' => now()
+        ]);
+
+        // Return updated vote counts and user vote status
+        $comment->load('upVotes', 'downVotes');
+
+        // Get user's current vote
+        $userVoteRecord = $comment->votes()->where('user_id', $userId)->first();
+        $userVote = $userVoteRecord ? $userVoteRecord->type : null;
+
+        return response()->json([
+            'upvotes' => $comment->upVotes->count(),
+            'downvotes' => $comment->downVotes->count(),
+            'user_vote' => $userVote
+        ]);
     }
 }

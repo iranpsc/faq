@@ -83,11 +83,24 @@ class AnswerPolicy
             return false;
         }
 
-        // Rule 4: If user already marked this answer as correct or incorrect,
-        // They cannot mark it again
-        $questionMarkCorrectnessExists = $user->markedAnswers()->where('answer_id', $answer->id)->exists();
+        // Rule 4: Check existing marks and quota limitations
+        $existingMark = $user->markedAnswers()->where('answer_id', $answer->id)->first();
 
-        if($questionMarkCorrectnessExists) {
+        if (!$existingMark) {
+            // User hasn't marked this answer before, check quota
+            $userLevel = $user->level;
+            $dailyMarkCount = $user->markedAnswers()
+                ->whereDate('created_at', today())
+                ->count();
+
+            // Check daily quota based on user level
+            if ($dailyMarkCount >= $userLevel) {
+                return false;
+            }
+        }
+
+        // User with lower level cannot toggle correctness of answers from higher level users
+        if ($user->level < $answer->user->level) {
             return false;
         }
 

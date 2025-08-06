@@ -124,6 +124,9 @@ export function useQuestions() {
       if (error.response.status === 403) {
         return { success: false, error: 'authorization', message: 'شما اجازه حذف این سوال را ندارید.' };
       }
+      if (error.response.status === 429) {
+        return { success: false, error: 'rate_limit', message: error.response.data?.message || 'شما خیلی سریع رای می‌دهید. لطفا کمی صبر کنید.' };
+      }
     }
     console.error('API Error:', error);
     return { success: false, error: 'general', message: 'خطایی در ارتباط با سرور رخ داد.' };
