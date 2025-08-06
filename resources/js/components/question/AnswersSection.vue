@@ -15,6 +15,7 @@
           mode="simple"
           :height="300"
           placeholder="پاسخ خود را بنویسید..."
+          :image-upload="true"
         />
         <div class="mt-4 flex justify-end">
           <button
@@ -74,6 +75,7 @@
                   mode="simple"
                   :height="200"
                   placeholder="پاسخ خود را ویرایش کنید..."
+                  :image-upload="true"
                 />
                 <div class="flex gap-2 mt-3">
                   <button

@@ -49,44 +49,45 @@ class AnswerPolicy
             return false;
         }
 
-        // Higher level users can publish answers from lower level users
-        return $user->level > $answer->user->level;
-    }
-
-    /**
-     * Check if user can mark answer correctness.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Answer  $answer
-     * @return bool
-     */
-    public function canMarkCorrectness(User $user, Answer $answer): bool
-    {
-        // Rule 1: Must be level 4 or above
-        if ($user->level < 4) {
-            return false;
-        }
-
-        // Rule 2: Cannot mark own answers
+        // User can not publish their own answers
         if ($answer->user->is($user)) {
             return false;
         }
 
-        // Check if the user has already marked this answer
-        $existingMark = $answer->correctnessMarks()
-            ->where('marker_user_id', $user->id)
-            ->exists();
+        // Higher level users can publish answers from lower level users
+        return ($user->level > 2) && ($user->level > $answer->user->level);
+    }
 
-        // If user has already marked this answer, they can't mark it again
-        if ($existingMark) {
+    /**
+     * Check if user can toggle correctness of answer.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\Answer  $answer
+     * @param  string  $action
+     * @return bool
+     */
+    public function toggleCorrectness(User $user, Answer $answer, string $action): bool
+    {
+        // Rule 1: User cannot toggle their own answer's correctness
+        if ($answer->user->is($user)) {
             return false;
         }
 
-        // Rule 3: Check if user has remaining quota
-        $usedMarks = $user->correctnessMarks()->count();
+        // Rule 2: If action is 'markAsCorrect', user level must be higher than 3
+        if ($action === 'markAsCorrect' && $user->level <= 3) {
+            return false;
+        }
 
-        // If user is running out of remaining quota, they can't mark correctness
-        if ($usedMarks >= $user->level) {
+        // Rule 3: If action is 'markAsIncorrect', user level must be higher than 4
+        if ($action === 'markAsIncorrect' && $user->level <= 4) {
+            return false;
+        }
+
+        // Rule 4: If user already marked this answer as correct or incorrect,
+        // They cannot mark it again
+        $questionMarkCorrectnessExists = $user->markedAnswers()->where('answer_id', $answer->id)->exists();
+
+        if($questionMarkCorrectnessExists) {
             return false;
         }
 

@@ -10,7 +10,6 @@ use App\Models\Answer;
 use App\Models\Question;
 use App\Notifications\QuestionInteractionNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class AnswerController extends Controller
 {
@@ -149,17 +148,20 @@ class AnswerController extends Controller
      */
     public function toggleCorrectness(Request $request, Answer $answer)
     {
-        $this->authorize('canMarkCorrectness', $answer);
-        $user = $request->user();
-
         // Get current correctness state
         $currentCorrectness = $answer->is_correct;
+
+        $action = $currentCorrectness ? 'markAsCorrect' : 'markAsIncorrect';
+
+        $this->authorize('toggleCorrectness', [$answer, $action]);
+
+        $user = $request->user();
 
         // Toggle the correctness
         $answer->update(['is_correct' => !$currentCorrectness]);
 
         // Process points
-        if (!$currentCorrectness) {
+        if ($currentCorrectness) {
             // Answer was marked as correct
             $answer->user->increment('score', 10);
             $user->increment('score', 2);
@@ -171,7 +173,7 @@ class AnswerController extends Controller
 
         $user->correctnessMarks()->create([
             'answer_id' => $answer->id,
-            'is_correct' => !$currentCorrectness,
+            'is_correct' => $currentCorrectness,
         ]);
 
         return response()->json([

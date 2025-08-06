@@ -50,22 +50,12 @@ class CommentController extends Controller
 
     public function store(StoreCommentRequest $request, $parent)
     {
-        $this->authorize('create', [Comment::class, $parent]);
-
         $user = $request->user();
+
         $commentData = [
             'user_id' => $user->id,
             'content' => $request->content,
         ];
-
-        // Auto-publish for users with level >= 2
-        if ($user->level >= 2) {
-            $commentData['published'] = true;
-            $commentData['published_at'] = now();
-            $commentData['published_by'] = $user->id;
-        } else {
-            $commentData['published'] = false;
-        }
 
         $question = null;
 
@@ -88,9 +78,15 @@ class CommentController extends Controller
             }
         }
 
-        // Award 2 points if comment was auto-published
-        if ($user->level >= 2) {
-            $user->increment('score', 2);
+        // Add 2 score scores for commenting
+        $user->increment('score', 2);
+
+        if ($user->can('publish', $comment)) {
+            $comment->update([
+                'published' => true,
+                'published_at' => now(),
+                'published_by' => $user->id,
+            ]);
         }
 
         $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
@@ -100,8 +96,6 @@ class CommentController extends Controller
 
     public function update(UpdateCommentRequest $request, Comment $comment)
     {
-        Gate::authorize('update', $comment);
-
         $comment->update($request->validated());
 
         return new CommentResource($comment);
@@ -109,8 +103,6 @@ class CommentController extends Controller
 
     public function destroy(Comment $comment)
     {
-        Gate::authorize('delete', $comment);
-
         $comment->delete();
 
         return response()->noContent();

@@ -94,26 +94,55 @@
                 </button>
 
                 <!-- Feature Toggle -->
-                <button v-if="question.can?.feature || question.can?.unfeature" @click="toggleFeature" :disabled="featureLoading"
+                <button
+                    v-if="(question.can?.feature || question.can?.unfeature) && (question.can?.feature !== false || question.can?.unfeature !== false)"
+                    @click="toggleFeature"
+                    :disabled="featureLoading"
                     :class="[
                         'flex items-center gap-1 transition-colors whitespace-nowrap',
-                        question.is_featured_by_user
+                        // Show unfeature mode if feature is false and unfeature is true
+                        (!question.can?.feature && question.can?.unfeature)
                             ? 'text-orange-600 hover:text-gray-500'
-                            : 'text-gray-500 hover:text-orange-600',
+                            // Show feature mode if unfeature is false and feature is true
+                            : (question.can?.feature && !question.can?.unfeature)
+                                ? 'text-gray-500 hover:text-orange-600'
+                                // Otherwise, use current featured state
+                                : question.is_featured_by_user
+                                    ? 'text-orange-600 hover:text-gray-500'
+                                    : 'text-gray-500 hover:text-orange-600',
                         featureLoading ? 'opacity-50 cursor-not-allowed' : ''
                     ]"
-                    :title="question.is_featured_by_user ? 'برداشتن ویژگی' : 'ویژه کردن سوال'">
+                    :title="(!question.can?.feature && question.can?.unfeature)
+                        ? 'برداشتن ویژگی'
+                        : (question.can?.feature && !question.can?.unfeature)
+                            ? 'ویژه کردن سوال'
+                            : (question.is_featured_by_user ? 'برداشتن ویژگی' : 'ویژه کردن سوال')"
+                >
                     <svg v-if="!featureLoading" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <!-- Use star icon for featured/unfeatured states -->
-                        <path v-if="question.is_featured_by_user" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                        <path v-else d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+                        <!-- Show filled star for unfeature mode or featured state, outline for feature mode -->
+                        <path
+                            v-if="(!question.can?.feature && question.can?.unfeature) || question.is_featured_by_user"
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        ></path>
+                        <path
+                            v-else
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                            fill="none" stroke="currentColor" stroke-width="1.5"
+                        ></path>
                     </svg>
                     <svg v-else class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     <span class="hidden sm:inline">
-                        {{ featureLoading ? 'در حال پردازش...' : (question.is_featured_by_user ? 'برداشتن ویژگی' : 'ویژه کردن') }}
+                        {{ featureLoading
+                            ? 'در حال پردازش...'
+                            : (!question.can?.feature && question.can?.unfeature)
+                                ? 'برداشتن ویژگی'
+                                : (question.can?.feature && !question.can?.unfeature)
+                                    ? 'ویژه کردن'
+                                    : (question.is_featured_by_user ? 'برداشتن ویژگی' : 'ویژه کردن')
+                        }}
                     </span>
                 </button>
 
@@ -360,7 +389,21 @@ export default {
                 const url = `/api/questions/${props.question.id}/feature`
                 let response
 
-                if (props.question.is_featured_by_user) {
+                // Determine the action based on button mode
+                let shouldUnfeature = false
+
+                if (!props.question.can?.feature && props.question.can?.unfeature) {
+                    // Unfeature mode: can only unfeature
+                    shouldUnfeature = true
+                } else if (props.question.can?.feature && !props.question.can?.unfeature) {
+                    // Feature mode: can only feature
+                    shouldUnfeature = false
+                } else {
+                    // Toggle mode: use current featured state
+                    shouldUnfeature = props.question.is_featured_by_user
+                }
+
+                if (shouldUnfeature) {
                     // Unfeature the question
                     response = await $axios.delete(url)
                 } else {
@@ -372,6 +415,17 @@ export default {
                     // Update the question object
                     props.question.is_featured_by_user = response.data.is_featured_by_user
                     props.question.featured_at = response.data.featured_at
+
+                    // Update permissions based on the new state
+                    if (shouldUnfeature) {
+                        // After unfeaturing, user should be able to feature again
+                        props.question.can.feature = true
+                        props.question.can.unfeature = false
+                    } else {
+                        // After featuring, user should be able to unfeature
+                        props.question.can.feature = false
+                        props.question.can.unfeature = true
+                    }
 
                     // Emit event to parent
                     emit('feature-changed', {

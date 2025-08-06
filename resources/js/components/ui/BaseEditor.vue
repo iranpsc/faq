@@ -112,8 +112,15 @@ export default {
             } else if (this.mode === 'simple') {
                 return {
                     ...baseConfig,
-                    plugins: ['lists', 'link', 'code', 'help', 'wordcount', 'directionality'],
-                    toolbar: 'undo redo | ltr rtl | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
+                    plugins: ['lists', 'link', 'image', 'code', 'help', 'wordcount', 'directionality'],
+                    toolbar: 'undo redo | ltr rtl | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | ' + (this.imageUpload ? 'image | ' : '') + 'help',
+                    ...(this.imageUpload && {
+                        images_upload_handler: this.handleImageUpload,
+                        automatic_uploads: true,
+                        paste_data_images: true,
+                        file_picker_types: 'image',
+                        images_reuse_filename: false,
+                    })
                 };
             } else { // minimal
                 return {

@@ -210,8 +210,8 @@ export default {
         const handleEdit = () => {
             // Open the edit modal
             showEditModal.value = true
-            // Emit the editQuestion event for parent components
-            emit('editQuestion', question.value)
+            // Note: We don't emit editQuestion here to avoid duplicate modals
+            // since we're handling the edit within this page component
         }
 
         const handleCloseModal = () => {

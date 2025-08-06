@@ -74,16 +74,12 @@ class QuestionController extends Controller
         $tagIds = $this->processTags($request->tags);
         $question->tags()->sync($tagIds);
 
-        // Auto-publish for users with level >= 2
-        if ($user->level >= 2) {
+        if ($user->can('publish', $question)) {
             $question->update([
                 'published' => true,
                 'published_at' => now(),
                 'published_by' => $user->id,
             ]);
-
-            // Award 2 points for publishing a question
-            $user->increment('score', 2);
         }
 
         $question->load('user', 'category', 'tags', 'upVotes', 'downVotes');
@@ -96,29 +92,15 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
-        // Check if this view is already counted in the current session
-        $viewKey = 'question_view_' . $question->id . '_' . request()->ip();
-        if (!cache()->has($viewKey)) {
-            // Store view in cache for 24 hours and increment count
-            cache()->put($viewKey, true, now()->addHours(24));
-            $question->increment('views');
-        }
+        $question->increment('views');
 
         $user = request()->user();
 
-        $this->checkQuestionVisibility($question, $user);
         $this->loadPinStatus($question, $user);
         $this->loadFeatureStatus($question, $user);
         $this->loadQuestionRelations($question, $user);
 
         return new QuestionResource($question);
-    }
-
-    private function checkQuestionVisibility(Question $question, $user): void
-    {
-        if (!$question->published && (!$user || !$user->can('view', $question))) {
-            abort(403, 'You do not have permission to view this question.');
-        }
     }
 
     private function loadPinStatus(Question $question, $user): void
@@ -286,22 +268,6 @@ class QuestionController extends Controller
     {
         $user = $request->user();
 
-        // Check if user already pinned this question
-        if ($user->pinnedQuestions()->where('question_id', $question->id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'شما قبلاً این سوال را پین کرده‌اید'
-            ], 409);
-        }
-
-        // Check pin limit (optional: limit to 20 pinned questions per user)
-        if ($user->pinnedQuestions()->count() >= 20) {
-            return response()->json([
-                'success' => false,
-                'message' => 'حداکثر تعداد سوالات پین شده (20 سوال) به حد نصاب رسیده است'
-            ], 422);
-        }
-
         $user->pinnedQuestions()->attach($question->id, [
             'pinned_at' => now()
         ]);
@@ -320,13 +286,6 @@ class QuestionController extends Controller
     public function unpin(Request $request, Question $question)
     {
         $user = $request->user();
-
-        if (!$user->pinnedQuestions()->where('question_id', $question->id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'این سوال پین نشده است'
-            ], 404);
-        }
 
         $user->pinnedQuestions()->detach($question->id);
 
@@ -347,8 +306,10 @@ class QuestionController extends Controller
 
         $user = $request->user();
 
-        $user->featuredQuestions()->attach($question->id, [
-            'featured_at' => now()
+        $user->featuredQuestions()->create([
+            'question_id' => $question->id,
+            'featured_at' => now(),
+            'type' => 'featured'
         ]);
 
         // Update question's featured status
@@ -371,10 +332,13 @@ class QuestionController extends Controller
 
         $user = $request->user();
 
-        // Update question's featured status if no more users have featured it
-        if ($question->featuredByUsers()->count() === 0) {
-            $question->update(['featured' => false]);
-        }
+        $question->update(['featured' => false]);
+
+        $user->unfeaturedQuestions()->create([
+            'question_id' => $question->id,
+            'featured_at' => now(),
+            'type' => 'unfeatured'
+        ]);
 
         return response()->json([
             'success' => true,

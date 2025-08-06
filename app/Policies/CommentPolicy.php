@@ -82,7 +82,21 @@ class CommentPolicy
             return false;
         }
 
-        // Higher level users can publish comments from lower level users
-        return $user->level > $comment->user->level;
+        // User level < 3 cannot publish comments
+        if ($user->level < 3) {
+            return false;
+        }
+
+        // user can not publish their own comments
+        if ($comment->user->is($user)) {
+            return false;
+        }
+
+        // User level more than 3 can publish comments from lower level users
+        if (($user->level > 3) && ($user->level > $comment->user->level)) {
+            return true;
+        }
+
+        return false;
     }
 }

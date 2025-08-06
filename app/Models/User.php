@@ -206,13 +206,30 @@ class User extends Authenticatable
     /**
      * Get the questions featured by this user.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function featuredQuestions()
     {
-        return $this->belongsToMany(Question::class, 'user_featured_questions')
-            ->withTimestamps()
-            ->withPivot('featured_at')
-            ->orderByPivot('featured_at', 'desc');
+        return $this->hasMany(UserFeaturedQuestion::class)->where('type', 'featured');
+    }
+
+    /**
+     * Get the questions unfeatured by this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function unfeaturedQuestions()
+    {
+        return $this->hasMany(UserFeaturedQuestion::class)->where('type', 'unfeatured');
+    }
+
+    /**
+     * Get the answers that user has marked.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function markedAnswers()
+    {
+        return $this->hasMany(AnswerCorrectnessMark::class, 'marker_user_id');
     }
 }
