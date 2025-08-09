@@ -90,7 +90,10 @@ class CommentController extends Controller
 
         $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
 
-        return new CommentResource($comment);
+        return response()->json([
+            'data' => new CommentResource($comment->load('user')),
+            'message' => 'نظر با موفقیت اضافه شد'
+        ], 201);
     }
 
     public function update(UpdateCommentRequest $request, Comment $comment)

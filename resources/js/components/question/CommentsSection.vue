@@ -1,7 +1,7 @@
 <template>
   <div :class="parentType === 'question' ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 w-full min-w-0 overflow-hidden' : 'mt-4 border-t border-gray-200 dark:border-gray-600 pt-4 w-full min-w-0'">
     <h3 :class="parentType === 'question' ? 'text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4' : 'text-sm font-medium text-gray-900 dark:text-gray-100 mb-3'">
-      نظرات {{ parentType === 'question' ? 'کاربران' : '' }} ({{ comments.length }})
+      نظرات {{ parentType === 'question' ? 'کاربران' : '' }} ({{ commentsPagination?.total || comments.length }})
     </h3>
 
     <!-- Comments List -->
@@ -120,6 +120,17 @@
       </div>
     </div>
 
+    <!-- Show More Comments Button -->
+    <div v-if="hasMoreComments" class="text-center mb-4">
+      <button
+        @click="loadMoreComments"
+        :disabled="isLoadingMore"
+        :class="parentType === 'question' ? 'px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed' : 'px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'"
+      >
+        {{ isLoadingMore ? 'در حال بارگذاری...' : 'نمایش نظرات بیشتر' }}
+      </button>
+    </div>
+
     <!-- Add Comment Form -->
     <div v-if="isAuthenticated" :class="parentType === 'question' ? 'border-t border-gray-200 dark:border-gray-600 pt-4' : 'border-t border-gray-200 dark:border-gray-600 pt-3'">
       <h4 v-if="parentType === 'question'" class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">دیدگاه خود را وارد کنید...</h4>
@@ -198,6 +209,15 @@ export default {
     const editingComment = ref(null)
     const editContent = ref('')
     const isPublishingComment = ref(null)
+    const commentsPagination = ref(null)
+    const currentCommentsPage = ref(1)
+    const isLoadingMore = ref(false)
+
+    // Computed properties
+    const hasMoreComments = computed(() => {
+      return commentsPagination.value &&
+             commentsPagination.value.current_page < commentsPagination.value.last_page
+    })
 
     // Computed property to get the parent ID
     const parentId = computed(() => {
@@ -208,12 +228,29 @@ export default {
       return new Intl.NumberFormat('fa-IR').format(num)
     }
 
-    const fetchComments = async () => {
-      const result = await fetchCommentsApi(parentId.value, props.parentType)
+    const fetchComments = async (page = 1, append = false) => {
+      const result = await fetchCommentsApi(parentId.value, props.parentType, page)
       if (result.success) {
-        comments.value = result.data
+        if (append) {
+          comments.value = [...comments.value, ...result.data]
+        } else {
+          comments.value = result.data
+        }
+        commentsPagination.value = result.meta
+        currentCommentsPage.value = page
       } else {
         console.error('Error fetching comments:', result.message)
+      }
+    }
+
+    const loadMoreComments = async () => {
+      if (!hasMoreComments.value || isLoadingMore.value) return
+
+      isLoadingMore.value = true
+      try {
+        await fetchComments(currentCommentsPage.value + 1, true)
+      } finally {
+        isLoadingMore.value = false
       }
     }
 
@@ -246,10 +283,19 @@ export default {
       const result = await addComment(parentId.value, newComment.value, props.parentType)
 
       if (result.success) {
-        // Add the new comment to the list
+        // Add the new comment to the beginning of the list
         comments.value.unshift(result.data)
+
+        // Update the pagination total count if it exists
+        if (commentsPagination.value) {
+          commentsPagination.value.total += 1
+        }
+
+        // Clear the form
         newComment.value = ''
-        emit('comment-added')
+
+        // Emit event to parent
+        emit('comment-added', result.data)
 
         // Show success message
         const Swal = window.Swal || window.$swal;
@@ -447,8 +493,11 @@ export default {
     })
 
     // Watch for changes in parentId and refetch comments
-    watch(() => parentId.value, () => {
-      if (parentId.value) {
+    watch(() => parentId.value, (newId, oldId) => {
+      // Only refetch if parentId actually changed to a different value
+      // This prevents unnecessary refetches when the same component is re-rendered
+      if (newId && newId !== oldId) {
+        currentCommentsPage.value = 1
         fetchComments()
       }
     })
@@ -456,6 +505,7 @@ export default {
     return {
       isAuthenticated,
       comments,
+      commentsPagination,
       newComment,
       isSubmitting,
       editingComment,
@@ -463,7 +513,10 @@ export default {
       isUpdating,
       isDeleting,
       isPublishingComment,
+      hasMoreComments,
+      isLoadingMore,
       submitComment,
+      loadMoreComments,
       handleCommentVoteChanged,
       startEdit,
       cancelEdit,

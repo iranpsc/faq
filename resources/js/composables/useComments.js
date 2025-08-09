@@ -9,16 +9,20 @@ export function useComments() {
   const isVoting = ref(null)
 
   // Fetch comments for a question or answer
-  const fetchComments = async (parentId, parentType = 'question') => {
+  const fetchComments = async (parentId, parentType = 'question', page = 1) => {
     isLoading.value = true
     try {
       const endpoint = parentType === 'question'
         ? `/api/questions/${parentId}/comments`
         : `/api/answers/${parentId}/comments`
-      const response = await axios.get(endpoint)
+      const response = await axios.get(endpoint, {
+        params: { page }
+      })
       return {
         success: true,
         data: response.data.data,
+        meta: response.data.meta,
+        links: response.data.links,
         message: 'Comments fetched successfully'
       }
     } catch (error) {
@@ -26,6 +30,8 @@ export function useComments() {
       return {
         success: false,
         data: [],
+        meta: null,
+        links: null,
         message: error.response?.data?.message || 'خطایی در بارگذاری نظرات رخ داد'
       }
     } finally {
@@ -52,8 +58,8 @@ export function useComments() {
       })
       return {
         success: true,
-        data: response.data,
-        message: 'نظر با موفقیت اضافه شد'
+        data: response.data.data,
+        message: response.data.message || 'نظر با موفقیت اضافه شد'
       }
     } catch (error) {
       console.error('Error adding comment:', error)

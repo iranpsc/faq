@@ -9,13 +9,17 @@ export function useAnswers() {
   const isVoting = ref(null)
 
   // Fetch answers for a question
-  const fetchAnswers = async (questionId) => {
+  const fetchAnswers = async (questionId, page = 1) => {
     isLoading.value = true
     try {
-      const response = await axios.get(`/api/questions/${questionId}/answers`)
+      const response = await axios.get(`/api/questions/${questionId}/answers`, {
+        params: { page }
+      })
       return {
         success: true,
         data: response.data.data,
+        meta: response.data.meta,
+        links: response.data.links,
         message: 'Answers fetched successfully'
       }
     } catch (error) {
@@ -23,6 +27,8 @@ export function useAnswers() {
       return {
         success: false,
         data: [],
+        meta: null,
+        links: null,
         message: error.response?.data?.message || 'خطایی در بارگذاری پاسخ‌ها رخ داد'
       }
     } finally {

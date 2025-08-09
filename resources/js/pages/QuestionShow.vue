@@ -35,6 +35,7 @@
                 <!-- Answers Section -->
                 <AnswersSection :questionId="question.id" :answers="answers" @answer-added="refreshAnswers"
                     @vote-changed="handleAnswerVoteChanged" @answer-correctness-changed="handleAnswerCorrectnessChanged"
+                    @comment-added="handleAnswerCommentAdded"
                     :key="`answers-${question.id}-${componentKey}`" />
             </div>
         </template>
@@ -401,6 +402,12 @@ export default {
             }
         }
 
+        const handleAnswerCommentAdded = (commentData) => {
+            // Handle comment added to answer - don't refresh answers to avoid interfering with comment state
+            // Could potentially update a comment count or notification here if needed
+            console.log('Comment added to answer:', commentData)
+        }
+
         const handleAnswerCorrectnessChanged = (data) => {
             console.log('Answer correctness changed:', data)
 
@@ -483,6 +490,7 @@ export default {
             handleVote,
             handleVoteChanged,
             handleAnswerVoteChanged,
+            handleAnswerCommentAdded,
             handleAnswerCorrectnessChanged
         }
     }

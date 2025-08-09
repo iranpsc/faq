@@ -1,7 +1,7 @@
 <template>
   <div class="mt-8">
     <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-      پاسخ‌ها ({{ sortedAnswers.length }})
+      پاسخ‌ها ({{ usePagination ? (answersPagination?.total || sortedAnswers.length) : sortedAnswers.length }})
     </h3>
 
     <!-- Add Answer Form -->
@@ -45,7 +45,14 @@
         :key="answer.id"
         class="bg-white dark:bg-gray-800 rounded-lg shadow-sm w-full min-w-0 overflow-hidden"
       >
-        <div class="p-4 sm:p-8">
+        <div
+          :class="[
+            'p-4 sm:p-8',
+            answer.is_correct
+              ? 'bg-green-50 dark:bg-green-900/20'
+              : ''
+          ]"
+        >
           <div class="flex items-start gap-3 sm:gap-6 min-w-0">
             <BaseAvatar
               :src="answer.user?.image_url"
@@ -178,11 +185,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Show More Answers Button -->
+    <div v-if="hasMoreAnswers" class="text-center mt-6">
+      <button
+        @click="loadMoreAnswers"
+        :disabled="isLoadingMoreAnswers"
+        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ isLoadingMoreAnswers ? 'در حال بارگذاری...' : 'نمایش پاسخ‌های بیشتر' }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useAnswers } from '../../composables/useAnswers'
 import BaseEditor from '../ui/BaseEditor.vue'
@@ -208,7 +226,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['answer-added', 'vote-changed', 'answer-correctness-changed'],
+  emits: ['answer-added', 'vote-changed', 'answer-correctness-changed', 'comment-added'],
   setup(props, { emit }) {
     const { isAuthenticated, user } = useAuth()
     const {
@@ -217,7 +235,8 @@ export default {
       isDeleting: isDeletingAnswer,
       addAnswer,
       updateAnswer,
-      deleteAnswer
+      deleteAnswer,
+      fetchAnswers: fetchAnswersApi
     } = useAnswers()
 
     const newAnswer = ref('')
@@ -227,9 +246,28 @@ export default {
     const isPublishingAnswer = ref(null)
     const isTogglingCorrectness = ref(null)
 
+    // Pagination state
+    const paginatedAnswers = ref([])
+    const answersPagination = ref(null)
+    const currentAnswersPage = ref(1)
+    const isLoadingMoreAnswers = ref(false)
+    const usePagination = ref(false)
+
+    // Computed properties
+    const hasMoreAnswers = computed(() => {
+      return usePagination.value &&
+             answersPagination.value &&
+             answersPagination.value.current_page < answersPagination.value.last_page
+    })
+
+    // Use either paginated answers or props answers based on mode
+    const displayAnswers = computed(() => {
+      return usePagination.value ? paginatedAnswers.value : props.answers
+    })
+
     // Sort answers by vote score and best answer
     const sortedAnswers = computed(() => {
-      return [...props.answers].sort((a, b) => {
+      return [...displayAnswers.value].sort((a, b) => {
         // Best answers first
         if (a.is_best && !b.is_best) return -1
         if (!a.is_best && b.is_best) return 1
@@ -261,11 +299,43 @@ export default {
     }
 
     const formatDate = (dateString) => {
-      return new Intl.DateTimeFormat('fa-IR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }).format(new Date(dateString))
+        return new Intl.DateTimeFormat('fa-IR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).format(new Date(dateString))
+    }
+
+    // Initialize pagination if needed
+    const initializePagination = async () => {
+      if (props.answers.length === 0) {
+        usePagination.value = true
+        await fetchPaginatedAnswers()
+      }
+    }
+
+    const fetchPaginatedAnswers = async (page = 1, append = false) => {
+      const result = await fetchAnswersApi(props.questionId, page)
+      if (result.success) {
+        if (append) {
+          paginatedAnswers.value = [...paginatedAnswers.value, ...result.data]
+        } else {
+          paginatedAnswers.value = result.data
+        }
+        answersPagination.value = result.meta
+        currentAnswersPage.value = page
+      }
+    }
+
+    const loadMoreAnswers = async () => {
+      if (!hasMoreAnswers.value || isLoadingMoreAnswers.value) return
+
+      isLoadingMoreAnswers.value = true
+      try {
+        await fetchPaginatedAnswers(currentAnswersPage.value + 1, true)
+      } finally {
+        isLoadingMoreAnswers.value = false
+      }
     }
 
     const submitAnswer = async () => {
@@ -416,22 +486,28 @@ export default {
       })
 
       // Update local answer data immediately for better UX
-      const answerIndex = props.answers.findIndex(answer => answer.id === answerId)
+      const targetAnswers = usePagination.value ? paginatedAnswers.value : props.answers
+      const answerIndex = targetAnswers.findIndex(answer => answer.id === answerId)
       if (answerIndex !== -1) {
-        const updatedAnswer = { ...props.answers[answerIndex] }
+        const updatedAnswer = { ...targetAnswers[answerIndex] }
         updatedAnswer.votes = {
           upvotes: voteData.upvotes,
           downvotes: voteData.downvotes,
           user_vote: voteData.userVote
+        }
+        if (usePagination.value) {
+          paginatedAnswers.value[answerIndex] = updatedAnswer
         }
         // Since we can't mutate props directly, we rely on parent component to update
         // But we've already emitted the event above for parent to handle
       }
     }
 
-    const handleAnswerCommentAdded = () => {
-      // No need to force component re-render since comments are managed independently
-      // The CommentsSection component handles its own state updates
+    const handleAnswerCommentAdded = (commentData) => {
+      // The CommentsSection component handles its own state updates locally
+      // We don't need to refresh answers here as it would interfere with the comment state
+      // Just emit to parent if needed for any other updates (like notification counts)
+      emit('comment-added', commentData)
     }
 
         const publishAnswer = async (answer) => {
@@ -528,9 +604,19 @@ export default {
             } finally {
                 isTogglingCorrectness.value = null
             }
-        }    // Watch for changes in answers and update component key
+        }
+
+    // Initialize pagination on mount
+    onMounted(() => {
+      initializePagination()
+    })
+
+    // Watch for changes in answers and update component key
     // Only update component key for significant changes, not vote updates
     watch(() => props.answers, (newAnswers, oldAnswers) => {
+      // If pagination mode is active, don't react to props changes
+      if (usePagination.value) return
+
       // Don't trigger re-render for vote-only changes or if arrays have same structure
       if (newAnswers && oldAnswers && newAnswers.length === oldAnswers.length) {
         const hasNonVoteChanges = newAnswers.some((newAnswer, index) => {
@@ -563,6 +649,10 @@ export default {
       editContent,
       componentKey,
       sortedAnswers,
+      hasMoreAnswers,
+      isLoadingMoreAnswers,
+      usePagination,
+      answersPagination,
       submitAnswer,
       startEdit,
       cancelEdit,
@@ -570,6 +660,7 @@ export default {
       deleteAnswerAction,
       publishAnswer,
       toggleAnswerCorrectness,
+      loadMoreAnswers,
       handleAnswerVoteChanged,
       handleAnswerCommentAdded,
       canUpdate,

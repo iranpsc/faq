@@ -424,6 +424,7 @@ class MigrateOldDatabaseSeeder extends Seeder
                         'category_id' => $old_question->category_id,
                         'user_id' => $userId,
                         'title' => $old_question->title,
+                        'slug' => str_replace(' ', '-', $old_question->title), // Generate slug from title
                         'content' => $old_question->content,
                         'featured' => $featured,
                         'views' => $old_question->views ?? 0,
