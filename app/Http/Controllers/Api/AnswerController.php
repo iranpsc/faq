@@ -146,13 +146,6 @@ class AnswerController extends Controller
         $userId = $request->user()->id;
         $voteType = $request->type;
 
-        $existingVote = $answer->votes()->where('user_id', $userId)->first();
-
-        if ($existingVote) {
-            $lastVotedAt = $existingVote->last_voted_at->diffInMinutes(now());
-            // abort_if($lastVotedAt < 60, 429, 'شما هر ساعت یک بار مجاز به تغییر رای خود هستید');
-        }
-
         $answer->votes()->updateOrCreate([
             'user_id' => $userId
         ], [
