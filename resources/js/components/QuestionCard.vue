@@ -87,10 +87,14 @@
                 <!-- User Info and Stats (right) -->
                 <div class="flex items-center gap-6">
                     <!-- User Info -->
-                    <div class="flex items-center gap-2">
+                    <router-link
+                        v-if="question.user"
+                        :to="`/authors/${question.user.id}`"
+                        class="flex items-center gap-2 hover:underline"
+                    >
                         <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="xs" />
                         <span>{{ question.user?.name }}</span>
-                    </div>
+                    </router-link>
                     <!-- Stats -->
                     <span class="flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

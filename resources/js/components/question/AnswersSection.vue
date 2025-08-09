@@ -99,17 +99,29 @@
           ]"
         >
           <div class="flex items-start gap-3 sm:gap-6 min-w-0">
-            <BaseAvatar
-              :src="answer.user?.image_url"
-              :name="answer.user?.name"
-              :score="answer.user?.score"
-              size="md"
-              class="flex-shrink-0"
-            />
+            <router-link
+              v-if="answer.user"
+              :to="`/authors/${answer.user.id}`"
+              class="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded group"
+              :title="`نمایش پروفایل ${answer.user?.name || ''}`"
+            >
+              <BaseAvatar
+                :src="answer.user?.image_url"
+                :name="answer.user?.name"
+                :score="answer.user?.score"
+                size="md"
+                class="transition-transform group-hover:scale-105"
+              />
+            </router-link>
             <div class="flex-1 min-w-0">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ answer.user?.name }}</span>
+                  <router-link
+                    v-if="answer.user"
+                    :to="`/authors/${answer.user.id}`"
+                    class="font-medium text-gray-900 dark:text-gray-100 truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >{{ answer.user?.name }}</router-link>
+                  <span v-else class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ answer.user?.name }}</span>
                   <span class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{ formatNumber(answer.user?.score || 0) }}</span>
                 </div>
                 <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ formatDate(answer.created_at) }}</span>

@@ -1,21 +1,31 @@
 <template>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 w-full min-w-0 overflow-hidden">
         <!-- Top Row: User Info & Category (right), Creation Date (left) -->
-        <div class="flex items-center justify-between mb-4 gap-2 min-w-0">
+            <div class="flex items-center justify-between mb-4 gap-2 min-w-0">
             <!-- Right: User Info & Category -->
             <div class="flex items-center gap-3 min-w-0 flex-shrink-0">
                 <!-- User Info -->
-                <div class="text-right min-w-0">
+                <router-link
+                    v-if="question.user"
+                    :to="`/authors/${question.user.id}`"
+                    class="text-right min-w-0 group focus:outline-none focus:ring-2 focus:ring-blue-500 rounded block"
+                    :title="`نمایش پروفایل ${question.user?.name || ''}`"
+                >
+                    <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" class="transition-transform group-hover:scale-105" />
+                    <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate group-hover:underline">{{ question.user?.name }}</span>
+                    <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">
+                        امتیاز: {{ formatNumber(question.user.score) }}
+                    </div>
+                </router-link>
+                <div v-else class="text-right min-w-0">
                     <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" />
                     <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ question.user?.name }}</span>
-                    <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">امتیاز: {{
-                        formatNumber(question.user.score) }}</div>
+                    <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">
+                        امتیاز: {{ formatNumber(question.user.score) }}
+                    </div>
                 </div>
                 <!-- Category -->
-                <span v-if="question.category?.name"
-                    class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap">
-                    {{ question.category.name }}
-                </span>
+                <span v-if="question.category?.name" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap">{{ question.category.name }}</span>
             </div>
             <!-- Left: Creation Date -->
             <div class="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">

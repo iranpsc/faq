@@ -43,7 +43,7 @@ class QuestionPolicy
      */
     public function update(User $user, Question $question): bool
     {
-        return $question->user->is($user);
+        return false;
     }
 
     /**
@@ -51,7 +51,7 @@ class QuestionPolicy
      */
     public function delete(User $user, Question $question): bool
     {
-        return $question->user->is($user) || $user->isAdmin();
+        return false;
     }
 
     /**

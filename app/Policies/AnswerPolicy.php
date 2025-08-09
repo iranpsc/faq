@@ -32,7 +32,7 @@ class AnswerPolicy
      */
     public function delete(User $user, Answer $answer)
     {
-        return $answer->user->is($user) || $user->isAdmin();
+        return $answer->user->is($user) && !$answer->is_correct;
     }
 
     /**

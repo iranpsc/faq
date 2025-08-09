@@ -16,7 +16,21 @@
         :class="parentType === 'question' ? 'bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4' : 'bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3'"
       >
         <div class="flex items-start gap-2 sm:gap-3 min-w-0">
+          <router-link
+            v-if="comment.user"
+            :to="`/authors/${comment.user.id}`"
+            class="flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded group"
+            :title="`نمایش پروفایل ${comment.user?.name || ''}`"
+          >
+            <BaseAvatar
+              :src="comment.user?.image_url"
+              :name="comment.user?.name"
+              :size="parentType === 'question' ? 'sm' : 'xs'"
+              class="transition-transform group-hover:scale-105"
+            />
+          </router-link>
           <BaseAvatar
+            v-else
             :src="comment.user?.image_url"
             :name="comment.user?.name"
             :size="parentType === 'question' ? 'sm' : 'xs'"
@@ -24,7 +38,12 @@
           />
           <div class="flex-1 min-w-0">
             <div :class="parentType === 'question' ? 'flex flex-wrap items-center gap-2 mb-2' : 'flex flex-wrap items-center gap-2 mb-1'">
-              <span :class="parentType === 'question' ? 'font-medium text-gray-900 dark:text-gray-100 truncate' : 'font-medium text-gray-900 dark:text-gray-100 text-sm truncate'">{{ comment.user?.name }}</span>
+              <router-link
+                v-if="comment.user"
+                :to="`/authors/${comment.user.id}`"
+                :class="parentType === 'question' ? 'font-medium text-gray-900 dark:text-gray-100 truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded' : 'font-medium text-gray-900 dark:text-gray-100 text-sm truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded'"
+              >{{ comment.user?.name }}</router-link>
+              <span v-else :class="parentType === 'question' ? 'font-medium text-gray-900 dark:text-gray-100 truncate' : 'font-medium text-gray-900 dark:text-gray-100 text-sm truncate'">{{ comment.user?.name }}</span>
               <span class="text-xs text-gray-500 whitespace-nowrap">امتیاز: {{ formatNumber(comment.user?.score || 0) }}</span>
               <span class="text-xs text-gray-400">•</span>
               <span class="text-xs text-gray-500 whitespace-nowrap">{{ comment.created_at }}</span>
