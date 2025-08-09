@@ -29,12 +29,42 @@ class AnswerController extends Controller
     public function index(Request $request, Question $question)
     {
         $user = $request->user();
+        $sort = $request->get('sort'); // votes, comments, newest, oldest, correct
 
-        $answers = $question->answers()
+        $query = $question->answers()
             ->with('user', 'votes')
-            ->visible($user)
-            ->latest()
-            ->paginate(10);
+            ->visible($user);
+
+        // Apply dynamic ordering / filtering
+        switch ($sort) {
+            case 'votes':
+                // Need counts of up/down votes to compute score
+                $query->withCount([
+                    'upVotes as upvotes_count',
+                    'downVotes as downvotes_count'
+                ])->orderByRaw('(upvotes_count - downvotes_count) DESC')
+                  ->orderByDesc('created_at');
+                break;
+            case 'comments':
+                $query->withCount('comments')
+                      ->orderByDesc('comments_count')
+                      ->orderByDesc('created_at');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'correct':
+                // Only correct answers
+                $query->where('is_correct', true)
+                      ->orderByDesc('created_at');
+                break;
+            case 'newest':
+            default:
+                $query->orderByDesc('created_at');
+                break;
+        }
+
+        $answers = $query->paginate(10);
 
         return AnswerResource::collection($answers);
     }
@@ -155,33 +185,30 @@ class AnswerController extends Controller
      */
     public function toggleCorrectness(Request $request, Answer $answer)
     {
-        // Get current correctness state
-        $currentCorrectness = $answer->is_correct;
+        $user = $request->user();
+        $currentCorrectness = $answer->is_correct; // boolean
 
-        $action = $currentCorrectness ? 'markAsIncorrect' : 'markAsCorrect';
+        // Determine intended action based on front-end checkbox toggle behavior
+    $action = $currentCorrectness ? 'markAsNormal' : 'markAsCorrect';
 
         $this->authorize('toggleCorrectness', [$answer, $action]);
 
-        $user = $request->user();
-
-        // Create new mark
+        // Create mark record (audit) with resulting state
         $user->correctnessMarks()->create([
             'answer_id' => $answer->id,
             'is_correct' => !$currentCorrectness,
         ]);
 
-        // Update the correctness
+        // Update answer correctness
         $answer->update(['is_correct' => !$currentCorrectness]);
 
-        // Process points
-        if (!$currentCorrectness) {
-            // Answer was marked as correct (previously false, now true)
+        // Score adjustments (only affect answer owner)
+        if (!$currentCorrectness) { // now became correct
             $answer->user->increment('score', 10);
-            $user->increment('score', 2);
-        } else {
-            // Answer was unmarked as correct (previously true, now false)
+            $user->increment('score', 2); // marker reward
+        } else { // now became normal
             $answer->user->decrement('score', 10);
-            $user->increment('score', 2);
+            $user->increment('score', 2); // marker reward
         }
 
         return response()->json([

@@ -33,7 +33,7 @@ class AnswerResource extends JsonResource
             'can' => [
                 'toggle_correctness' =>
                 $request->user()?->can('toggleCorrectness', [$this->resource, $this->getToggleAction()])
-                ?? false,
+                    ?? false,
                 'update' => $request->user()?->can('update', $this->resource) ?? false,
                 'delete' => $request->user()?->can('delete', $this->resource) ?? false,
                 'publish' => $request->user()?->can('publish', $this->resource) ?? false,
@@ -41,8 +41,13 @@ class AnswerResource extends JsonResource
         ];
     }
 
+    /**
+     * Get the action for toggling correctness.
+     *
+     * @return string
+     */
     private function getToggleAction()
     {
-        return $this->is_correct ? 'markAsIncorrect' : 'markAsCorrect';
+        return $this->is_correct ? 'markAsNormal' : 'markAsCorrect';
     }
 }

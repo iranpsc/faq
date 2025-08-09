@@ -9,11 +9,11 @@ export function useAnswers() {
   const isVoting = ref(null)
 
   // Fetch answers for a question
-  const fetchAnswers = async (questionId, page = 1) => {
+  const fetchAnswers = async (questionId, page = 1, sort = null) => {
     isLoading.value = true
     try {
       const response = await axios.get(`/api/questions/${questionId}/answers`, {
-        params: { page }
+        params: { page, sort }
       })
       return {
         success: true,

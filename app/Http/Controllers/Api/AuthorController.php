@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class AuthorController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth.optional');
+    }
+
     /**
      * Get paginated list of authors/users with their activity statistics
      *
@@ -24,8 +30,10 @@ class AuthorController extends Controller
             $search = $request->get('search');
 
             $query = User::withCount(['questions', 'answers', 'comments'])
-                ->with(['questions' => function ($query) {
-                    $query->where('published', true)->latest()->limit(3);
+                ->with(['questions' => function ($query)use($request) {
+                    $query->where('published', true)
+                    ->visible($request->user())
+                    ->latest()->limit(3);
                 }]);
 
             // Apply search filter

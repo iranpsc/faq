@@ -3,6 +3,51 @@
     <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
       پاسخ‌ها ({{ usePagination ? (answersPagination?.total || sortedAnswers.length) : sortedAnswers.length }})
     </h3>
+    <!-- Filters Dropdown -->
+    <div class="mb-6 relative" ref="filterWrapper">
+      <button
+        @click="toggleFilterDropdown"
+        class="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm text-gray-700 dark:text-gray-200"
+      >
+        <span>مرتب سازی بر اساس:</span>
+        <span class="font-medium text-blue-600 dark:text-blue-400">{{ currentFilterLabel }}</span>
+        <svg :class="['w-4 h-4 transition-transform', showFilters ? 'rotate-180' : '']" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <transition name="fade">
+        <div
+          v-if="showFilters"
+          class="absolute z-30 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-lg overflow-hidden"
+        >
+          <ul class="py-1 text-sm">
+            <li
+              v-for="option in filterOptions"
+              :key="option.value"
+            >
+              <button
+                @click="selectFilter(option.value)"
+                :class="[
+                  'w-full text-right px-4 py-2 flex items-center justify-between gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
+                  selectedFilter === option.value ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-700 dark:text-gray-200'
+                ]"
+              >
+                <span>{{ option.label }}</span>
+                <span v-if="selectedFilter === option.value" class="text-xs">✓</span>
+              </button>
+            </li>
+            <li v-if="showClearFilter">
+              <button
+                @click="selectFilter(defaultFilter)"
+                class="w-full text-right px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs"
+              >
+                حذف فیلتر (بازنشانی)
+              </button>
+            </li>
+          </ul>
+        </div>
+      </transition>
+    </div>
 
     <!-- Add Answer Form -->
     <div v-if="isAuthenticated" class="mb-8">
@@ -36,7 +81,7 @@
 
     <!-- Answers List -->
     <div class="space-y-8">
-      <div v-if="sortedAnswers.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+  <div v-if="sortedAnswers.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
         هنوز پاسخی ثبت نشده است. اولین نفری باشید که پاسخ می‌دهد!
       </div>
 
@@ -69,8 +114,7 @@
                 </div>
                 <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ formatDate(answer.created_at) }}</span>
               </div>
-
-              <!-- Answer Content -->
+               <!-- Answer Content -->
               <div v-if="editingAnswer !== answer.id" class="mt-4 sm:mt-6 overflow-hidden">
                 <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 break-words" v-html="answer.content"></div>
               </div>
@@ -200,7 +244,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '../../composables/useAuth'
 import { useAnswers } from '../../composables/useAnswers'
 import BaseEditor from '../ui/BaseEditor.vue'
@@ -253,6 +297,21 @@ export default {
     const isLoadingMoreAnswers = ref(false)
     const usePagination = ref(false)
 
+    // Filtering state
+    const defaultFilter = 'newest'
+    const selectedFilter = ref(defaultFilter)
+    const filterOptions = [
+      { value: 'newest', label: 'جدیدترین' },
+      { value: 'oldest', label: 'قدیمی‌ترین' },
+      { value: 'votes', label: 'بیشترین رای' },
+      { value: 'comments', label: 'بیشترین نظر' },
+      { value: 'correct', label: 'پاسخ‌های صحیح' }
+    ]
+    const showClearFilter = computed(() => selectedFilter.value !== defaultFilter)
+  const showFilters = ref(false)
+  const filterWrapper = ref(null)
+  const currentFilterLabel = computed(() => filterOptions.find(o => o.value === selectedFilter.value)?.label || 'جدیدترین')
+
     // Computed properties
     const hasMoreAnswers = computed(() => {
       return usePagination.value &&
@@ -267,23 +326,40 @@ export default {
 
     // Sort answers by vote score and best answer
     const sortedAnswers = computed(() => {
-      return [...displayAnswers.value].sort((a, b) => {
-        // Best answers first
-        if (a.is_best && !b.is_best) return -1
-        if (!a.is_best && b.is_best) return 1
+      let list = [...displayAnswers.value]
 
-        // Correct answers next (if not best)
-        if (a.is_correct && !b.is_correct) return -1
-        if (!a.is_correct && b.is_correct) return 1
+      // Filter for correct answers only
+      if (selectedFilter.value === 'correct') {
+        list = list.filter(a => a.is_correct)
+      }
 
-        // Then by vote score
-        const aScore = (a.votes?.upvotes || 0) - (a.votes?.downvotes || 0)
-        const bScore = (b.votes?.upvotes || 0) - (b.votes?.downvotes || 0)
-        if (aScore !== bScore) return bScore - aScore
+      switch (selectedFilter.value) {
+        case 'votes':
+          list.sort((a, b) => {
+            const aScore = (a.votes?.upvotes || 0) - (a.votes?.downvotes || 0)
+            const bScore = (b.votes?.upvotes || 0) - (b.votes?.downvotes || 0)
+            if (bScore !== aScore) return bScore - aScore
+            return new Date(b.created_at) - new Date(a.created_at)
+          })
+          break
+        case 'comments':
+          list.sort((a, b) => {
+            const aComments = (a.comments ? a.comments.length : (a.comments_count || 0))
+            const bComments = (b.comments ? b.comments.length : (b.comments_count || 0))
+            if (bComments !== aComments) return bComments - aComments
+            return new Date(b.created_at) - new Date(a.created_at)
+          })
+          break
+        case 'oldest':
+          list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          break
+        case 'newest':
+        default:
+          list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          break
+      }
 
-        // Finally by creation date (newer first)
-        return new Date(b.created_at) - new Date(a.created_at)
-      })
+      return list
     })
 
     const canUpdate = (answer) => {
@@ -315,7 +391,7 @@ export default {
     }
 
     const fetchPaginatedAnswers = async (page = 1, append = false) => {
-      const result = await fetchAnswersApi(props.questionId, page)
+      const result = await fetchAnswersApi(props.questionId, page, selectedFilter.value)
       if (result.success) {
         if (append) {
           paginatedAnswers.value = [...paginatedAnswers.value, ...result.data]
@@ -337,6 +413,39 @@ export default {
         isLoadingMoreAnswers.value = false
       }
     }
+
+    const changeFilter = async (filter) => {
+      if (selectedFilter.value === filter) return
+      selectedFilter.value = filter
+      if (usePagination.value) {
+        await fetchPaginatedAnswers(1, false)
+      }
+    }
+
+    const selectFilter = async (value) => {
+      await changeFilter(value)
+      showFilters.value = false
+    }
+
+    const toggleFilterDropdown = () => {
+      showFilters.value = !showFilters.value
+    }
+
+    const handleClickOutside = (e) => {
+      if (!filterWrapper.value) return
+      if (!filterWrapper.value.contains(e.target)) {
+        showFilters.value = false
+      }
+    }
+
+    onMounted(() => {
+      document.addEventListener('click', handleClickOutside)
+    })
+
+  // Clean up listener
+  onUnmounted(() => {
+      document.removeEventListener('click', handleClickOutside)
+    })
 
     const submitAnswer = async () => {
       if (!newAnswer.value.trim()) return
@@ -557,13 +666,21 @@ export default {
             try {
                 const response = await window.axios.post(`/api/answers/${answer.id}/toggle-correctness`)
 
-                if (response.data.success) {
+        if (response.data.success) {
                     // Emit event to parent to update question solved status and answer locally
                     emit('answer-correctness-changed', {
                         answerId: answer.id,
                         isCorrect: response.data.is_correct,
                         message: response.data.message
                     })
+
+          // Update local state immediately
+          answer.is_correct = response.data.is_correct
+                    if (response.data.data && response.data.data.can) {
+                      // Refresh permission (may become false after marking correct)
+                      if (!answer.can) answer.can = {}
+                      answer.can.toggle_correctness = response.data.data.can.toggle_correctness
+                    }
 
                     // Show success message
                     const Swal = window.Swal || window.$swal;
@@ -653,6 +770,16 @@ export default {
       isLoadingMoreAnswers,
       usePagination,
       answersPagination,
+  selectedFilter,
+  filterOptions,
+  showClearFilter,
+  defaultFilter,
+  changeFilter,
+  selectFilter,
+  showFilters,
+  toggleFilterDropdown,
+  currentFilterLabel,
+  filterWrapper,
       submitAnswer,
       startEdit,
       cancelEdit,

@@ -7,5 +7,14 @@
     "Publish Comments": "انتشار نظرات",
     "Publish Answers": "انتشار پاسخ‌ها",
     "Mark Answers as Correct": "علامت‌گذاری پاسخ‌ها به عنوان صحیح",
-    "Mark Answers as Incorrect": "علامت‌گذاری پاسخ‌ها به عنوان نادرست"
+    "Mark Answers as Incorrect": "علامت‌گذاری پاسخ‌ها به عنوان نادرست",
+    "You cannot change the correctness of your own answer.": "شما نمی‌توانید درستی پاسخ خود را تغییر دهید.",
+    "You can only change the correctness of lower level users' answers.": "شما فقط می‌توانید درستی پاسخ کاربران با سطح پایین‌تر را تغییر دهید.",
+    "You must be at least level 4 to mark answers as correct.": "برای علامت‌گذاری پاسخ به عنوان صحیح باید حداقل سطح ۴ باشید.",
+    "This answer is already marked as correct.": "این پاسخ قبلاً به عنوان صحیح علامت‌گذاری شده است.",
+    "You have reached your marking limit for correct answers.": "شما به حد مجاز علامت‌گذاری پاسخ‌های صحیح رسیده‌اید.",
+    "You must be at least level 5 to mark answers as normal.": "برای بازگرداندن پاسخ به حالت عادی باید حداقل سطح ۵ باشید.",
+    "This answer is already marked as normal.": "این پاسخ هم‌اکنون عادی است.",
+    "You cannot unmark an answer you previously marked as correct.": "شما نمی‌توانید پاسخی را که خودتان قبلاً صحیح کرده‌اید عادی کنید.",
+    "You have reached your marking limit for normal answers.": "شما به حد مجاز علامت‌گذاری پاسخ‌های عادی رسیده‌اید."
 }

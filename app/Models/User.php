@@ -251,12 +251,22 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the answers that user has marked.
+     * Get the answers that user has as correct.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function markedAnswers()
+    public function markedAsCorrectAnswers()
     {
-        return $this->hasMany(AnswerCorrectnessMark::class, 'marker_user_id');
+        return $this->hasMany(AnswerCorrectnessMark::class, 'marker_user_id')->where('is_correct', true);
+    }
+
+    /**
+     * Get the answers that user has marked as normal.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function markedAsNormalAnswers()
+    {
+        return $this->hasMany(AnswerCorrectnessMark::class, 'marker_user_id')->where('is_correct', false);
     }
 }

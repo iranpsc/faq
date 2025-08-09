@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\Answer;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Access\Response;
 
 class AnswerPolicy
 {
@@ -66,44 +66,66 @@ class AnswerPolicy
      * @param  string  $action
      * @return bool
      */
-    public function toggleCorrectness(User $user, Answer $answer, string $action): bool
+    public function toggleCorrectness(User $user, Answer $answer, string $action): bool|Response
     {
-        // Rule 1: User cannot toggle their own answer's correctness
+        // General: can't act on own answer
         if ($answer->user->is($user)) {
-            return false;
+            return Response::deny(__('You cannot change the correctness of your own answer.'));
         }
 
-        // Rule 2: If action is 'markAsCorrect', user level must be higher than 3
-        if ($action === 'markAsCorrect' && $user->level <= 3) {
-            return false;
+        // General: can only act on lower level user's answer
+        if ($user->level <= $answer->user->level) { // must be strictly higher
+            return Response::deny(__('You can only change the correctness of lower level users\' answers.'));
         }
 
-        // Rule 3: If action is 'markAsIncorrect', user level must be higher than 4
-        if ($action === 'markAsIncorrect' && $user->level <= 4) {
-            return false;
-        }
+        // Action specific rules
+        if ($action === 'markAsCorrect') {
+            // Only level >=4 can mark correct
+            if ($user->level < 4) {
+                return Response::deny(__('You must be at least level 4 to mark answers as correct.'));
+            }
 
-        // Rule 4: Check existing marks and quota limitations
-        $existingMark = $user->markedAnswers()->where('answer_id', $answer->id)->first();
+            // Cannot mark again if already marked correct by someone (front end passes toggle intent)
+            if ($answer->is_correct) {
+                return Response::deny(__('This answer is already marked as correct.'));
+            }
 
-        if (!$existingMark) {
-            // User hasn't marked this answer before, check quota
-            $userLevel = $user->level;
-            $dailyMarkCount = $user->markedAnswers()
-                ->whereDate('created_at', today())
-                ->count();
+            // Quota: user can mark as many correct answers as their level number (lifetime, not per day)
+            $totalCorrectMarks = $user->markedAsCorrectAnswers()->count();
 
-            // Check daily quota based on user level
-            if ($dailyMarkCount >= $userLevel) {
-                return false;
+            if ($totalCorrectMarks >= $user->level) {
+                return Response::deny(__('You have reached your marking limit for correct answers.'));
             }
         }
 
-        // User with lower level cannot toggle correctness of answers from higher level users
-        if ($user->level < $answer->user->level) {
-            return false;
+        if ($action === 'markAsNormal') {
+            // Only level >=5 can mark normal (remove correctness)
+            if ($user->level < 5) {
+                return Response::deny(__('You must be at least level 5 to mark answers as normal.'));
+            }
+
+            // Can't unmark if answer is already normal
+            if (!$answer->is_correct) {
+                return Response::deny(__('This answer is already marked as normal.'));
+            }
+
+            // User can't unmark if they were the one who previously marked?
+            // (Rule: When a user marks as correct they cannot mark as normal again)
+            $previousMark = $user->markedAsCorrectAnswers()
+                ->where('answer_id', $answer->id)
+                ->exists();
+
+            if ($previousMark) {
+                return Response::deny(__('You cannot unmark an answer you previously marked as correct.'));
+            }
+
+            // Quota for marking normal (unmarking)
+            $dailyNormalMarks = $user->markedAsNormalAnswers()->count();
+            if ($dailyNormalMarks >= $user->level) {
+                return Response::deny(__('You have reached your marking limit for normal answers.'));
+            }
         }
 
-        return true;
+        return true; // if all checks pass, allow action
     }
 }
