@@ -20,7 +20,7 @@ class AnswerPolicy
      */
     public function update(User $user, Answer $answer)
     {
-        return $answer->user->is($user);
+        return $answer->user->is($user) && !$answer->published;
     }
 
     /**
@@ -32,7 +32,7 @@ class AnswerPolicy
      */
     public function delete(User $user, Answer $answer)
     {
-        return $answer->user->is($user) && !$answer->is_correct;
+        return $answer->user->is($user) && !$answer->published;
     }
 
     /**

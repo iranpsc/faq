@@ -53,7 +53,7 @@ class CommentPolicy
      */
     public function update(User $user, Comment $comment)
     {
-        return $comment->user->is($user);
+        return $comment->user->is($user) && !$comment->published;
     }
 
     /**
@@ -65,7 +65,7 @@ class CommentPolicy
      */
     public function delete(User $user, Comment $comment)
     {
-        return $comment->user->is($user) || $user->isAdmin();
+        return $comment->user->is($user) && !$comment->published;
     }
 
     /**
