@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useCategories() {
   const categories = ref([])
@@ -12,7 +12,7 @@ export function useCategories() {
     errors.value = {}
 
     try {
-      const response = await axios.get('/api/categories', {
+      const response = await api.get('/categories', {
         params: {
           query: params.query || '',
           page: params.page || 1,
@@ -42,7 +42,7 @@ export function useCategories() {
     errors.value = {}
 
     try {
-      const response = await axios.get('/api/categories/popular', {
+      const response = await api.get('/categories/popular', {
         params: { limit }
       })
       const popularCategories = response.data.data || response.data
@@ -63,7 +63,7 @@ export function useCategories() {
     errors.value = {}
 
     try {
-      const response = await axios.post('/api/categories', categoryData)
+      const response = await api.post('/categories', categoryData)
       const newCategory = response.data.data || response.data
       categories.value.push(newCategory)
       return { success: true, data: newCategory }
@@ -94,7 +94,7 @@ export function useCategories() {
     errors.value = {}
 
     try {
-      const response = await axios.put(`/api/categories/${id}`, categoryData)
+      const response = await api.put(`/categories/${id}`, categoryData)
       const updatedCategory = response.data.data || response.data
 
       // Update the category in the local array
@@ -132,7 +132,7 @@ export function useCategories() {
     errors.value = {}
 
     try {
-      await axios.delete(`/api/categories/${id}`)
+      await api.delete(`/categories/${id}`)
 
       // Remove the category from the local array
       categories.value = categories.value.filter(cat => cat.id !== id)

@@ -81,17 +81,14 @@ export default {
   props: {
     currentPage: {
       type: Number,
-      required: true,
       default: 1
     },
     totalPages: {
       type: Number,
-      required: true,
       default: 1
     },
     total: {
       type: Number,
-      required: true,
       default: 0
     },
     perPage: {

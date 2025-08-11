@@ -69,6 +69,17 @@ const handleTokenFromUrl = () => {
         window.history.replaceState({}, document.title, window.location.pathname)
         // Fetch user data
         fetchUser()
+        // After successful token handling, attempt to restore intended path
+        try {
+            const intendedPath = sessionStorage.getItem('intended_path')
+            if (intendedPath) {
+                sessionStorage.removeItem('intended_path')
+                // Use location change to ensure fresh navigation after OAuth redirect landing
+                if (window.location.pathname + window.location.search !== intendedPath) {
+                    window.location.replace(intendedPath)
+                }
+            }
+        } catch (_) {}
         return true
     }
     return false
@@ -111,6 +122,8 @@ export function useAuth() {
 
     const handleLogin = async () => {
         try {
+            // Persist current path so we can return here after auth if login is initiated manually
+            try { sessionStorage.setItem('intended_path', window.location.pathname + window.location.search) } catch (_) {}
             const response = await fetch('/api/auth/redirect', {
                 method: 'GET',
                 headers: {

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useTags() {
   const tags = ref([])
@@ -12,7 +12,7 @@ export function useTags() {
     errors.value = {}
 
     try {
-      const response = await axios.get('/api/tags', {
+      const response = await api.get('/tags', {
         params: {
           query: params.query || '',
           page: params.page || 1,
@@ -39,7 +39,7 @@ export function useTags() {
     errors.value = {}
 
     try {
-      const response = await axios.post('/api/tags', tagData)
+      const response = await api.post('/tags', tagData)
       const newTag = response.data.data || response.data
       tags.value.push(newTag)
       return { success: true, data: newTag }
@@ -70,7 +70,7 @@ export function useTags() {
     errors.value = {}
 
     try {
-      const response = await axios.put(`/api/tags/${id}`, tagData)
+      const response = await api.put(`/tags/${id}`, tagData)
       const updatedTag = response.data.data || response.data
 
       // Update the tag in the local array
@@ -108,7 +108,7 @@ export function useTags() {
     errors.value = {}
 
     try {
-      await axios.delete(`/api/tags/${id}`)
+      await api.delete(`/tags/${id}`)
 
       // Remove the tag from the local array
       tags.value = tags.value.filter(tag => tag.id !== id)

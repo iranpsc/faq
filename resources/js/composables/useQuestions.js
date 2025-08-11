@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useQuestions() {
   const isSubmitting = ref(false)
@@ -14,7 +14,7 @@ export function useQuestions() {
     errors.value = {}
 
     try {
-      const response = await axios.get('/api/questions', { params })
+      const response = await api.get('/questions', { params })
       questions.value = response.data.data
       pagination.value = {
         meta: response.data.meta,
@@ -37,7 +37,7 @@ export function useQuestions() {
     errors.value = {}
 
     try {
-      const response = await axios.get(`/api/questions/${id}`)
+      const response = await api.get(`/questions/${id}`)
       return { success: true, data: response.data.data }
     } catch (error) {
       console.error('Error fetching question:', error)
@@ -74,7 +74,7 @@ export function useQuestions() {
       }
 
       const submissionData = prepareSubmitData(formData);
-      const response = await axios.post('/api/questions', submissionData)
+      const response = await api.post('/questions', submissionData)
 
       // Refresh questions list after successful creation
       const refreshed = await fetchQuestions()
@@ -99,7 +99,7 @@ export function useQuestions() {
       }
 
       const submissionData = prepareSubmitData(formData);
-      const response = await axios.put(`/api/questions/${formData.id}`, submissionData);
+      const response = await api.put(`/questions/${formData.id}`, submissionData);
       return { success: true, data: response.data.data };
     } catch (error) {
       return handleError(error);
@@ -143,7 +143,7 @@ export function useQuestions() {
         return { success: false, error: 'authentication', message: 'برای حذف سوال باید وارد شوید.' };
       }
 
-      await axios.delete(`/api/questions/${questionId}`)
+      await api.delete(`/questions/${questionId}`)
       return { success: true, message: 'سوال با موفقیت حذف شد.' }
     } catch (error) {
       return handleError(error);
@@ -167,7 +167,7 @@ export function useQuestions() {
         return { success: false, error: 'authentication', message: 'برای رای دادن باید وارد شوید.' };
       }
 
-      const response = await axios.post(`/api/questions/${questionId}/vote`, {
+      const response = await api.post(`/questions/${questionId}/vote`, {
         type: voteType
       });
 
@@ -195,7 +195,7 @@ export function useQuestions() {
     }
 
     try {
-      const response = await axios.get('/api/questions/search', {
+      const response = await api.get('/questions/search', {
         params: {
           q: query.trim(),
           limit: limit

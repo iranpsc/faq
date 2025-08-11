@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useDashboard() {
   const isLoading = ref(false)
@@ -19,7 +19,7 @@ export function useDashboard() {
     errors.value = {}
 
     try {
-      const response = await axios.get('/api/dashboard/stats')
+      const response = await api.get('/dashboard/stats')
       stats.value = response.data.data
       return { success: true, data: response.data.data }
     } catch (error) {
@@ -35,7 +35,7 @@ export function useDashboard() {
   // Fetch recommended questions
   const fetchRecommendedQuestions = async () => {
     try {
-      const response = await axios.get('/api/questions/recommended?limit=15')
+      const response = await api.get('/questions/recommended', { params: { limit: 15 } })
       recommendedQuestions.value = response.data.data
       return { success: true, data: response.data.data }
     } catch (error) {
@@ -49,7 +49,7 @@ export function useDashboard() {
   // Fetch most visited questions in recent week
   const fetchPopularQuestions = async () => {
     try {
-      const response = await axios.get('/api/questions/popular?period=week&limit=15')
+      const response = await api.get('/questions/popular', { params: { period: 'week', limit: 15 } })
       popularQuestions.value = response.data.data
       return { success: true, data: response.data.data }
     } catch (error) {

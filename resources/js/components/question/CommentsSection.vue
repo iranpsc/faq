@@ -316,19 +316,7 @@ export default {
         // Emit event to parent
         emit('comment-added', result.data)
 
-        // Show success message
-        const Swal = window.Swal || window.$swal;
-        if (Swal) {
-          Swal.fire({
-            title: 'موفقیت!',
-            text: result.message,
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-          });
-        }
+          // No success toast for adding comment
       } else {
         // Show error message
         const Swal = window.Swal || window.$swal;
@@ -407,23 +395,20 @@ export default {
     const deleteComment = async (comment) => {
       const Swal = window.Swal || window.$swal;
 
-      if (Swal) {
-        const confirmResult = await Swal.fire({
-          title: 'آیا مطمئن هستید؟',
-          text: 'آیا مطمئن هستید که میخواهید این نظر را حذف کنید؟',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'بله، حذف کن!',
-          cancelButtonText: 'انصراف',
-          reverseButtons: true
-        });
+      const SwalLocal = window.Swal || window.$swal
+      const confirmResult = await SwalLocal.fire({
+        title: 'آیا مطمئن هستید؟',
+        text: 'آیا مطمئن هستید که میخواهید این نظر را حذف کنید؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'بله، حذف کن!',
+        cancelButtonText: 'انصراف',
+        reverseButtons: true
+      });
 
-        if (!confirmResult.isConfirmed) return;
-      } else {
-        if (!confirm('آیا از حذف این نظر اطمینان دارید؟')) return;
-      }
+      if (!confirmResult.isConfirmed) return;
 
       const result = await deleteCommentApi(comment.id)
 
@@ -431,18 +416,7 @@ export default {
         // Remove the comment from the list
         comments.value = comments.value.filter(c => c.id !== comment.id)
 
-        // Show success message
-        if (Swal) {
-          Swal.fire({
-            title: 'حذف شد!',
-            text: result.message,
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-          });
-        }
+        // No success toast for deleting comment
       } else {
         // Show error message
         if (Swal) {
@@ -460,7 +434,13 @@ export default {
       isPublishingComment.value = comment.id
 
       try {
-        const response = await window.axios.post(`/api/comments/${comment.id}/publish`)
+        const response = await window.$api?.post(`/comments/${comment.id}/publish`) || await fetch(`/api/comments/${comment.id}/publish`, { method: 'POST' })
+        if (!(response.data)) {
+          const ok = response.ok
+          const json = ok ? await response.json() : { success: false }
+          if (!ok) throw new Error(json.message || 'خطا')
+          response.data = json
+        }
 
         if (response.data.success) {
           // Update the comment object

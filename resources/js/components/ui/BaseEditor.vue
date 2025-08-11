@@ -45,7 +45,7 @@ export default {
         },
         apiKey: {
             type: String,
-            default: '2sfprbtijd268hiw733k56v9bp9bpy8jgsqet6q8z4vvirow'
+            default: import.meta.env.VITE_TINYMCE_API_KEY || ''
         },
         mode: {
             type: String,
@@ -78,16 +78,8 @@ export default {
                 relative_urls: false,
                 remove_script_host: false,
                 setup: (editor) => {
-                    editor.on('init', () => {
-                        console.log('TinyMCE editor initialized with ID:', editor.id);
-                    });
                     if (this.imageUpload) {
-                        editor.on('ImageUploadSuccess', (e) => {
-                            console.log('Image upload successful:', e.detail);
-                        });
-                        editor.on('ImageUploadError', (e) => {
-                            console.error('Image upload error:', e.detail);
-                        });
+                        editor.on('ImageUploadError', () => {})
                     }
                 },
             };
@@ -181,8 +173,6 @@ export default {
                         return;
                     }
 
-                    // Ensure the location is returned exactly as provided by the server
-                    console.log('Image uploaded successfully:', json.location);
                     resolve(json.location);
                 };
 

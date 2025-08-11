@@ -83,48 +83,35 @@ export default {
   setup(props) {
     // Compute layout classes based on props
     const layoutClasses = computed(() => {
-      const classes = []
-
-      switch (props.layout) {
-        case 'with-sidebar':
-          classes.push('flex')
-          classes.push(`gap-${props.gap}`)
-          break
-        case 'full-width':
-          classes.push('w-full')
-          break
-        case 'centered':
-          classes.push('max-w-4xl mx-auto')
-          break
+      const gaps = { '2': 'gap-2', '4': 'gap-4', '6': 'gap-6', '8': 'gap-8', '12': 'gap-12' }
+      if (props.layout === 'with-sidebar') {
+        return ['flex', gaps[props.gap] || 'gap-6'].join(' ')
       }
-
-      return classes.join(' ')
+      if (props.layout === 'full-width') {
+        return 'w-full'
+      }
+      if (props.layout === 'centered') {
+        return 'max-w-4xl mx-auto'
+      }
+      return ''
     })
 
     // Compute main content classes
     const mainContentClasses = computed(() => {
-      const classes = []
-
       if (props.layout === 'with-sidebar' && props.showSidebar) {
-        classes.push('flex-1')
-        classes.push(`md:w-${props.mainWidth}`)
-      } else {
-        classes.push('w-full')
+        const widthMap = { '1/2': 'md:w-1/2', '2/3': 'md:w-2/3', '3/4': 'md:w-3/4', full: 'w-full' }
+        return ['flex-1', widthMap[props.mainWidth] || 'md:w-3/4'].join(' ')
       }
-
-      return classes.join(' ')
+      return 'w-full'
     })
 
     // Compute sidebar classes
     const sidebarClasses = computed(() => {
-      const classes = []
-
       if (props.layout === 'with-sidebar') {
-        classes.push(`w-${props.sidebarWidth}`)
-        classes.push('hidden md:block')
+        const widthMap = { '1/4': 'w-1/4', '1/3': 'w-1/3', '1/2': 'w-1/2' }
+        return [widthMap[props.sidebarWidth] || 'w-1/4', 'hidden md:block'].join(' ')
       }
-
-      return classes.join(' ')
+      return ''
     })
 
     // Compute container classes

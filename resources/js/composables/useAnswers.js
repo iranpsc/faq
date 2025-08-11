@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useAnswers() {
   const isLoading = ref(false)
@@ -12,7 +12,7 @@ export function useAnswers() {
   const fetchAnswers = async (questionId, page = 1, sort = null) => {
     isLoading.value = true
     try {
-      const response = await axios.get(`/api/questions/${questionId}/answers`, {
+      const response = await api.get(`/questions/${questionId}/answers`, {
         params: { page, sort }
       })
       return {
@@ -47,7 +47,7 @@ export function useAnswers() {
 
     isSubmitting.value = true
     try {
-      const response = await axios.post(`/api/questions/${questionId}/answers`, {
+      const response = await api.post(`/questions/${questionId}/answers`, {
         content: content.trim()
       })
       return {
@@ -77,7 +77,7 @@ export function useAnswers() {
 
     isUpdating.value = true
     try {
-      const response = await axios.put(`/api/answers/${answerId}`, {
+      const response = await api.put(`/answers/${answerId}`, {
         content: content.trim()
       })
       return {
@@ -100,7 +100,7 @@ export function useAnswers() {
   const deleteAnswer = async (answerId) => {
     isDeleting.value = answerId
     try {
-      await axios.delete(`/api/answers/${answerId}`)
+      await api.delete(`/answers/${answerId}`)
       return {
         success: true,
         message: 'پاسخ با موفقیت حذف شد'
@@ -127,7 +127,7 @@ export function useAnswers() {
 
     isVoting.value = answerId
     try {
-      const response = await axios.post(`/api/answers/${answerId}/vote`, {
+      const response = await api.post(`/answers/${answerId}/vote`, {
         type: voteType
       })
       return {

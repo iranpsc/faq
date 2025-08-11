@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useComments() {
   const isLoading = ref(false)
@@ -15,7 +15,7 @@ export function useComments() {
       const endpoint = parentType === 'question'
         ? `/api/questions/${parentId}/comments`
         : `/api/answers/${parentId}/comments`
-      const response = await axios.get(endpoint, {
+      const response = await api.get(endpoint.replace('/api',''), {
         params: { page }
       })
       return {
@@ -51,9 +51,9 @@ export function useComments() {
     isSubmitting.value = true
     try {
       const endpoint = parentType === 'question'
-        ? `/api/questions/${parentId}/comments`
-        : `/api/answers/${parentId}/comments`
-      const response = await axios.post(endpoint, {
+        ? `/questions/${parentId}/comments`
+        : `/answers/${parentId}/comments`
+      const response = await api.post(endpoint, {
         content: content.trim()
       })
       return {
@@ -83,7 +83,7 @@ export function useComments() {
 
     isUpdating.value = true
     try {
-      const response = await axios.put(`/api/comments/${commentId}`, {
+      const response = await api.put(`/comments/${commentId}`, {
         content: content.trim()
       })
       return {
@@ -106,7 +106,7 @@ export function useComments() {
   const deleteComment = async (commentId) => {
     isDeleting.value = commentId
     try {
-      await axios.delete(`/api/comments/${commentId}`)
+      await api.delete(`/comments/${commentId}`)
       return {
         success: true,
         message: 'نظر با موفقیت حذف شد'
@@ -133,7 +133,7 @@ export function useComments() {
 
     isVoting.value = commentId
     try {
-      const response = await axios.post(`/api/comments/${commentId}/vote`, {
+      const response = await api.post(`/comments/${commentId}/vote`, {
         type: voteType
       })
       return {

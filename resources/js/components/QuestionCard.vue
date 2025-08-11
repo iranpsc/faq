@@ -55,7 +55,7 @@
                     {{ question.title }}
                 </h3>
                 <div class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed content-preview"
-                    v-html="getContentPreview(question.content)"></div>
+                    v-text="getContentPreview(question.content)"></div>
 
             </div>
 
@@ -208,23 +208,18 @@ export default {
         },
         async publishQuestion() {
             try {
-                const response = await this.$axios.post(`/api/questions/${this.question.id}/publish`)
+                const response = await this.$api.post(`/questions/${this.question.id}/publish`)
                 if (response.data.success) {
-                    // Update the question object to reflect published status
+                    // Update local UI immediately (project commonly mutates props)
                     this.question.published = true
                     this.question.published_at = new Date().toISOString()
-                    // Remove the publish permission since item is now published
                     if (this.question.can) {
                         this.question.can.publish = false
                     }
+                    // Also emit event for parent/state sync
                     this.$emit('published', this.question)
                     // Show success message
-                    this.$swal({
-                        title: 'موفق',
-                        text: response.data.message || 'سوال با موفقیت منتشر شد',
-                        icon: 'success',
-                        confirmButtonText: 'باشه'
-                    })
+                    // No success toast for publishing question card
                 }
             } catch (error) {
                 console.error('Error publishing question:', error)

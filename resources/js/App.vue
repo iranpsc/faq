@@ -23,7 +23,6 @@ import { useRouter } from 'vue-router'
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import Sidebar from './components/Sidebar.vue';
-import MainContent from './pages/Home.vue';
 import QuestionModal from './components/QuestionModal.vue';
 import { useTheme } from './composables/useTheme.js';
 import { useAuth } from './composables/useAuth.js';
@@ -35,11 +34,10 @@ export default {
         Header,
         Footer,
         Sidebar,
-        MainContent,
         QuestionModal,
     },
     setup() {
-        const { isDark, theme, setTheme, initializeTheme, setupSystemThemeListener } = useTheme();
+        const { isDark, theme, setTheme, initializeTheme } = useTheme();
         const { isAuthenticated, handleLogin } = useAuth();
         const router = useRouter();
         const showQuestionModal = ref(false);
@@ -48,7 +46,7 @@ export default {
 
         const sidebarOpen = ref(window.innerWidth >= 1024);
         const resizeTimeout = ref(null);
-        const cleanupThemeListener = ref(null);
+        // Theme listener handled centrally in useTheme to avoid duplicates
 
         const handleResize = () => {
             // Debounce resize handler to avoid too many calls
@@ -184,7 +182,6 @@ export default {
         onMounted(async () => {
             // Initialize theme system
             initializeTheme();
-            cleanupThemeListener.value = setupSystemThemeListener();
 
             // Set initial sidebar state based on screen size
             handleResize();
@@ -205,9 +202,7 @@ export default {
         onBeforeUnmount(() => {
             // Clean up event listeners
             window.removeEventListener('resize', handleResize);
-            if (cleanupThemeListener.value) {
-                cleanupThemeListener.value();
-            }
+            // Theme listener cleanup is managed inside useTheme
         });
 
         return {
@@ -243,10 +238,7 @@ export default {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Smooth transitions */
-* {
-    transition: all 0.3s ease-in-out;
-}
+/* Smooth transitions: remove global selector to avoid perf issues */
 
 /* Responsive adjustments */
 @media (min-width: 1024px) {

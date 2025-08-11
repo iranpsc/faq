@@ -64,7 +64,7 @@ import QuestionModal from '../components/QuestionModal.vue'
 import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
 import { ContentArea } from '../components/ui'
 import questionService from '../services/questionService.js'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export default {
     name: 'QuestionShow',
@@ -108,7 +108,7 @@ export default {
             error.value = null
 
             try {
-                const response = await axios.get(`/api/questions/${questionSlug.value}`)
+                const response = await api.get(`/questions/${questionSlug.value}`)
                 question.value = response.data.data
 
                 // Update page title with question title
@@ -131,7 +131,7 @@ export default {
         const fetchAnswers = async () => {
             try {
                 if (question.value && question.value.id) {
-                    const response = await axios.get(`/api/questions/${question.value.id}/answers`)
+                    const response = await api.get(`/questions/${question.value.id}/answers`)
 
                     // Handle paginated response structure
                     if (response.data && response.data.data) {
@@ -150,7 +150,7 @@ export default {
         const refreshAnswers = async () => {
             try {
                 if (question.value && question.value.id) {
-                    const response = await axios.get(`/api/questions/${question.value.id}/answers`)
+                    const response = await api.get(`/questions/${question.value.id}/answers`)
 
                     // Handle paginated response structure
                     if (response.data && response.data.data) {
@@ -169,7 +169,7 @@ export default {
             try {
                 // Add cache busting parameter to ensure fresh data
                 const timestamp = Date.now()
-                const response = await axios.get(`/api/questions/${questionSlug.value}?_t=${timestamp}`)
+                const response = await api.get(`/questions/${questionSlug.value}?_t=${timestamp}`)
                 const data = response.data.data
 
                 // Clear existing data first

@@ -175,21 +175,7 @@ export default {
       }
     }
 
-    const showSuccessAlert = (message) => {
-      const Swal = window.Swal || window.$swal;
-
-      if (Swal) {
-        Swal.fire({
-          title: 'موفق!',
-          text: message,
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false,
-          toast: true,
-          position: 'top-end'
-        })
-      }
-    }
+    const showSuccessAlert = () => {}
 
     const showErrorAlert = (message) => {
       const Swal = window.Swal || window.$swal;
@@ -294,12 +280,7 @@ export default {
             message: result.message || 'رای شما ثبت شد'
           })
 
-          // Show success message
-          const successMessage = userVote.value
-            ? (userVote.value === 'up' ? 'رای مثبت شما ثبت شد' : 'رای منفی شما ثبت شد')
-            : 'رای شما حذف شد'
-
-          showSuccessAlert(successMessage)
+          // No success toast for voting per request
         } else {
           // Handle error - including authentication errors from API
           if (result.error === 'authentication') {

@@ -1,5 +1,5 @@
 import { ref, reactive } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useAuthors() {
   const isLoading = ref(false)
@@ -13,7 +13,7 @@ export function useAuthors() {
     clearErrors()
 
     try {
-      const response = await axios.get('/api/authors', { params })
+      const response = await api.get('/authors', { params })
 
       if (response.data.success) {
         authors.value = response.data.data
@@ -38,7 +38,7 @@ export function useAuthors() {
     clearErrors()
 
     try {
-      const response = await axios.get(`/api/authors/${authorId}`)
+      const response = await api.get(`/authors/${authorId}`)
 
       if (response.data.success) {
         return { success: true, data: response.data.data }
@@ -66,7 +66,7 @@ export function useAuthors() {
         ...params
       }
 
-      const response = await axios.get('/api/authors', { params: searchParams })
+      const response = await api.get('/authors', { params: searchParams })
 
       if (response.data.success) {
         authors.value = response.data.data

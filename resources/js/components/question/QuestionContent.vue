@@ -105,7 +105,7 @@
 
                 <!-- Feature Toggle -->
                 <button
-                    v-if="(question.can?.feature || question.can?.unfeature) && (question.can?.feature !== false || question.can?.unfeature !== false)"
+                    v-if="question.can?.feature || question.can?.unfeature"
                     @click="toggleFeature"
                     :disabled="featureLoading"
                     :class="[
@@ -253,7 +253,7 @@ export default {
 
         // Get the current instance to access global properties
         const instance = getCurrentInstance()
-        const $axios = instance?.appContext.config.globalProperties.$axios
+        const $api = instance?.appContext.config.globalProperties.$api
         const $swal = instance?.appContext.config.globalProperties.$swal
 
         const canEdit = computed(() => {
@@ -293,7 +293,7 @@ export default {
             try {
                 isPublishing.value = true
 
-                const response = await $axios.post(`/api/questions/${props.question.id}/publish`)
+                const response = await $api.post(`/questions/${props.question.id}/publish`)
 
                 // Update the question object
                 props.question.published = true
@@ -332,15 +332,15 @@ export default {
             pinLoading.value = true
 
             try {
-                const url = `/api/questions/${props.question.id}/pin`
+                const url = `/questions/${props.question.id}/pin`
                 let response
 
                 if (props.question.is_pinned_by_user) {
                     // Unpin the question
-                    response = await $axios.delete(url)
+                    response = await $api.delete(url)
                 } else {
                     // Pin the question
-                    response = await $axios.post(url)
+                    response = await $api.post(url)
                 }
 
                 if (response.data.success) {
@@ -355,16 +355,7 @@ export default {
                         pinnedAt: props.question.pinned_at
                     })
 
-                    // Show success message
-                    if ($swal) {
-                        $swal.fire({
-                            title: 'موفق!',
-                            text: response.data.message,
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        })
-                    }
+                    // No success toast for pin toggle
                 } else {
                     throw new Error(response.data.message || 'خطا در تغییر وضعیت پین')
                 }
@@ -396,7 +387,7 @@ export default {
             featureLoading.value = true
 
             try {
-                const url = `/api/questions/${props.question.id}/feature`
+                const url = `/questions/${props.question.id}/feature`
                 let response
 
                 // Determine the action based on button mode
@@ -415,10 +406,10 @@ export default {
 
                 if (shouldUnfeature) {
                     // Unfeature the question
-                    response = await $axios.delete(url)
+                    response = await $api.delete(url)
                 } else {
                     // Feature the question
-                    response = await $axios.post(url)
+                    response = await $api.post(url)
                 }
 
                 if (response.data.success) {
@@ -444,16 +435,7 @@ export default {
                         featuredAt: props.question.featured_at
                     })
 
-                    // Show success message
-                    if ($swal) {
-                        $swal.fire({
-                            title: 'موفق!',
-                            text: response.data.message,
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        })
-                    }
+                    // No success toast for feature toggle
                 } else {
                     throw new Error(response.data.message || 'خطا در تغییر وضعیت ویژگی')
                 }

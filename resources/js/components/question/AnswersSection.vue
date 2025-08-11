@@ -468,19 +468,7 @@ export default {
         newAnswer.value = ''
         emit('answer-added')
 
-        // Show success message
-        const Swal = window.Swal || window.$swal;
-        if (Swal) {
-          Swal.fire({
-            title: 'موفقیت!',
-            text: result.message,
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-          });
-        }
+        // No success toast for adding answer
       } else {
         // Show error message
         const Swal = window.Swal || window.$swal;
@@ -514,19 +502,7 @@ export default {
                 editingAnswer.value = null
                 editContent.value = ''
 
-                // Show success message
-                const Swal = window.Swal || window.$swal;
-                if (Swal) {
-                    Swal.fire({
-                        title: 'موفقیت!',
-                        text: result.message,
-                        icon: 'success',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                }
+                // No success toast for editing answer
 
                 emit('answer-added') // Trigger refresh to get fresh data from API
             } else {
@@ -546,41 +522,27 @@ export default {
         const deleteAnswerAction = async (answer) => {
       const Swal = window.Swal || window.$swal;
 
-      if (Swal) {
-        const confirmResult = await Swal.fire({
-          title: 'آیا مطمئن هستید؟',
-          text: 'آیا مطمئن هستید که میخواهید این پاسخ را حذف کنید؟',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'بله، حذف کن!',
-          cancelButtonText: 'انصراف',
-          reverseButtons: true
-        });
+      const SwalLocal = window.Swal || window.$swal
+      const confirmResult = await SwalLocal.fire({
+        title: 'آیا مطمئن هستید؟',
+        text: 'آیا مطمئن هستید که میخواهید این پاسخ را حذف کنید؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'بله، حذف کن!',
+        cancelButtonText: 'انصراف',
+        reverseButtons: true
+      });
 
-        if (!confirmResult.isConfirmed) return;
-      } else {
-        if (!confirm('آیا از حذف این پاسخ اطمینان دارید؟')) return;
-      }
+      if (!confirmResult.isConfirmed) return;
 
       const result = await deleteAnswer(answer.id)
 
       if (result.success) {
         emit('answer-added') // Trigger refresh
 
-        // Show success message
-        if (Swal) {
-          Swal.fire({
-            title: 'حذف شد!',
-            text: result.message,
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-          });
-        }
+        // No success toast for deleting answer
       } else {
         // Show error message
         if (Swal) {
@@ -635,22 +597,20 @@ export default {
             isPublishingAnswer.value = answer.id
 
             try {
-                const response = await window.axios.post(`/api/answers/${answer.id}/publish`)
+                const response = await window.$api?.post(`/answers/${answer.id}/publish`) || await fetch(`/api/answers/${answer.id}/publish`, { method: 'POST' })
+
+                // If using fetch fallback
+                if (!(response.data)) {
+                  const ok = response.ok
+                  const json = ok ? await response.json() : { success: false }
+                  if (!ok) throw new Error(json.message || 'خطا')
+                  response.data = json
+                }
 
                 if (response.data.success) {
                     // Show success message
                     const Swal = window.Swal || window.$swal;
-                    if (Swal) {
-                        Swal.fire({
-                            title: 'موفقیت!',
-                            text: response.data.message || 'پاسخ با موفقیت منتشر شد',
-                            icon: 'success',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
-                    }
+                    // No success toast for publishing answer
 
                     emit('answer-added') // Trigger refresh to get fresh data from API
                 }
@@ -676,7 +636,13 @@ export default {
             isTogglingCorrectness.value = answer.id
 
             try {
-                const response = await window.axios.post(`/api/answers/${answer.id}/toggle-correctness`)
+                const response = await window.$api?.post(`/answers/${answer.id}/toggle-correctness`) || await fetch(`/api/answers/${answer.id}/toggle-correctness`, { method: 'POST' })
+                if (!(response.data)) {
+                  const ok = response.ok
+                  const json = ok ? await response.json() : { success: false }
+                  if (!ok) throw new Error(json.message || 'خطا')
+                  response.data = json
+                }
 
         if (response.data.success) {
                     // Emit event to parent to update question solved status and answer locally
@@ -696,17 +662,7 @@ export default {
 
                     // Show success message
                     const Swal = window.Swal || window.$swal;
-                    if (Swal) {
-                        Swal.fire({
-                            title: 'موفقیت!',
-                            text: response.data.message,
-                            icon: 'success',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
-                    }
+                    // No success toast for marking correctness
 
                     // Don't emit 'answer-added' to avoid full refresh
                 }

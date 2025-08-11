@@ -138,7 +138,7 @@
 
 <script>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export default {
     name: 'FilterQuestion',
@@ -149,7 +149,7 @@ export default {
         const showSortFilter = ref(false)
         const tagSearchQuery = ref('')
         const selectedTags = ref([])
-        const selectedSortOptions = ref([])
+        const selectedSortOptions = ref('')
         const appliedTags = ref([])
         const appliedSortOptions = ref([])
 
@@ -158,10 +158,8 @@ export default {
 
         const fetchTags = async () => {
             try {
-                const response = await axios.get('/api/tags', {
-                    params: {
-                        query: tagSearchQuery.value
-                    }
+                const response = await api.get('/tags', {
+                    params: { query: tagSearchQuery.value }
                 })
                 availableTags.value = response.data.data || response.data
             } catch (error) {

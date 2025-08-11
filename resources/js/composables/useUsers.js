@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 
 export function useUsers() {
   const isLoading = ref(false)
@@ -12,7 +12,7 @@ export function useUsers() {
     errors.value = {}
 
     try {
-      const response = await axios.get('/api/dashboard/active-users', {
+      const response = await api.get('/dashboard/active-users', {
         params: { limit }
       })
       activeUsers.value = response.data.data

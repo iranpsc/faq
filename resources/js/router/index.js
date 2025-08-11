@@ -1,14 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../pages/Home.vue'
-import QuestionShow from '../pages/QuestionShow.vue'
-import Authors from '../pages/Authors.vue'
-import AuthorShow from '../pages/AuthorShow.vue'
-import Categories from '../pages/Categories.vue'
-import Category from '../pages/Category.vue'
-import Tags from '../pages/Tags.vue'
-import Tag from '../pages/Tag.vue'
-import Profile from '../pages/Profile.vue'
-import DailyActivity from '../pages/DailyActivity.vue'
+import NProgress from 'nprogress'
+
+// Lazy-loaded route components for better performance
+const Home = () => import('../pages/Home.vue')
+const QuestionShow = () => import('../pages/QuestionShow.vue')
+const Authors = () => import('../pages/Authors.vue')
+const AuthorShow = () => import('../pages/AuthorShow.vue')
+const Categories = () => import('../pages/Categories.vue')
+const Category = () => import('../pages/Category.vue')
+const Tags = () => import('../pages/Tags.vue')
+const Tag = () => import('../pages/Tag.vue')
+const Profile = () => import('../pages/Profile.vue')
+const DailyActivity = () => import('../pages/DailyActivity.vue')
 
 const routes = [
   {
@@ -82,26 +85,45 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard for authenticated routes and title updates
-router.beforeEach((to, from, next) => {
-  // Handle authentication
+NProgress.configure({ showSpinner: false })
+
+// Global guards: start progress + auth check
+router.beforeEach(async (to, from, next) => {
+  NProgress.start()
+
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // Check if user is authenticated
     const token = localStorage.getItem('auth_token')
     if (!token) {
-      // Redirect to home page if not authenticated
-      next('/')
+      try {
+        // Save intended path to restore after authentication
+        sessionStorage.setItem('intended_path', to.fullPath)
+        // Start OAuth login flow
+        const response = await fetch('/api/auth/redirect', {
+          method: 'GET',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          window.location.href = data.redirect_url
+        } else {
+          next('/')
+        }
+      } catch (_) {
+        next('/')
+      }
       return
     }
   }
+  next()
+})
 
-  // Set page title if not dynamic
-  if (to.meta.title && !to.meta.dynamic) {
+// After each navigation: set title (non-dynamic) and stop progress
+router.afterEach((to) => {
+  if (to.meta?.title && !to.meta?.dynamic) {
     const defaultTitle = 'انجمن پرسش و پاسخ'
     document.title = `${to.meta.title} - ${defaultTitle}`
   }
-
-  next()
+  NProgress.done()
 })
 
 export default router

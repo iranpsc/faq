@@ -5,26 +5,11 @@ import UIComponents from './plugins/ui-components.js'
 import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import Editor from '@tinymce/tinymce-vue';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
+import api from './services/api.js'
+import Swal from 'sweetalert2';
 
 import router from './router'
-
-NProgress.configure({ showSpinner: false });
-
-router.beforeEach((to, from, next) => {
-    NProgress.start();
-    next();
-});
-
-router.afterEach(() => {
-    NProgress.done();
-});
-
-// Make SweetAlert available globally
-window.Swal = Swal;
 
 const app = createApp(App)
 
@@ -37,7 +22,12 @@ app.use(UIComponents)
 app.use(VueSweetalert2);
 
 app.component('Editor', Editor);
-
-app.config.globalProperties.$axios = axios;
+// Provide the centralized API client
+app.config.globalProperties.$api = api;
+if (typeof window !== 'undefined') {
+  window.$api = api
+  // Expose SweetAlert for non-Options API code paths that reference window.Swal
+  window.Swal = Swal
+}
 
 app.mount('#app')

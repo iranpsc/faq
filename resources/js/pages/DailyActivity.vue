@@ -127,7 +127,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
+import api from '../services/api.js'
 import { BaseAvatar, BaseBadge, BaseButton, BaseAlert, ContentArea } from '../components/ui'
 
 export default {
@@ -158,7 +158,7 @@ export default {
 
                 error.value = null
 
-                const response = await axios.get('/api/dashboard/daily-activity', {
+                const response = await api.get('/dashboard/daily-activity', {
                     params: {
                         date: selectedDate.value,
                         limit: limit.value
