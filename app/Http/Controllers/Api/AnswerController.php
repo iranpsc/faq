@@ -146,9 +146,24 @@ class AnswerController extends Controller
         $userId = $request->user()->id;
         $voteType = $request->type;
 
-        $answer->votes()->updateOrCreate([
-            'user_id' => $userId
-        ], [
+        // Enforce one-time voting per user per answer
+        $existingVote = $answer->votes()
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existingVote) {
+            $answer->load('upVotes', 'downVotes');
+            return response()->json([
+                'success' => false,
+                'message' => 'شما قبلا به این مورد رای داده‌اید',
+                'upvotes' => $answer->upVotes->count(),
+                'downvotes' => $answer->downVotes->count(),
+                'user_vote' => $existingVote->type,
+            ], 409);
+        }
+
+        $answer->votes()->create([
+            'user_id' => $userId,
             'type' => $voteType,
             'last_voted_at' => now()
         ]);
@@ -162,14 +177,10 @@ class AnswerController extends Controller
         // Return updated vote counts and user vote status
         $answer->load('upVotes', 'downVotes');
 
-        // Get user's current vote
-        $userVoteRecord = $answer->votes()->where('user_id', $userId)->first();
-        $userVote = $userVoteRecord ? $userVoteRecord->type : null;
-
         return response()->json([
             'upvotes' => $answer->upVotes->count(),
             'downvotes' => $answer->downVotes->count(),
-            'user_vote' => $userVote
+            'user_vote' => $voteType
         ]);
     }
 

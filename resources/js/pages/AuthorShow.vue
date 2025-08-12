@@ -23,13 +23,24 @@
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                     سوالات پرسیده شده توسط {{ author.name }}
                 </h2>
-                <div v-if="author.questions && author.questions.length > 0">
+                <div v-if="questions.length > 0">
                     <QuestionCard
-                        v-for="question in author.questions"
+                        v-for="question in questions"
                         :key="question.id"
                         :question="question"
                         @click="navigateToQuestion(question)"
                     />
+
+                    <!-- Pagination -->
+                    <div v-if="pagination.meta" class="mt-8">
+                        <BasePagination
+                            :current-page="pagination.meta.current_page"
+                            :total-pages="pagination.meta.last_page"
+                            :total="pagination.meta.total"
+                            :per-page="pagination.meta.per_page"
+                            @page-changed="handlePageChange"
+                        />
+                    </div>
                 </div>
                 <div v-else class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
                     <p class="text-gray-600 dark:text-gray-400">این نویسنده هنوز سوالی نپرسیده است.</p>
@@ -53,7 +64,8 @@ import { useAuthors } from '../composables/useAuthors'
 import { usePageTitle } from '../composables/usePageTitle'
 import AuthorCard from '../components/AuthorCard.vue'
 import QuestionCard from '../components/QuestionCard.vue'
-import { ContentArea } from '../components/ui'
+import { ContentArea, BasePagination } from '../components/ui'
+import api from '../services/api'
 
 export default {
     name: 'AuthorShow',
@@ -61,6 +73,7 @@ export default {
         AuthorCard,
         QuestionCard,
         ContentArea,
+        BasePagination,
     },
     props: {
         id: {
@@ -76,6 +89,8 @@ export default {
 
         const author = ref(null)
         const error = ref(null)
+        const questions = ref([])
+        const pagination = ref({})
 
         const loadAuthor = async () => {
             const { success, data, error: fetchError } = await fetchAuthor(props.id)
@@ -85,9 +100,30 @@ export default {
                 if (author.value && author.value.name) {
                     setTitle(`پروفایل ${author.value.name}`)
                 }
+                await fetchAuthorQuestions(1)
             } else {
                 error.value = fetchError
             }
+        }
+
+        const fetchAuthorQuestions = async (page = 1) => {
+            try {
+                const response = await api.get(`/authors/${props.id}/questions`, {
+                    params: { page, per_page: 10 }
+                })
+                questions.value = response.data.data
+                pagination.value = {
+                    meta: response.data.meta,
+                    links: response.data.links
+                }
+            } catch (e) {
+                console.error('Error fetching author questions:', e)
+            }
+        }
+
+        const handlePageChange = async (page) => {
+            if (pagination.value.meta && page === pagination.value.meta.current_page) return
+            await fetchAuthorQuestions(page)
         }
 
         const navigateToQuestion = (question) => {
@@ -100,6 +136,9 @@ export default {
             author,
             isLoading,
             error,
+            questions,
+            pagination,
+            handlePageChange,
             navigateToQuestion,
         }
     },

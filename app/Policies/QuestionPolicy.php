@@ -21,7 +21,7 @@ class QuestionPolicy
      */
     public function view(?User $user, Question $question): bool
     {
-        if ($user) {
+        if ($user && !is_null($question->user)) {
             if ($question->user->is($user) || ($user->level > $question->user->level)) {
                 return true;
             }
@@ -43,6 +43,10 @@ class QuestionPolicy
      */
     public function update(User $user, Question $question): bool
     {
+        if (is_null($question->user)) {
+            return false;
+        }
+
         return !$question->published && $question->user->is($user);
     }
 
@@ -51,6 +55,10 @@ class QuestionPolicy
      */
     public function delete(User $user, Question $question): bool
     {
+        if (is_null($question->user)) {
+            return false;
+        }
+
         return !$question->published && $question->user->is($user);
     }
 
@@ -60,7 +68,7 @@ class QuestionPolicy
     public function publish(User $user, Question $question): bool
     {
         // Cannot publish if already published
-        if ($question->published) {
+        if ($question->published || is_null($question->user)) {
             return false;
         }
 
@@ -89,6 +97,10 @@ class QuestionPolicy
      */
     public function feature(User $user, Question $question): bool
     {
+        if (is_null($question->user)) {
+            return false;
+        }
+
         // If question is not published, user cannot feature it
         if (!$question->published) {
             return false;
@@ -122,6 +134,10 @@ class QuestionPolicy
      */
     public function unfeature(User $user, Question $question): bool
     {
+        if (is_null($question->user)) {
+            return false;
+        }
+
         // If question is not featured, user cannot unfeature it
         if (!$question->featured) {
             return false;
@@ -148,7 +164,7 @@ class QuestionPolicy
         }
 
         // Only higher level users can unfeature questions
-        if ($user->level < 4 && $question->user->isNot($user)) {
+        if ($user->level < 4 && $question->user->isNot($user) && !is_null($question->user)) {
             return false;
         }
 

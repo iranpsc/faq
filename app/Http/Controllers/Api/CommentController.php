@@ -144,9 +144,24 @@ class CommentController extends Controller
         $userId = $request->user()->id;
         $voteType = $request->type;
 
-        $comment->votes()->updateOrCreate([
-            'user_id' => $userId
-        ], [
+        // Enforce one-time voting per user per comment
+        $existingVote = $comment->votes()
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existingVote) {
+            $comment->load('upVotes', 'downVotes');
+            return response()->json([
+                'success' => false,
+                'message' => 'شما قبلا به این مورد رای داده‌اید',
+                'upvotes' => $comment->upVotes->count(),
+                'downvotes' => $comment->downVotes->count(),
+                'user_vote' => $existingVote->type,
+            ], 409);
+        }
+
+        $comment->votes()->create([
+            'user_id' => $userId,
             'type' => $voteType,
             'last_voted_at' => now()
         ]);
@@ -154,14 +169,10 @@ class CommentController extends Controller
         // Return updated vote counts and user vote status
         $comment->load('upVotes', 'downVotes');
 
-        // Get user's current vote
-        $userVoteRecord = $comment->votes()->where('user_id', $userId)->first();
-        $userVote = $userVoteRecord ? $userVoteRecord->type : null;
-
         return response()->json([
             'upvotes' => $comment->upVotes->count(),
             'downvotes' => $comment->downVotes->count(),
-            'user_vote' => $userVote
+            'user_vote' => $voteType
         ]);
     }
 }

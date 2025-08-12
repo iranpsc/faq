@@ -313,7 +313,7 @@ class AnswerControllerTest extends TestCase
         $this->assertEquals(8, $answerOwner->score);
     }
 
-    public function test_user_can_toggle_vote_off()
+    public function test_user_cannot_vote_more_than_once_on_answer()
     {
         $voter = User::factory()->create();
         $answer = Answer::factory()->create();
@@ -325,14 +325,15 @@ class AnswerControllerTest extends TestCase
             'Accept' => 'application/json',
         ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'up']);
 
-        $response->assertStatus(200);
-        $this->assertDatabaseMissing('votes', [
+        $response->assertStatus(409);
+        $this->assertDatabaseHas('votes', [
             'votable_id' => $answer->id,
             'user_id' => $voter->id,
+            'type' => 'up'
         ]);
     }
 
-    public function test_user_can_change_vote()
+    public function test_user_cannot_change_vote_on_answer()
     {
         $voter = User::factory()->create();
         $answer = Answer::factory()->create();
@@ -344,11 +345,11 @@ class AnswerControllerTest extends TestCase
             'Accept' => 'application/json',
         ])->postJson("/api/answers/{$answer->id}/vote", ['type' => 'down']);
 
-        $response->assertStatus(200);
+        $response->assertStatus(409);
         $this->assertDatabaseHas('votes', [
             'votable_id' => $answer->id,
             'user_id' => $voter->id,
-            'type' => 'down'
+            'type' => 'up'
         ]);
     }
 

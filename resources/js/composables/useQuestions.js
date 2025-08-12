@@ -178,6 +178,11 @@ export function useQuestions() {
         data: response.data
       };
     } catch (error) {
+      if (error.response) {
+        if (error.response.status === 409) {
+          return { success: false, status: 409, message: error.response.data?.message, data: error.response.data };
+        }
+      }
       return handleError(error);
     }
   }

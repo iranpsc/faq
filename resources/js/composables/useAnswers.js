@@ -137,6 +137,14 @@ export function useAnswers() {
       }
     } catch (error) {
       console.error('Error voting on answer:', error)
+      if (error.response && error.response.status === 409) {
+        return {
+          success: false,
+          status: 409,
+          data: error.response.data,
+          message: error.response.data?.message || 'شما قبلا رای داده‌اید'
+        }
+      }
       return {
         success: false,
         message: error.response?.data?.message || 'خطایی در ثبت رای رخ داد'

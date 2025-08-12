@@ -127,11 +127,7 @@ class AuthorController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $user = User::with(['questions' => function ($query) {
-                $query->where('published', true)->with('user', 'category')->latest();
-            }])
-                ->withCount(['questions', 'answers', 'comments'])
-                ->findOrFail($id);
+            $user = User::withCount(['questions', 'answers', 'comments'])->findOrFail($id);
 
             $formattedUser = [
                 'id' => $user->id,
@@ -145,28 +141,6 @@ class AuthorController extends Controller
                 'answers_count' => $user->answers_count,
                 'comments_count' => $user->comments_count,
                 'created_at' => $user->created_at,
-                'questions' => $user->questions->map(function ($question) {
-                    return [
-                        'id' => $question->id,
-                        'title' => $question->title,
-                        'slug' => $question->slug,
-                        'content' => $question->content,
-                        'created_at' => $question->created_at,
-                        'updated_at' => $question->updated_at,
-                        'views' => $question->views,
-                        'votes_count' => $question->votes_count,
-                        'answers_count' => $question->answers_count,
-                        'user' => $question->user ? [
-                            'id' => $question->user->id,
-                            'name' => $question->user->name,
-                            'image' => $question->user->image,
-                        ] : null,
-                        'category' => $question->category ? [
-                            'id' => $question->category->id,
-                            'name' => $question->category->name,
-                        ] : null,
-                    ];
-                }),
             ];
 
             return response()->json([
@@ -179,6 +153,34 @@ class AuthorController extends Controller
                 'message' => 'نویسنده یافت نشد.',
                 'error' => $e->getMessage(),
             ], 404);
+        }
+    }
+
+    /**
+     * Get paginated questions for a specific author
+     */
+    public function questions(Request $request, User $user): JsonResponse
+    {
+        try {
+            $perPage = (int) $request->get('per_page', 10);
+
+            $questions = \App\Models\Question::query()
+                ->where('user_id', $user->id)
+                ->with(['user', 'category', 'tags'])
+                ->withCount(['votes', 'answers'])
+                ->visible($request->user())
+                ->withUserPinStatus($request->user())
+                ->withUserFeatureStatus($request->user())
+                ->orderByPinStatus($request->user())
+                ->paginate($perPage);
+
+            return \App\Http\Resources\QuestionResource::collection($questions)->response();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در دریافت سوالات نویسنده',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

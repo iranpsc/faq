@@ -229,6 +229,7 @@
 <script>
 import { computed, ref, getCurrentInstance } from 'vue'
 import { useAuth } from '../../composables/useAuth'
+import { useAuthDialog } from '../../composables/useAuthDialog'
 import VoteButtons from '../ui/VoteButtons.vue'
 import { BaseAvatar } from '../ui'
 
@@ -255,6 +256,7 @@ export default {
         const instance = getCurrentInstance()
         const $api = instance?.appContext.config.globalProperties.$api
         const $swal = instance?.appContext.config.globalProperties.$swal
+        const { showAuthenticationDialog } = useAuthDialog()
 
         const canEdit = computed(() => {
             // Use the permissions from the API response

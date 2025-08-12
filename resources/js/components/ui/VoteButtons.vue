@@ -3,7 +3,7 @@
     <!-- Upvote Button -->
     <button
       @click="handleVote('up')"
-      :disabled="isVoting"
+      :disabled="isVoting || hasVoted"
       :class="[
         'vote-btn upvote-btn',
         'flex items-center space-x-1 space-x-reverse',
@@ -12,9 +12,10 @@
         'hover:scale-105 active:scale-95',
         {
           'text-gray-900 dark:text-gray-100': userVote === 'up',
-          'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': userVote !== 'up' && !isVoting,
-          'opacity-50 cursor-not-allowed': isVoting,
-          'cursor-not-allowed opacity-60': !isAuthenticated
+          'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': userVote !== 'up' && !isVoting && !hasVoted,
+          'opacity-50 cursor-not-allowed': isVoting || hasVoted,
+          'opacity-60': !isAuthenticated,
+          'is-loading': isVoting && activeVoteType === 'up'
         }
       ]"
       :title="userVote === 'up' ? 'حذف رای مثبت' : 'رای مثبت'"
@@ -29,7 +30,7 @@
     <!-- Downvote Button -->
     <button
       @click="handleVote('down')"
-      :disabled="isVoting"
+      :disabled="isVoting || hasVoted"
       :class="[
         'vote-btn downvote-btn',
         'flex items-center space-x-1 space-x-reverse',
@@ -38,9 +39,10 @@
         'hover:scale-105 active:scale-95',
         {
           'text-gray-900 dark:text-gray-100': userVote === 'down',
-          'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': userVote !== 'down' && !isVoting,
-          'opacity-50 cursor-not-allowed': isVoting,
-          'cursor-not-allowed opacity-60': !isAuthenticated
+          'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': userVote !== 'down' && !isVoting && !hasVoted,
+          'opacity-50 cursor-not-allowed': isVoting || hasVoted,
+          'opacity-60': !isAuthenticated,
+          'is-loading': isVoting && activeVoteType === 'down'
         }
       ]"
       :title="userVote === 'down' ? 'حذف رای منفی' : 'رای منفی'"
@@ -60,6 +62,7 @@ import { useQuestions } from '../../composables/useQuestions'
 import { useComments } from '../../composables/useComments'
 import { useAnswers } from '../../composables/useAnswers'
 import { useAuth } from '../../composables/useAuth'
+import { useAuthDialog } from '../../composables/useAuthDialog'
 
 export default {
   name: 'VoteButtons',
@@ -107,8 +110,11 @@ export default {
     const { voteComment } = useComments()
     const { voteAnswer } = useAnswers()
     const { isAuthenticated } = useAuth()
+    const { showAuthenticationDialog } = useAuthDialog()
 
     const isVoting = ref(false)
+    const activeVoteType = ref(null)
+    const hasVoted = ref(!!props.initialUserVote)
 
     // Handle different data types from API (count or array)
     const getVoteCount = (votes) => {
@@ -133,6 +139,7 @@ export default {
 
     watch(() => props.initialUserVote, (newValue) => {
       userVote.value = newValue
+      hasVoted.value = !!newValue
     })
 
     // Get the actual resource ID to use
@@ -145,34 +152,8 @@ export default {
     }
 
     const showLoginAlert = () => {
-      const Swal = window.Swal || window.$swal;
-
-      if (Swal) {
-        Swal.fire({
-          title: 'ورود به حساب کاربری',
-          text: 'برای رای دادن باید وارد حساب کاربری خود شوید.',
-          icon: 'info',
-          showCancelButton: true,
-          confirmButtonText: 'ورود',
-          cancelButtonText: 'انصراف',
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          customClass: {
-            confirmButton: 'btn btn-primary',
-            cancelButton: 'btn btn-secondary'
-          },
-          reverseButtons: true
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/auth/redirect'
-          }
-        })
-      } else {
-        const shouldLogin = confirm('برای رای دادن باید وارد حساب کاربری خود شوید.\n\nآیا می‌خواهید به صفحه ورود بروید؟')
-        if (shouldLogin) {
-          window.location.href = '/auth/redirect'
-        }
-      }
+      // Use centralized auth dialog for consistency with App.vue
+      showAuthenticationDialog()
     }
 
     const showSuccessAlert = () => {}
@@ -226,6 +207,7 @@ export default {
 
       try {
         const resourceId = getResourceId()
+        activeVoteType.value = voteType
         const result = await votingFunction(resourceId, voteType)
 
         if (result.success) {
@@ -236,6 +218,7 @@ export default {
             upvotes.value = voteData.upvotes || 0
             downvotes.value = voteData.downvotes || 0
             userVote.value = voteData.user_vote
+            hasVoted.value = !!voteData.user_vote
           } else {
             // Fallback to local calculation (for backward compatibility)
             const previousVote = userVote.value
@@ -285,6 +268,16 @@ export default {
           // Handle error - including authentication errors from API
           if (result.error === 'authentication') {
             showLoginAlert()
+          } else if (result.status === 409) {
+            // Already voted; lock the UI and reflect server-sent state if provided
+            if (result.data) {
+              const voteData = result.data.votes || result.data
+              upvotes.value = voteData.upvotes || upvotes.value
+              downvotes.value = voteData.downvotes || downvotes.value
+              userVote.value = voteData.user_vote ?? userVote.value
+              hasVoted.value = true
+            }
+            showErrorAlert(result.message || 'شما قبلا به این مورد رای داده‌اید')
           } else if (result.error === 'rate_limit') {
             // Handle rate limiting error
             showErrorAlert(result.message)
@@ -308,15 +301,18 @@ export default {
         }
       } finally {
         isVoting.value = false
+        activeVoteType.value = null
       }
     }
 
     return {
       isVoting,
+      hasVoted,
       upvotes,
       downvotes,
       userVote,
       isAuthenticated,
+      activeVoteType,
       handleVote
     }
   }
@@ -353,8 +349,8 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Loading spinner for voting state */
-.vote-btn:disabled::after {
+/* Loading spinner only when explicitly loading */
+.vote-btn.is-loading::after {
   content: '';
   position: absolute;
   width: 16px;
@@ -371,8 +367,8 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* Hide the original icon when loading */
-.vote-btn:disabled svg {
+/* Hide the original icon only when loading */
+.vote-btn.is-loading svg {
   opacity: 0;
 }
 

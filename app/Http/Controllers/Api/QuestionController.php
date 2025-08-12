@@ -222,30 +222,40 @@ class QuestionController extends Controller
         $userId = $request->user()->id;
         $voteType = $request->type;
 
-        $question->votes()->updateOrCreate([
-            'user_id' => $userId
-        ], [
+        // Enforce one-time voting per user per question
+        $existingVote = $question->votes()
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existingVote) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما قبلا به این مورد رای داده‌اید',
+                'upvotes' => $question->upVotes()->count(),
+                'downvotes' => $question->downVotes()->count(),
+                'user_vote' => $existingVote->type,
+            ], 409);
+        }
+
+        $question->votes()->create([
+            'user_id' => $userId,
             'type' => $voteType,
             'last_voted_at' => now()
         ]);
 
         if ($voteType == 'up') {
-            $question->user->increment('score', 10);
+            $question->user?->increment('score', 10);
         } elseif ($voteType == 'down') {
-            $question->user->decrement('score', 2);
+            $question->user?->decrement('score', 2);
         }
 
         // Return updated vote counts and user vote status
         $question->load('upVotes', 'downVotes');
 
-        // Get user's current vote
-        $userVoteRecord = $question->votes()->where('user_id', $userId)->first();
-        $userVote = $userVoteRecord ? $userVoteRecord->type : null;
-
         return response()->json([
             'upvotes' => $question->upVotes->count(),
             'downvotes' => $question->downVotes->count(),
-            'user_vote' => $userVote
+            'user_vote' => $voteType
         ]);
     }
 

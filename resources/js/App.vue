@@ -27,6 +27,7 @@ import QuestionModal from './components/QuestionModal.vue';
 import { useTheme } from './composables/useTheme.js';
 import { useAuth } from './composables/useAuth.js';
 import questionService from './services/questionService.js';
+import { useAuthDialog } from './composables/useAuthDialog.js';
 
 export default {
     name: 'App',
@@ -39,6 +40,8 @@ export default {
     setup() {
         const { isDark, theme, themeMode, setTheme, initializeTheme } = useTheme();
         const { isAuthenticated, handleLogin } = useAuth();
+        // Centralized auth dialog
+        const { showAuthenticationDialog, handleRegisterRedirect } = useAuthDialog();
         const router = useRouter();
         const showQuestionModal = ref(false);
         const questionToEdit = ref(null);
@@ -78,82 +81,7 @@ export default {
             }
         };
 
-        const showAuthenticationDialog = () => {
-            const swal = app.appContext.config.globalProperties.$swal;
-
-            swal({
-                html: `
-                    <div class="${isDark.value ? 'text-white' : 'text-gray-800'}">
-                        <h2 class="text-xl font-bold mb-2">وارد حساب کاربری شوید</h2>
-                        <p>برای ثبت سوال خود وارد حساب کاربری خود شوید و اگر حساب کاربری ندارید، ثبت نام کنید.</p>
-                    </div>
-                `,
-                icon: 'info',
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'ورود',
-                cancelButtonText: 'ثبت نام',
-                confirmButtonColor: isDark.value ? '#60a5fa' : '#3b82f6',
-                cancelButtonColor: isDark.value ? '#34d399' : '#10b981',
-                reverseButtons: true,
-                focusConfirm: false,
-                focusCancel: false,
-                allowOutsideClick: true,
-                allowEscapeKey: true,
-                showLoaderOnConfirm: true,
-                backdrop: true,
-                background: isDark.value ? '#1f2937' : '#ffffff',
-                preConfirm: async () => {
-                    try {
-                        await handleLogin();
-                        return true;
-                    } catch (error) {
-                        console.error('Login error:', error);
-                        swal.showValidationMessage('خطا در ورود. لطفاً دوباره تلاش کنید.');
-                        return false;
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Login was successful (handled in preConfirm)
-                } else if (result.dismiss === swal.DismissReason.cancel) {
-                    // User clicked register button - show loading and redirect
-                    handleRegisterRedirect();
-                }
-            });
-        };
-
-        const handleRegisterRedirect = async () => {
-            const swal = app.appContext.config.globalProperties.$swal;
-
-            // Show loading dialog for register
-            swal({
-                title: 'در حال انتقال...',
-                text: 'لطفاً صبر کنید',
-                icon: 'info',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    swal.showLoading();
-                }
-            });
-
-            try {
-                // Small delay to show loading state
-                await new Promise(resolve => setTimeout(resolve, 800));
-                window.open('https://accounts.irpsc.com/register', '_blank');
-                swal.close();
-            } catch (error) {
-                console.error('Register redirect error:', error);
-                swal({
-                    title: 'خطا',
-                    text: 'خطا در باز کردن صفحه ثبت نام.',
-                    icon: 'error',
-                    confirmButtonText: 'باشه'
-                });
-            }
-        };
+        // Reuse centralized auth dialog from useAuthDialog
 
         const handleThemeChange = (mode) => {
             setTheme(mode);

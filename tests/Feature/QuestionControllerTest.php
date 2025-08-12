@@ -936,7 +936,7 @@ class QuestionControllerTest extends TestCase
         $this->assertEquals(8, $questionOwner->score);
     }
 
-    public function test_user_can_toggle_vote_off()
+    public function test_user_cannot_vote_more_than_once_on_question()
     {
         $questionOwner = User::factory()->create(['score' => 0]);
         $voter = User::factory()->create();
@@ -955,27 +955,21 @@ class QuestionControllerTest extends TestCase
 
         Sanctum::actingAs($voter);
 
-        // Vote again with same type to toggle off
+        // Second attempt should be rejected
         $response = $this->postJson("/api/questions/{$question->id}/vote", [
             'type' => 'up'
         ]);
 
-        $response->assertStatus(200)
-                ->assertJson([
-                    'upvotes' => 0,
-                    'downvotes' => 0,
-                    'user_vote' => null
-                ]);
-
-        // Check that vote was removed
-        $this->assertDatabaseMissing('votes', [
+        $response->assertStatus(409);
+        $this->assertDatabaseHas('votes', [
             'votable_type' => Question::class,
             'votable_id' => $question->id,
             'user_id' => $voter->id,
+            'type' => 'up'
         ]);
     }
 
-    public function test_user_can_change_vote_type()
+    public function test_user_cannot_change_vote_type_on_question()
     {
         $questionOwner = User::factory()->create(['score' => 0]);
         $voter = User::factory()->create();
@@ -994,24 +988,17 @@ class QuestionControllerTest extends TestCase
 
         Sanctum::actingAs($voter);
 
-        // Change to downvote
+        // Attempt to change to downvote should be rejected
         $response = $this->postJson("/api/questions/{$question->id}/vote", [
             'type' => 'down'
         ]);
 
-        $response->assertStatus(200)
-                ->assertJson([
-                    'upvotes' => 0,
-                    'downvotes' => 1,
-                    'user_vote' => 'down'
-                ]);
-
-        // Check that vote was updated
+        $response->assertStatus(409);
         $this->assertDatabaseHas('votes', [
             'votable_type' => Question::class,
             'votable_id' => $question->id,
             'user_id' => $voter->id,
-            'type' => 'down'
+            'type' => 'up'
         ]);
     }
 

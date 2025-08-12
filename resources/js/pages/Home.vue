@@ -114,8 +114,14 @@
                 <div v-else-if="activeUsers.length > 0" class="grid gap-2"
                     style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                     <TransitionGroup name="user" tag="div" class="contents">
-                        <UserCard v-for="user in activeUsers" :key="user.id" :user="user"
-                            @click="handleUserClick(user)" />
+                        <router-link
+                            v-for="user in activeUsers"
+                            :key="user.id"
+                            :to="`/authors/${user.id}`"
+                            class="block"
+                        >
+                            <UserCard :user="user" />
+                        </router-link>
                     </TransitionGroup>
                 </div>
 

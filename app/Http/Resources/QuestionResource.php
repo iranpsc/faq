@@ -14,9 +14,9 @@ class QuestionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Check if current user has voted
+        // Check if current user has voted (no need to preload relation)
         $userVote = null;
-        if ($request->user() && $this->relationLoaded('votes')) {
+        if ($request->user()) {
             $userVoteRecord = $this->votes()->where('user_id', $request->user()->id)->first();
             $userVote = $userVoteRecord ? $userVoteRecord->type : null;
         }
