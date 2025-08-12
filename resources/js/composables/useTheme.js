@@ -2,69 +2,132 @@ import { ref, onMounted, computed } from 'vue';
 
 // Global reactive state to ensure all components share the same theme state
 const isDark = ref(false);
+const themeMode = ref('light'); // 'light' | 'dark' | 'auto'
+
+let autoTimerId = null;
+
+function computeIsDarkForAuto() {
+  const currentHour = new Date().getHours();
+  // Night: 19:00 - 06:59, Day: 07:00 - 18:59
+  return currentHour < 7 || currentHour >= 19;
+}
+
+function applyEffectiveThemeFromMode() {
+  const shouldUseDark = themeMode.value === 'dark'
+    ? true
+    : themeMode.value === 'light'
+      ? false
+      : computeIsDarkForAuto();
+
+  isDark.value = shouldUseDark;
+
+  if (shouldUseDark) {
+    document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+}
+
+function clearAutoTimer() {
+  if (autoTimerId) {
+    clearTimeout(autoTimerId);
+    autoTimerId = null;
+  }
+}
+
+function msUntilNextAutoBoundary() {
+  const now = new Date();
+  const hour = now.getHours();
+  const next = new Date(now);
+  // Boundaries at 07:00 and 19:00 local time
+  if (hour < 7) {
+    next.setHours(7, 0, 0, 0);
+  } else if (hour < 19) {
+    next.setHours(19, 0, 0, 0);
+  } else {
+    // Next day 07:00
+    next.setDate(next.getDate() + 1);
+    next.setHours(7, 0, 0, 0);
+  }
+  return next.getTime() - now.getTime();
+}
+
+function scheduleAutoReevaluation() {
+  clearAutoTimer();
+  if (themeMode.value !== 'auto') return;
+  const delay = msUntilNextAutoBoundary();
+  autoTimerId = setTimeout(() => {
+    applyEffectiveThemeFromMode();
+    scheduleAutoReevaluation();
+  }, Math.max(60_000, delay)); // enforce minimum 1 minute
+}
 
 export function useTheme() {
-  const updateTheme = (isDarkValue) => {
-    isDark.value = isDarkValue;
-    if (isDarkValue) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
   const initializeTheme = () => {
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
-    updateTheme(shouldBeDark);
+
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto') {
+      themeMode.value = savedTheme;
+    } else {
+      // Default to system preference on first load
+      themeMode.value = systemPrefersDark ? 'dark' : 'light';
+    }
+
+    applyEffectiveThemeFromMode();
+    if (themeMode.value === 'auto') scheduleAutoReevaluation();
+  };
+
+  const setTheme = (mode) => {
+    // mode: 'light' | 'dark' | 'auto'
+    themeMode.value = mode;
+    localStorage.setItem('theme', mode);
+    applyEffectiveThemeFromMode();
+
+    clearAutoTimer();
+    if (mode === 'auto') scheduleAutoReevaluation();
   };
 
   const toggleTheme = () => {
-    updateTheme(!isDark.value);
+    // Only toggles between light and dark for convenience
+    setTheme(isDark.value ? 'light' : 'dark');
   };
 
-  const setTheme = (theme) => {
-    updateTheme(theme === 'dark');
-  };
-
+  // Listen to system theme changes only when no manual preference set (not used for 'auto')
   const setupSystemThemeListener = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
-      // Only update if no theme is manually set
       if (!localStorage.getItem('theme')) {
-        updateTheme(e.matches);
+        themeMode.value = e.matches ? 'dark' : 'light';
+        applyEffectiveThemeFromMode();
       }
     };
     mediaQuery.addEventListener('change', handleChange);
-
-    // Return cleanup function
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
     };
   };
 
-  // Computed property to get current theme string
-  const theme = computed(() => isDark.value ? 'dark' : 'light');
+  // Effective theme string for UI coloring
+  const theme = computed(() => (isDark.value ? 'dark' : 'light'));
 
-  // Watch for system theme changes
+  // Keep auto mode up to date if the tab becomes visible again after a long time
   onMounted(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      // Only update if no theme is manually set
-      if (!localStorage.getItem('theme')) {
-        updateTheme(e.matches);
+    const handleVisibility = () => {
+      if (themeMode.value === 'auto') {
+        applyEffectiveThemeFromMode();
+        scheduleAutoReevaluation();
       }
     };
-    mediaQuery.addEventListener('change', handleChange);
-    // No need to return a cleanup function for addEventListener in Vue 3 onMounted
+    document.addEventListener('visibilitychange', handleVisibility);
   });
 
   return {
     isDark,
-    theme,
+    theme, // effective theme: 'dark' | 'light'
+    themeMode, // selected mode: 'dark' | 'light' | 'auto'
     initializeTheme,
     toggleTheme,
     setTheme,
@@ -75,30 +138,34 @@ export function useTheme() {
 // Initialize theme immediately when the module loads to prevent FOUC
 // This follows the Tailwind CSS documentation recommendation
 if (typeof window !== 'undefined') {
-  // Call the sync initialization immediately
   const initializeThemeSync = () => {
     try {
-      const savedTheme = localStorage.getItem('theme')
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-      const shouldBeDark = savedTheme === 'dark' ||
-                          (!savedTheme && systemPrefersDark)
+      let mode = 'light';
+      if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto') {
+        mode = savedTheme;
+      } else {
+        mode = systemPrefersDark ? 'dark' : 'light';
+      }
 
-      // Update both DOM and reactive state
-      isDark.value = shouldBeDark
+      themeMode.value = mode;
+
+      const shouldBeDark = mode === 'dark' ? true : mode === 'light' ? false : computeIsDarkForAuto();
+      isDark.value = shouldBeDark;
 
       if (shouldBeDark) {
-        document.documentElement.classList.add('dark')
-        document.documentElement.setAttribute('data-theme', 'dark')
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
       } else {
-        document.documentElement.classList.remove('dark')
-        document.documentElement.setAttribute('data-theme', 'light')
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
       }
     } catch (error) {
-      console.error('Error in immediate theme initialization:', error)
+      console.error('Error in immediate theme initialization:', error);
     }
-  }
+  };
 
-  // Run immediately
-  initializeThemeSync()
+  initializeThemeSync();
 }

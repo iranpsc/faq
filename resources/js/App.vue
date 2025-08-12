@@ -7,7 +7,7 @@
             <router-view @edit-question="handleEditQuestion" />
             <Footer />
         </div>
-        <Sidebar :isOpen="sidebarOpen" :theme="theme" @toggle="toggleSidebar" @theme-change="handleThemeChange" />
+        <Sidebar :isOpen="sidebarOpen" :theme="theme" :themeMode="themeMode" @toggle="toggleSidebar" @theme-change="handleThemeChange" />
 
         <QuestionModal v-if="showQuestionModal" @close="showQuestionModal = false" :question-to-edit="questionToEdit"
             @question-created="handleQuestionCreated" @question-updated="handleQuestionUpdated" />
@@ -37,7 +37,7 @@ export default {
         QuestionModal,
     },
     setup() {
-        const { isDark, theme, setTheme, initializeTheme } = useTheme();
+        const { isDark, theme, themeMode, setTheme, initializeTheme } = useTheme();
         const { isAuthenticated, handleLogin } = useAuth();
         const router = useRouter();
         const showQuestionModal = ref(false);
@@ -155,8 +155,8 @@ export default {
             }
         };
 
-        const handleThemeChange = (theme) => {
-            setTheme(theme);
+        const handleThemeChange = (mode) => {
+            setTheme(mode);
         };
 
         const handleEditQuestion = (question) => {
@@ -208,6 +208,7 @@ export default {
         return {
             sidebarOpen,
             theme,
+            themeMode,
             toggleSidebar,
             closeSidebar,
             handleMainAction,

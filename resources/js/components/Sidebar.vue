@@ -307,9 +307,9 @@
                 <span>خروج</span>
             </BaseButton>
 
-            <!-- Theme Toggle -->
+            <!-- Theme Toggle (Expanded) -->
             <div v-if="isOpen" class="flex bg-gray-100 dark:bg-gray-700 rounded-full p-1">
-                <BaseButton @click="toggleTheme('light')" :variant="theme === 'light' ? 'primary' : 'ghost'" size="sm"
+                <BaseButton @click="onThemeClick('light')" :variant="themeMode === 'light' ? 'primary' : 'ghost'" size="sm"
                     class="flex-1 rounded-full">
                     <template #icon>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,7 +319,16 @@
                         </svg>
                     </template>
                 </BaseButton>
-                <BaseButton @click="toggleTheme('dark')" :variant="theme === 'dark' ? 'primary' : 'ghost'" size="sm"
+                <BaseButton @click="onThemeClick('auto')" :variant="themeMode === 'auto' ? 'primary' : 'ghost'" size="sm"
+                    class="flex-1 rounded-full">
+                    <template #icon>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                          <path d="M12 7a5 5 0 100 10V7z"/>
+                        </svg>
+                    </template>
+                </BaseButton>
+                <BaseButton @click="onThemeClick('dark')" :variant="themeMode === 'dark' ? 'primary' : 'ghost'" size="sm"
                     class="flex-1 rounded-full">
                     <template #icon>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,19 +368,22 @@
                 </button>
             </div>
             <div v-if="!isOpen" class="flex flex-col gap-2">
-                <!-- Theme Toggle (Collapsed) - Single Button Cycle -->
+                <!-- Theme Toggle (Collapsed) - Single Button 3-state cycle: light -> auto -> dark -> light -->
                 <div class="flex justify-center">
-                    <button @click="toggleTheme(theme === 'light' ? 'dark' : 'light')"
+                    <button @click="cycleCollapsedTheme"
                         class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <svg v-if="theme === 'dark'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                            </path>
+                        <!-- light icon -->
+                        <svg v-if="themeMode === 'light'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                         </svg>
+                        <!-- auto icon -->
+                        <svg v-else-if="themeMode === 'auto'" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                          <path d="M12 7a5 5 0 100 10V7z"/>
+                        </svg>
+                        <!-- dark icon -->
                         <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                         </svg>
                     </button>
                 </div>
@@ -399,6 +411,10 @@ export default {
         theme: {
             type: String,
             default: 'light'
+        },
+        themeMode: {
+            type: String,
+            default: 'light'
         }
     },
     emits: ['toggle', 'theme-change'],
@@ -423,9 +439,14 @@ export default {
         }
     },
     methods: {
-        toggleTheme(theme) {
-            // Emit theme change to parent component
-            this.$emit('theme-change', theme)
+        onThemeClick(mode) {
+            this.$emit('theme-change', mode)
+        },
+        cycleCollapsedTheme() {
+            const order = ['light', 'auto', 'dark']
+            const currentIndex = order.indexOf(this.themeMode)
+            const next = order[(currentIndex + 1) % order.length]
+            this.$emit('theme-change', next)
         },
         handleLogout() {
             this.logout()
