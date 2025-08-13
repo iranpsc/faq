@@ -82,8 +82,6 @@ class AnswerController extends Controller
             'published' => false, // All answers are unpublished by default
         ]);
 
-        $user->increment('score', 5); // Increment score for answering
-
         $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
 
         return new AnswerResource($answer);
@@ -126,6 +124,9 @@ class AnswerController extends Controller
 
         // Award 3 points for publishing an answer
         $user->increment('score', 3);
+
+        // Award 5 points for answering
+        $answer->user->increment('score', 5);
 
         return response()->json([
             'success' => true,

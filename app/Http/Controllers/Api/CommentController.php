@@ -77,9 +77,6 @@ class CommentController extends Controller
             }
         }
 
-        // Add 2 score scores for commenting
-        $user->increment('score', 2);
-
         if ($user->can('publish', $comment)) {
             $comment->update([
                 'published' => true,
@@ -127,6 +124,9 @@ class CommentController extends Controller
 
         // Award 2 points for publishing a comment
         $user->increment('score', 2);
+
+        // Add 2 score scores for commenting
+        $comment->user->increment('score', 2);
 
         return response()->json([
             'success' => true,
