@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Http\Resources\QuestionResource;
 
 class AuthorController extends Controller
 {
@@ -30,10 +31,8 @@ class AuthorController extends Controller
             $search = $request->get('search');
 
             $query = User::withCount(['questions', 'answers', 'comments'])
-                ->with(['questions' => function ($query)use($request) {
-                    $query->where('published', true)
-                    ->visible($request->user())
-                    ->latest()->limit(3);
+                ->with(['questions' => function ($query) {
+                    $query->published()->latest()->limit(3);
                 }]);
 
             // Apply search filter
@@ -159,7 +158,7 @@ class AuthorController extends Controller
     /**
      * Get paginated questions for a specific author
      */
-    public function questions(Request $request, User $user): JsonResponse
+    public function questions(Request $request, User $user)
     {
         try {
             $perPage = (int) $request->get('per_page', 10);
@@ -168,13 +167,10 @@ class AuthorController extends Controller
                 ->where('user_id', $user->id)
                 ->with(['user', 'category', 'tags'])
                 ->withCount(['votes', 'answers'])
-                ->visible($request->user())
-                ->withUserPinStatus($request->user())
-                ->withUserFeatureStatus($request->user())
-                ->orderByPinStatus($request->user())
+                ->published()
                 ->paginate($perPage);
 
-            return \App\Http\Resources\QuestionResource::collection($questions)->response();
+            return QuestionResource::collection($questions);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
