@@ -85,10 +85,6 @@ class CommentController extends Controller
             ]);
         }
 
-        if (!is_null($question->user)) {
-            $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
-        }
-
         return response()->json([
             'data' => new CommentResource($comment->load('user')),
             'message' => 'نظر با موفقیت اضافه شد'
@@ -129,6 +125,10 @@ class CommentController extends Controller
 
         // Add 2 score scores for commenting
         $comment->user->increment('score', 2);
+
+        if (!is_null($comment->parent->user)) {
+            $comment->parent->user->notify(new QuestionInteractionNotification($user, $comment->parent, 'comment'));
+        }
 
         return response()->json([
             'success' => true,

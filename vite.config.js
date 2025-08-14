@@ -48,16 +48,19 @@ export default defineConfig({
                 },
             },
         },
-        chunkSizeWarningLimit: 1000,
+        chunkSizeWarningLimit: 900,
         // Enable compression
         minify: 'terser',
         terserOptions: {
             compress: {
                 drop_console: true,
                 drop_debugger: true,
+                passes: 2,
+                pure_funcs: ['console.info', 'console.debug'],
             },
+            mangle: true
         },
         // Asset optimization
-        assetsInlineLimit: 4096,
+        assetsInlineLimit: 2048,
     },
 });

@@ -6,6 +6,8 @@
       :src="src"
       :alt="alt"
       :class="imageClasses"
+      loading="lazy"
+      decoding="async"
       @error="handleImageError"
       @load="handleImageLoad"
     />

@@ -82,10 +82,6 @@ class AnswerController extends Controller
             'published' => false, // All answers are unpublished by default
         ]);
 
-        if (!is_null($question->user)) {
-            $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
-        }
-
         return new AnswerResource($answer);
     }
 
@@ -129,6 +125,10 @@ class AnswerController extends Controller
 
         // Award 5 points for answering
         $answer->user->increment('score', 5);
+
+        if (!is_null($answer->question->user)) {
+            $answer->question->user->notify(new QuestionInteractionNotification($user, $answer->question, 'answer'));
+        }
 
         return response()->json([
             'success' => true,
