@@ -102,11 +102,11 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        // Get cached intended URL and clean up session
+                // Get cached intended URL and clean up session
         $intendedUrl = $request->session()->pull('intended_url');
 
-        // Build redirect URL with token
-        $baseUrl = $intendedUrl ?: config('services.oauth.app_url');
+        // Validate and sanitize the intended URL
+        $baseUrl = $this->validateAndSanitizeUrl($intendedUrl) ?: config('services.oauth.app_url');
 
         // Use URL fragment to avoid leaking tokens via Referer headers
         return redirect($baseUrl . '#token=' . $token);
@@ -139,6 +139,50 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    /**
+     * Validate and sanitize the intended URL to prevent open redirects.
+     *
+     * @param string|null $url
+     * @return string|null
+     */
+    protected function validateAndSanitizeUrl($url)
+    {
+        if (!$url) {
+            return null;
+        }
+
+        // Parse the URL
+        $parsedUrl = parse_url($url);
+
+        // Reject malformed URLs
+        if ($parsedUrl === false) {
+            return null;
+        }
+
+        // Get allowed domains from app URL
+        $appDomain = parse_url(config('services.oauth.app_url'), PHP_URL_HOST);
+        $urlDomain = $parsedUrl['host'] ?? null;
+
+        // Only allow redirects to the same domain as the app
+        if ($urlDomain !== $appDomain) {
+            return null;
+        }
+
+        // Ensure the URL uses HTTPS in production
+        if (app()->environment('production') && ($parsedUrl['scheme'] ?? '') !== 'https') {
+            return null;
+        }
+
+        // Reconstruct a clean URL
+        $scheme = $parsedUrl['scheme'] ?? 'https';
+        $host = $parsedUrl['host'];
+        $port = isset($parsedUrl['port']) ? ':' . $parsedUrl['port'] : '';
+        $path = $parsedUrl['path'] ?? '/';
+        $query = isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '';
+
+        return $scheme . '://' . $host . $port . $path . $query;
     }
 
     /**
