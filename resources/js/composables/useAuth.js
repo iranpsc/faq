@@ -11,6 +11,10 @@ try {
 } catch (_) {}
 const user = ref(initialUser)
 const isAuthenticated = computed(() => !!token.value && !!user.value)
+// Track prior auth state to emit login/logout only on transitions
+let wasAuthenticated = !!(token.value && user.value)
+// Deduplicate in-flight /me requests
+let fetchUserInFlight = null
 
 const setToken = (newToken) => {
     token.value = newToken
@@ -36,14 +40,17 @@ const setUser = (userData) => {
     try {
         if (userData) {
             localStorage.setItem('auth_user', JSON.stringify(userData))
-            // Fire login event when we have both token and user
-            if (token.value) {
-                window.dispatchEvent(new CustomEvent('auth:login', { detail: { user: userData } }))
-            }
         } else {
             localStorage.removeItem('auth_user')
         }
     } catch (_) {}
+
+    // Emit auth:login only on transition from guest -> authenticated
+    const isNowAuthenticated = !!(token.value && user.value)
+    if (!wasAuthenticated && isNowAuthenticated) {
+        try { window.dispatchEvent(new CustomEvent('auth:login', { detail: { user: userData } })) } catch (_) {}
+    }
+    wasAuthenticated = isNowAuthenticated
 }
 
 const updateUser = (userData) => {
@@ -57,32 +64,43 @@ const fetchUser = async () => {
         return null
     }
 
-    try {
-        const response = await fetch('/api/auth/me', {
-            headers: {
-                'Authorization': `Bearer ${token.value}`,
-                'Accept': 'application/json',
-            },
-        })
+    // Deduplicate concurrent calls
+    if (fetchUserInFlight) {
+        return fetchUserInFlight
+    }
 
-        if (response.ok) {
-            const userData = await response.json()
-            setUser(userData)
-            return userData
-        } else {
-            // Token is invalid, clear it
+    fetchUserInFlight = (async () => {
+        try {
+            const response = await fetch('/api/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${token.value}`,
+                    'Accept': 'application/json',
+                },
+            })
+
+            if (response.ok) {
+                const userData = await response.json()
+                setUser(userData)
+                return userData
+            } else {
+                // Token is invalid, clear it
+                setToken(null)
+                setUser(null)
+                try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
+                return null
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error)
             setToken(null)
             setUser(null)
             try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
             return null
+        } finally {
+            fetchUserInFlight = null
         }
-    } catch (error) {
-        console.error('Error fetching user:', error)
-        setToken(null)
-        setUser(null)
-        try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
-        return null
-    }
+    })()
+
+    return fetchUserInFlight
 }
 
 const handleTokenFromUrl = () => {
@@ -128,9 +146,7 @@ try {
         setToken(null)
         setUser(null)
     })
-    window.addEventListener('auth:login', () => {
-        fetchUser()
-    })
+    // Do not refetch on auth:login; user is already set. Consumers can react if needed.
 
     // React to token change broadcasts within same tab
     window.addEventListener('auth:token', (e) => {
