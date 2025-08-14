@@ -126,16 +126,6 @@ const handleTokenFromUrl = () => {
         window.history.replaceState({}, document.title, cleanPath)
         // Fetch user data
         fetchUser()
-        // After successful token handling, attempt to restore intended path
-        try {
-            const intendedPath = sessionStorage.getItem('intended_path')
-            if (intendedPath) {
-                sessionStorage.removeItem('intended_path')
-                if (cleanPath !== intendedPath) {
-                    window.location.replace(intendedPath)
-                }
-            }
-        } catch (_) {}
         return true
     }
     return false
@@ -228,14 +218,15 @@ export function useAuth() {
 
     const handleLogin = async () => {
         try {
-            // Persist current path so we can return here after auth if login is initiated manually
-            try { sessionStorage.setItem('intended_path', window.location.pathname + window.location.search) } catch (_) {}
+            // Send current path as intended URL to backend
+            const intendedUrl = window.location.href
             const response = await fetch('/api/auth/redirect', {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ intended_url: intendedUrl })
             });
             if (response.ok) {
                 const data = await response.json();

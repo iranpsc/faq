@@ -96,12 +96,12 @@ router.beforeEach(async (to, from, next) => {
     const token = localStorage.getItem('auth_token')
     if (!token) {
       try {
-        // Save intended path to restore after authentication
-        sessionStorage.setItem('intended_path', to.fullPath)
-        // Start OAuth login flow
+        // Start OAuth login flow with intended URL
+        const intendedUrl = `${window.location.origin}${to.fullPath}`
         const response = await fetch('/api/auth/redirect', {
-          method: 'GET',
+          method: 'POST',
           headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ intended_url: intendedUrl })
         })
         if (response.ok) {
           const data = await response.json()
@@ -123,10 +123,11 @@ router.beforeEach(async (to, from, next) => {
       }
       if (!isAuthenticated.value) {
         // Token invalid → trigger login flow
-        sessionStorage.setItem('intended_path', to.fullPath)
+        const intendedUrl = `${window.location.origin}${to.fullPath}`
         const response = await fetch('/api/auth/redirect', {
-          method: 'GET',
+          method: 'POST',
           headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ intended_url: intendedUrl })
         })
         if (response.ok) {
           const data = await response.json()

@@ -21,6 +21,11 @@ class AuthController extends Controller
     {
         $request->session()->put('state', $state = Str::random(40));
 
+        // Cache the intended URL if provided
+        if ($request->has('intended_url')) {
+            $request->session()->put('intended_url', $request->input('intended_url'));
+        }
+
         $query = http_build_query([
             'client_id' => config('services.oauth.client_id'),
             'redirect_uri' => config('services.oauth.redirect'),
@@ -97,8 +102,14 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
+        // Get cached intended URL and clean up session
+        $intendedUrl = $request->session()->pull('intended_url');
+
+        // Build redirect URL with token
+        $baseUrl = $intendedUrl ?: config('services.oauth.app_url');
+
         // Use URL fragment to avoid leaking tokens via Referer headers
-        return redirect(config('services.oauth.app_url') . '#token=' . $token);
+        return redirect($baseUrl . '#token=' . $token);
     }
 
     /**
