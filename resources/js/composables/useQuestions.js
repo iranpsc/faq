@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import api from '../services/api.js'
 
 export function useQuestions() {
@@ -41,6 +41,20 @@ export function useQuestions() {
       isLoading.value = false
     }
   }
+
+  const refreshQuestions = () => {
+    fetchQuestions();
+  }
+
+  onMounted(() => {
+    window.addEventListener('auth:login', refreshQuestions)
+    window.addEventListener('auth:logout', refreshQuestions)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('auth:login', refreshQuestions)
+    window.removeEventListener('auth:logout', refreshQuestions)
+  })
 
   // Fetch a single question by ID
   const fetchQuestion = async (id) => {

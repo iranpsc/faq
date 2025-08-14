@@ -128,6 +128,9 @@ try {
         setToken(null)
         setUser(null)
     })
+    window.addEventListener('auth:login', () => {
+        fetchUser()
+    })
 
     // React to token change broadcasts within same tab
     window.addEventListener('auth:token', (e) => {
