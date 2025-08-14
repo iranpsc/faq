@@ -284,7 +284,7 @@ export default {
   },
   emits: ['answer-added', 'vote-changed', 'answer-correctness-changed', 'comment-added'],
   setup(props, { emit }) {
-    const { isAuthenticated, user } = useAuth()
+    const { isAuthenticated } = useAuth()
     const {
       isSubmitting: isSubmittingAnswer,
       isUpdating: isUpdatingAnswer,
@@ -375,11 +375,11 @@ export default {
     })
 
     const canUpdate = (answer) => {
-      return user.value && (user.value.id === answer.user_id || user.value.is_admin)
+      return !!(answer?.can?.update)
     }
 
     const canDelete = (answer) => {
-      return user.value && (user.value.id === answer.user_id || user.value.is_admin)
+      return !!(answer?.can?.delete)
     }
 
     const formatNumber = (num) => {
