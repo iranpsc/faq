@@ -434,7 +434,7 @@ export default {
       isPublishingComment.value = comment.id
 
       try {
-        const response = await window.$api?.post(`/comments/${comment.id}/publish`) || await fetch(`/api/comments/${comment.id}/publish`, { method: 'POST' })
+        const response = await window.$api?.post(`/comments/${comment.id}/publish`) || await fetch(`/api/comments/${comment.id}/publish`, { method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` } })
         if (!(response.data)) {
           const ok = response.ok
           const json = ok ? await response.json() : { success: false }

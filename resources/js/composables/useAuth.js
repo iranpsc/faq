@@ -171,5 +171,6 @@ export function useAuth() {
         getInitials,
         can,
         updateUser,
+        fetchUser,
     }
 }

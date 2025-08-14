@@ -597,7 +597,7 @@ export default {
             isPublishingAnswer.value = answer.id
 
             try {
-                const response = await window.$api?.post(`/answers/${answer.id}/publish`) || await fetch(`/api/answers/${answer.id}/publish`, { method: 'POST' })
+                const response = await window.$api?.post(`/answers/${answer.id}/publish`) || await fetch(`/api/answers/${answer.id}/publish`, { method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` } })
 
                 // If using fetch fallback
                 if (!(response.data)) {
@@ -636,7 +636,7 @@ export default {
             isTogglingCorrectness.value = answer.id
 
             try {
-                const response = await window.$api?.post(`/answers/${answer.id}/toggle-correctness`) || await fetch(`/api/answers/${answer.id}/toggle-correctness`, { method: 'POST' })
+                const response = await window.$api?.post(`/answers/${answer.id}/toggle-correctness`) || await fetch(`/api/answers/${answer.id}/toggle-correctness`, { method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` } })
                 if (!(response.data)) {
                   const ok = response.ok
                   const json = ok ? await response.json() : { success: false }

@@ -245,15 +245,10 @@ export default {
 
         const fetchUserProfile = async () => {
             try {
-                const response = await fetch('/api/user/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                        'Accept': 'application/json',
-                    },
-                })
+                const response = await window.$api.get('/user/profile')
 
-                if (response.ok) {
-                    const data = await response.json()
+                if (response?.data) {
+                    const data = response.data
                     profileData.value = {
                         name: data.name || '',
                         email: data.email || '',
@@ -270,16 +265,10 @@ export default {
 
         const fetchUserStats = async () => {
             try {
-                const response = await fetch('/api/user/stats', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                        'Accept': 'application/json',
-                    },
-                })
+                const response = await window.$api.get('/user/stats')
 
-                if (response.ok) {
-                    const data = await response.json()
-                    userStats.value = data
+                if (response?.data) {
+                    userStats.value = response.data
                 }
             } catch (error) {
                 console.error('Error fetching user stats:', error)
@@ -288,16 +277,10 @@ export default {
 
         const fetchRecentActivity = async () => {
             try {
-                const response = await fetch('/api/user/activity', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                        'Accept': 'application/json',
-                    },
-                })
+                const response = await window.$api.get('/user/activity')
 
-                if (response.ok) {
-                    const data = await response.json()
-                    recentActivity.value = data
+                if (response?.data) {
+                    recentActivity.value = response.data
                 }
             } catch (error) {
                 console.error('Error fetching user activity:', error)
@@ -327,23 +310,14 @@ export default {
                 const formData = new FormData()
                 formData.append('image', file)
 
-                const response = await fetch('/api/user/update-image', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: formData
-                })
+                const response = await window.$api.post('/user/update-image', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 
-                if (response.ok) {
-                    const data = await response.json()
+                if (response?.data) {
+                    const data = response.data
                     profileData.value.image_url = data.image_url
                     // Also update the user in the auth store
                     updateUser({ image_url: data.image_url })
                     showAlert('success', 'عکس پروفایل با موفقیت بروزرسانی شد')
-                } else {
-                    const errorData = await response.json()
-                    showAlert('error', errorData.message || 'خطا در بروزرسانی عکس پروفایل')
                 }
             } catch (error) {
                 console.error('Error uploading image:', error)

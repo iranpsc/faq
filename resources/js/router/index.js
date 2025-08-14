@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NProgress from 'nprogress'
+import { useAuth } from '../composables/useAuth'
 
 // Lazy-loaded route components for better performance
 const Home = () => import('../pages/Home.vue')
@@ -111,6 +112,32 @@ router.beforeEach(async (to, from, next) => {
       } catch (_) {
         next('/')
       }
+      return
+    }
+
+    // If token exists but user not loaded yet, ensure user is fetched before allowing entry
+    try {
+      const { isAuthenticated, fetchUser } = useAuth()
+      if (!isAuthenticated.value) {
+        await fetchUser()
+      }
+      if (!isAuthenticated.value) {
+        // Token invalid → trigger login flow
+        sessionStorage.setItem('intended_path', to.fullPath)
+        const response = await fetch('/api/auth/redirect', {
+          method: 'GET',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          window.location.href = data.redirect_url
+        } else {
+          next('/')
+        }
+        return
+      }
+    } catch (_) {
+      next('/')
       return
     }
   }
