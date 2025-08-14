@@ -5,7 +5,7 @@
             <h1 class="text-center">انجمن حم بزرگترین انجمن پرسش و پاسخ ایران</h1>
             <div class="relative overflow-hidden rounded-lg shadow-sm">
                 <img :src="landingImageUrl" alt="خوش آمدید به سیستم پرسش و پاسخ" class="w-full h-auto object-cover"
-                    loading="lazy" />
+                    loading="eager" fetchpriority="high" width="1200" height="480" />
             </div>
         </template>
 
@@ -141,16 +141,19 @@
 </template>
 
 <script>
-import { onMounted, ref, computed, getCurrentInstance, onBeforeUnmount } from 'vue'
+import { onMounted, ref, computed, getCurrentInstance, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuestions, useUsers } from '../composables'
 import { usePageTitle } from '../composables/usePageTitle'
-import QuestionCard from '../components/QuestionCard.vue'
-import UserCard from '../components/UserCard.vue'
-import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
-import PopularCategories from '../components/PopularCategories.vue'
-import FilterQuestion from '../components/FilterQuestion.vue'
-import { BaseButton, BaseAlert, BasePagination, ContentArea } from '../components/ui'
+const QuestionCard = defineAsyncComponent(() => import('../components/QuestionCard.vue'))
+const UserCard = defineAsyncComponent(() => import('../components/UserCard.vue'))
+const HomeSidebar = defineAsyncComponent(() => import('../components/sidebar/HomeSidebar.vue'))
+const PopularCategories = defineAsyncComponent(() => import('../components/PopularCategories.vue'))
+const FilterQuestion = defineAsyncComponent(() => import('../components/FilterQuestion.vue'))
+const BaseButton = defineAsyncComponent(() => import('../components/ui/BaseButton.vue'))
+const BaseAlert = defineAsyncComponent(() => import('../components/ui/BaseAlert.vue'))
+const BasePagination = defineAsyncComponent(() => import('../components/ui/BasePagination.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 import questionService from '../services/questionService.js'
 
 export default {
@@ -272,11 +275,19 @@ export default {
         }
 
         onMounted(async () => {
-            // Load initial questions when component mounts
-            await fetchQuestions()
+            // Load initial questions and active users in parallel
+            const [questionsResult, usersResult] = await Promise.allSettled([
+                fetchQuestions(),
+                fetchActiveUsers(5)
+            ])
 
-            // Load active users
-            await fetchActiveUsers(5)
+            // Log any errors but don't block the UI
+            if (questionsResult.status === 'rejected') {
+                console.error('Failed to load questions:', questionsResult.reason)
+            }
+            if (usersResult.status === 'rejected') {
+                console.error('Failed to load active users:', usersResult.reason)
+            }
 
             // Subscribe to question service events
             const unsubscribeQuestionCreated = questionService.subscribe('question-created', (newQuestion) => {

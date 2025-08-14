@@ -126,9 +126,13 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, defineAsyncComponent } from 'vue'
 import api from '../services/api.js'
-import { BaseAvatar, BaseBadge, BaseButton, BaseAlert, ContentArea } from '../components/ui'
+const BaseAvatar = defineAsyncComponent(() => import('../components/ui/BaseAvatar.vue'))
+const BaseBadge = defineAsyncComponent(() => import('../components/ui/BaseBadge.vue'))
+const BaseButton = defineAsyncComponent(() => import('../components/ui/BaseButton.vue'))
+const BaseAlert = defineAsyncComponent(() => import('../components/ui/BaseAlert.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 
 export default {
     name: 'DailyActivity',

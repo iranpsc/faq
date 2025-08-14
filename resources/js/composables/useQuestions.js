@@ -12,14 +12,25 @@ export function useQuestions() {
   const fetchQuestions = async (params = {}) => {
     isLoading.value = true
     errors.value = {}
+    const startTime = performance.now()
 
     try {
-      const response = await api.get('/questions', { params })
+      const response = await api.get('/questions', {
+        params,
+        cacheTimeout: 180000 // 3 minutes cache for questions
+      })
       questions.value = response.data.data
       pagination.value = {
         meta: response.data.meta,
         links: response.data.links
       }
+
+      // Performance monitoring
+      const loadTime = performance.now() - startTime
+      if (loadTime > 1000) {
+        console.warn(`Slow questions fetch: ${loadTime.toFixed(2)}ms`)
+      }
+
       return { success: true, data: response.data.data, pagination: pagination.value }
     } catch (error) {
       console.error('Error fetching questions:', error)

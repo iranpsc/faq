@@ -2,17 +2,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import NProgress from 'nprogress'
 import { useAuth } from '../composables/useAuth'
 
-// Lazy-loaded route components for better performance
-const Home = () => import('../pages/Home.vue')
-const QuestionShow = () => import('../pages/QuestionShow.vue')
-const Authors = () => import('../pages/Authors.vue')
-const AuthorShow = () => import('../pages/AuthorShow.vue')
-const Categories = () => import('../pages/Categories.vue')
-const Category = () => import('../pages/Category.vue')
-const Tags = () => import('../pages/Tags.vue')
-const Tag = () => import('../pages/Tag.vue')
-const Profile = () => import('../pages/Profile.vue')
-const DailyActivity = () => import('../pages/DailyActivity.vue')
+// Lazy-loaded route components with prefetching for better performance
+const Home = () => import(/* webpackChunkName: "page-home", webpackPrefetch: true */ '../pages/Home.vue')
+const QuestionShow = () => import(/* webpackChunkName: "page-question" */ '../pages/QuestionShow.vue')
+const Authors = () => import(/* webpackChunkName: "page-authors" */ '../pages/Authors.vue')
+const AuthorShow = () => import(/* webpackChunkName: "page-author-show" */ '../pages/AuthorShow.vue')
+const Categories = () => import(/* webpackChunkName: "page-categories" */ '../pages/Categories.vue')
+const Category = () => import(/* webpackChunkName: "page-category" */ '../pages/Category.vue')
+const Tags = () => import(/* webpackChunkName: "page-tags" */ '../pages/Tags.vue')
+const Tag = () => import(/* webpackChunkName: "page-tag" */ '../pages/Tag.vue')
+const Profile = () => import(/* webpackChunkName: "page-profile" */ '../pages/Profile.vue')
+const DailyActivity = () => import(/* webpackChunkName: "page-activity" */ '../pages/DailyActivity.vue')
 
 const routes = [
   {

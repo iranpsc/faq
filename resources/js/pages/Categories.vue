@@ -63,12 +63,12 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { usePageTitle } from '../composables/usePageTitle';
 import api from '../services/api';
-import { BasePagination } from '../components/ui';
-import ContentArea from '../components/ContentArea.vue';
+const BasePagination = defineAsyncComponent(() => import('../components/ui/BasePagination.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 
 export default {
     name: 'Categories',

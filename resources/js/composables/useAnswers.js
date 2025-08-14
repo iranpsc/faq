@@ -13,7 +13,9 @@ export function useAnswers() {
     isLoading.value = true
     try {
       const response = await api.get(`/questions/${questionId}/answers`, {
-        params: { page, sort }
+        params: { page, sort },
+        // Bypass client-side cache to always get fresh data
+        skipCache: true
       })
       return {
         success: true,

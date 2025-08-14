@@ -67,13 +67,13 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { usePageTitle } from '../composables/usePageTitle';
 import { useTags } from '../composables/useTags';
-import { BasePagination } from '../components/ui';
-import ContentArea from '../components/ContentArea.vue';
-import HomeSidebar from '../components/sidebar/HomeSidebar.vue';
+const BasePagination = defineAsyncComponent(() => import('../components/ui/BasePagination.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
+const HomeSidebar = defineAsyncComponent(() => import('../components/sidebar/HomeSidebar.vue'))
 
 export default {
     name: 'Tags',

@@ -1,5 +1,5 @@
 <template>
-  <header class="header-container bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 transition-colors duration-300">
+  <header class="header-container bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 transition-colors duration-300" style="min-height:56px">
     <div class="flex items-center justify-between max-w-7xl mx-auto">
       <!-- Left side - Menu button (hidden on large screens) -->
       <div class="flex items-center gap-4 lg:hidden">
@@ -47,8 +47,9 @@
 </template>
 
 <script>
-import { BaseButton } from './ui'
-import SearchComponent from './SearchComponent.vue'
+import { defineAsyncComponent } from 'vue'
+const BaseButton = defineAsyncComponent(() => import('./ui/BaseButton.vue'))
+const SearchComponent = defineAsyncComponent(() => import('./SearchComponent.vue'))
 
 export default {
   name: 'Header',

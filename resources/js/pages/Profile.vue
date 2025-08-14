@@ -172,11 +172,17 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
 import { usePageTitle } from '../composables/usePageTitle'
-import { BaseCard, BaseAvatar, BaseButton, BaseInput, BaseBadge, BaseAlert, ContentArea } from '../components/ui'
+const BaseCard = defineAsyncComponent(() => import('../components/ui/BaseCard.vue'))
+const BaseAvatar = defineAsyncComponent(() => import('../components/ui/BaseAvatar.vue'))
+const BaseButton = defineAsyncComponent(() => import('../components/ui/BaseButton.vue'))
+const BaseInput = defineAsyncComponent(() => import('../components/ui/BaseInput.vue'))
+const BaseBadge = defineAsyncComponent(() => import('../components/ui/BaseBadge.vue'))
+const BaseAlert = defineAsyncComponent(() => import('../components/ui/BaseAlert.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 
 export default {
     name: 'Profile',

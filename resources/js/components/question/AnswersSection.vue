@@ -468,6 +468,11 @@ export default {
         newAnswer.value = ''
         emit('answer-added')
 
+        // If using internal pagination, refresh the first page to include the new answer
+        if (usePagination.value) {
+          await fetchPaginatedAnswers(1, false)
+        }
+
         // No success toast for adding answer
       } else {
         // Show error message
@@ -505,6 +510,11 @@ export default {
                 // No success toast for editing answer
 
                 emit('answer-added') // Trigger refresh to get fresh data from API
+
+                // If using internal pagination, refresh current page to reflect the edit
+                if (usePagination.value) {
+                    await fetchPaginatedAnswers(currentAnswersPage.value, false)
+                }
             } else {
                 // Show error message
                 const Swal = window.Swal || window.$swal;
@@ -541,6 +551,12 @@ export default {
 
       if (result.success) {
         emit('answer-added') // Trigger refresh
+
+        // If using internal pagination, refetch to remove the deleted answer from the list
+        if (usePagination.value) {
+          const targetPage = Math.max(1, currentAnswersPage.value)
+          await fetchPaginatedAnswers(targetPage, false)
+        }
 
         // No success toast for deleting answer
       } else {
@@ -613,6 +629,11 @@ export default {
                     // No success toast for publishing answer
 
                     emit('answer-added') // Trigger refresh to get fresh data from API
+
+                    // If using internal pagination, refresh list to reflect publish state
+                    if (usePagination.value) {
+                      await fetchPaginatedAnswers(currentAnswersPage.value, false)
+                    }
                 }
             } catch (error) {
                 console.error('Error publishing answer:', error)

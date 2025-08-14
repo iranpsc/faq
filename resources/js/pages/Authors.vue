@@ -156,12 +156,12 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePageTitle } from '../composables/usePageTitle'
-import AuthorCard from '../components/AuthorCard.vue'
-import BasePagination from '../components/ui/BasePagination.vue'
-import { ContentArea } from '../components/ui'
+const AuthorCard = defineAsyncComponent(() => import('../components/AuthorCard.vue'))
+const BasePagination = defineAsyncComponent(() => import('../components/ui/BasePagination.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 import { useAuthors } from '../composables/useAuthors.js'
 
 export default {
@@ -216,12 +216,12 @@ export default {
         }
 
         const handleSearchInput = () => {
-            // Debounce search
+            // Debounce search with shorter timeout for better UX
             clearTimeout(searchTimeout.value)
             searchTimeout.value = setTimeout(() => {
                 currentPage.value = 1
                 loadAuthors(1)
-            }, 500)
+            }, 300)
         }
 
         const handleSortChange = () => {

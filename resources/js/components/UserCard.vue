@@ -76,7 +76,8 @@
 </template>
 
 <script>
-import { BaseAvatar } from './ui'
+import { defineAsyncComponent } from 'vue'
+const BaseAvatar = defineAsyncComponent(() => import('./ui/BaseAvatar.vue'))
 
 export default {
     name: 'UserCard',

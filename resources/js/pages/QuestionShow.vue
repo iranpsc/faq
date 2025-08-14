@@ -52,17 +52,17 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, onBeforeUnmount, nextTick, watch, triggerRef } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, nextTick, watch, triggerRef, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useQuestions } from '../composables/useQuestions'
 import { usePageTitle } from '../composables/usePageTitle'
-import QuestionContent from '../components/question/QuestionContent.vue'
-import CommentsSection from '../components/question/CommentsSection.vue'
-import AnswersSection from '../components/question/AnswersSection.vue'
-import QuestionModal from '../components/QuestionModal.vue'
-import HomeSidebar from '../components/sidebar/HomeSidebar.vue'
-import { ContentArea } from '../components/ui'
+const QuestionContent = defineAsyncComponent(() => import('../components/question/QuestionContent.vue'))
+const CommentsSection = defineAsyncComponent(() => import('../components/question/CommentsSection.vue'))
+const AnswersSection = defineAsyncComponent(() => import('../components/question/AnswersSection.vue'))
+const QuestionModal = defineAsyncComponent(() => import('../components/QuestionModal.vue'))
+const HomeSidebar = defineAsyncComponent(() => import('../components/sidebar/HomeSidebar.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 import questionService from '../services/questionService.js'
 import api from '../services/api.js'
 
@@ -108,7 +108,7 @@ export default {
             error.value = null
 
             try {
-                const response = await api.get(`/questions/${questionSlug.value}`)
+                const response = await api.get(`/questions/${questionSlug.value}`, { skipCache: true })
                 question.value = response.data.data
 
                 // Update page title with question title
@@ -131,7 +131,7 @@ export default {
         const fetchAnswers = async () => {
             try {
                 if (question.value && question.value.id) {
-                    const response = await api.get(`/questions/${question.value.id}/answers`)
+                    const response = await api.get(`/questions/${question.value.id}/answers`, { skipCache: true })
 
                     // Handle paginated response structure
                     if (response.data && response.data.data) {
@@ -150,7 +150,7 @@ export default {
         const refreshAnswers = async () => {
             try {
                 if (question.value && question.value.id) {
-                    const response = await api.get(`/questions/${question.value.id}/answers`)
+                    const response = await api.get(`/questions/${question.value.id}/answers`, { skipCache: true })
 
                     // Handle paginated response structure
                     if (response.data && response.data.data) {

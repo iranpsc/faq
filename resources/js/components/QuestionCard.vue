@@ -44,7 +44,7 @@
                 <div class="flex items-center gap-3">
                     <!-- Creation Date -->
                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ formatDate(question.created_at) }}
+                        {{ formattedDate }}
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     {{ question.title }}
                 </h3>
                 <div class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed content-preview"
-                    v-text="getContentPreview(question.content)"></div>
+                    v-text="contentPreview"></div>
 
             </div>
 
@@ -149,7 +149,10 @@
 </template>
 
 <script>
-import { BaseCard, BaseBadge, BaseAvatar } from './ui'
+import { defineAsyncComponent, computed, ref } from 'vue'
+const BaseCard = defineAsyncComponent(() => import('./ui/BaseCard.vue'))
+const BaseBadge = defineAsyncComponent(() => import('./ui/BaseBadge.vue'))
+const BaseAvatar = defineAsyncComponent(() => import('./ui/BaseAvatar.vue'))
 
 export default {
     name: 'QuestionCard',
@@ -165,9 +168,30 @@ export default {
         }
     },
     emits: ['click', 'published'],
-    data() {
+    setup(props) {
+        const showAllTags = ref(false)
+
+        // Memoize expensive computations
+        const contentPreview = computed(() => {
+            if (!props.question.content) return ''
+            // Remove HTML tags and get first 200 characters
+            const text = props.question.content.replace(/<[^>]*>/g, '')
+            return text.length > 200 ? text.substring(0, 200) + '...' : text
+        })
+
+        const formattedDate = computed(() => {
+            const date = new Date(props.question.created_at)
+            return new Intl.DateTimeFormat('fa-IR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(date)
+        })
+
         return {
-            showAllTags: false
+            showAllTags,
+            contentPreview,
+            formattedDate
         }
     },
     methods: {

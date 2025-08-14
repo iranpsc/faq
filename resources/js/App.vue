@@ -2,7 +2,7 @@
     <div
         class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <div :class="{ 'lg:mr-80': sidebarOpen, 'lg:mr-16': !sidebarOpen, 'mr-0': true }"
-            class="flex flex-col flex-grow transition-all duration-300">
+            class="flex flex-col flex-grow transition-colors duration-300">
             <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @main-action="handleMainAction" />
             <router-view @edit-question="handleEditQuestion" />
             <Footer />
@@ -18,12 +18,12 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount, getCurrentInstance, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, getCurrentInstance, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
-import Header from './components/Header.vue';
-import Footer from './components/Footer.vue';
-import Sidebar from './components/Sidebar.vue';
-import QuestionModal from './components/QuestionModal.vue';
+const Header = defineAsyncComponent(() => import('./components/Header.vue'))
+const Footer = defineAsyncComponent(() => import('./components/Footer.vue'))
+const Sidebar = defineAsyncComponent(() => import('./components/Sidebar.vue'))
+const QuestionModal = defineAsyncComponent(() => import('./components/QuestionModal.vue'))
 import { useTheme } from './composables/useTheme.js';
 import { useAuth } from './composables/useAuth.js';
 import questionService from './services/questionService.js';
@@ -56,12 +56,11 @@ export default {
             clearTimeout(resizeTimeout.value);
             resizeTimeout.value = setTimeout(() => {
                 // Force sidebar open only on large screens (1024px and above)
-                if (window.innerWidth >= 1024) {
-                    sidebarOpen.value = true;
-                } else {
-                    sidebarOpen.value = false;
+                const isLargeScreen = window.innerWidth >= 1024;
+                if (sidebarOpen.value !== isLargeScreen) {
+                    sidebarOpen.value = isLargeScreen;
                 }
-            }, 150);
+            }, 100); // Reduced timeout for better responsiveness
         };
 
         const toggleSidebar = () => {
@@ -231,18 +230,7 @@ a:focus {
 }
 
 /* Theme transition overlay */
-.app-container::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    z-index: -1;
-}
+/* Removed ::before overlay to reduce layout shifts */
 
 /* Selection colors */
 ::selection {

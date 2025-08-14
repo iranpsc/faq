@@ -59,10 +59,11 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCategories } from '../composables'
-import { BaseAlert, BaseBadge } from './ui'
+const BaseAlert = defineAsyncComponent(() => import('./ui/BaseAlert.vue'))
+const BaseBadge = defineAsyncComponent(() => import('./ui/BaseBadge.vue'))
 
 export default {
     name: 'PopularCategories',

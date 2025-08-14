@@ -57,12 +57,13 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { usePageTitle } from '../composables/usePageTitle';
 import api from '../services/api';
-import QuestionCard from '../components/QuestionCard.vue';
-import { BasePagination, ContentArea } from '../components/ui';
+const QuestionCard = defineAsyncComponent(() => import('../components/QuestionCard.vue'))
+const BasePagination = defineAsyncComponent(() => import('../components/ui/BasePagination.vue'))
+const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 
 export default {
     name: 'Tag',

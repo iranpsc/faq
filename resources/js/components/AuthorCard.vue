@@ -7,9 +7,10 @@
             <div class="flex flex-col items-center space-y-2">
                 <!-- Avatar -->
                 <div class="relative">
-                    <img :src="authorImage" :alt="author.name"
+                    <img :src="authorImage" :alt="author.name" loading="lazy" decoding="async"
                         class="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
-                        @error="handleImageError">
+                        @error="handleImageError"
+                        :style="{ 'content-visibility': 'auto' }">
                     <!-- Level Badge -->
                     <div class="absolute -bottom-1 -left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full
                                 font-semibold shadow-lg border-2 border-white dark:border-gray-800">
