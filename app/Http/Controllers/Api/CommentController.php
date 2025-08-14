@@ -85,7 +85,9 @@ class CommentController extends Controller
             ]);
         }
 
-        $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
+        if (!is_null($question->user)) {
+            $question->user->notify(new QuestionInteractionNotification($user, $question, 'comment'));
+        }
 
         return response()->json([
             'data' => new CommentResource($comment->load('user')),

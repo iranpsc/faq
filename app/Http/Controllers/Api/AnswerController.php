@@ -82,7 +82,9 @@ class AnswerController extends Controller
             'published' => false, // All answers are unpublished by default
         ]);
 
-        $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
+        if (!is_null($question->user)) {
+            $question->user->notify(new QuestionInteractionNotification($user, $question, 'answer'));
+        }
 
         return new AnswerResource($answer);
     }
