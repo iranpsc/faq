@@ -58,6 +58,8 @@ class AuthorController extends Controller
                     $query->orderBy('created_at', $sortOrder);
                     break;
                 case 'score':
+                    $query->orderBy('score', $sortOrder);
+                    break;
                 default:
                     $query->orderBy('score', $sortOrder);
                     break;
