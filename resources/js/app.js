@@ -4,6 +4,8 @@ import App from './App.vue'
 import UIComponents from './plugins/ui-components.js'
 import 'nprogress/nprogress.css';
 import api from './services/api.js'
+// Ensure auth module initializes early (handles ?token=... and hydrates user)
+import './composables/useAuth.js'
 
 import router from './router'
 

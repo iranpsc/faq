@@ -1,7 +1,15 @@
 import { ref, computed } from 'vue'
 
 const token = ref(localStorage.getItem('auth_token'))
-const user = ref(null)
+// Hydrate user state from localStorage for immediate UI consistency after redirects
+let initialUser = null
+try {
+    const raw = localStorage.getItem('auth_user')
+    if (raw) {
+        initialUser = JSON.parse(raw)
+    }
+} catch (_) {}
+const user = ref(initialUser)
 const isAuthenticated = computed(() => !!token.value && !!user.value)
 
 const setToken = (newToken) => {
@@ -16,10 +24,26 @@ const setToken = (newToken) => {
     if (window.updateAxiosAuth) {
         window.updateAxiosAuth();
     }
+
+    // Notify listeners about token changes
+    try {
+        window.dispatchEvent(new CustomEvent('auth:token', { detail: { token: newToken } }))
+    } catch (_) {}
 }
 
 const setUser = (userData) => {
     user.value = userData
+    try {
+        if (userData) {
+            localStorage.setItem('auth_user', JSON.stringify(userData))
+            // Fire login event when we have both token and user
+            if (token.value) {
+                window.dispatchEvent(new CustomEvent('auth:login', { detail: { user: userData } }))
+            }
+        } else {
+            localStorage.removeItem('auth_user')
+        }
+    } catch (_) {}
 }
 
 const updateUser = (userData) => {
@@ -49,12 +73,14 @@ const fetchUser = async () => {
             // Token is invalid, clear it
             setToken(null)
             setUser(null)
+            try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
             return null
         }
     } catch (error) {
         console.error('Error fetching user:', error)
         setToken(null)
         setUser(null)
+        try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
         return null
     }
 }
@@ -95,6 +121,52 @@ if (!handleTokenFromUrl()) {
 }
 // --- End Initialization ---
 
+// --- Global listeners to keep auth state in sync (same-tab and cross-tab) ---
+try {
+    // React to explicit auth logout events (e.g., from axios interceptor on 401)
+    window.addEventListener('auth:logout', () => {
+        setToken(null)
+        setUser(null)
+    })
+
+    // React to token change broadcasts within same tab
+    window.addEventListener('auth:token', (e) => {
+        const nextToken = e?.detail?.token || null
+        if (nextToken !== token.value) {
+            setToken(nextToken)
+            if (nextToken) {
+                // Ensure we have fresh user data
+                fetchUser()
+            } else {
+                setUser(null)
+            }
+        }
+    })
+
+    // Cross-tab synchronization
+    window.addEventListener('storage', (ev) => {
+        if (ev.key === 'auth_token') {
+            const nextToken = localStorage.getItem('auth_token')
+            if (nextToken !== token.value) {
+                setToken(nextToken)
+                if (nextToken) {
+                    fetchUser()
+                } else {
+                    setUser(null)
+                    try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
+                }
+            }
+        }
+        if (ev.key === 'auth_user') {
+            try {
+                user.value = ev.newValue ? JSON.parse(ev.newValue) : null
+            } catch (_) {
+                user.value = null
+            }
+        }
+    })
+} catch (_) {}
+
 export function useAuth() {
 
     const logout = async () => {
@@ -118,6 +190,9 @@ export function useAuth() {
 
         // Redirect to clean URL
         window.history.replaceState({}, document.title, window.location.pathname)
+
+        // Broadcast logout so any listener can react
+        try { window.dispatchEvent(new Event('auth:logout')) } catch (_) {}
     }
 
     const handleLogin = async () => {

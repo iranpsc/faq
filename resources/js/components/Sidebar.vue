@@ -453,6 +453,8 @@ export default {
         },
         handleLogout() {
             this.logout()
+            // Close dropdown and force a microtask tick so UI reflects guest state immediately
+            this.userDropdownOpen = false
         },
         toggleUserDropdown() {
             this.userDropdownOpen = !this.userDropdownOpen
