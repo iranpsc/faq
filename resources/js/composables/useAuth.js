@@ -104,13 +104,26 @@ const fetchUser = async () => {
 }
 
 const handleTokenFromUrl = () => {
+    // Prefer URL fragment to avoid referrer leakage
+    let tokenFromFragment = null
+    try {
+        if (window.location.hash && window.location.hash.length > 1) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1))
+            tokenFromFragment = hashParams.get('token')
+        }
+    } catch (_) {}
+
+    // Backward compatibility: still support query param for any old links
     const urlParams = new URLSearchParams(window.location.search)
-    const urlToken = urlParams.get('token')
+    const tokenFromQuery = urlParams.get('token')
+
+    const urlToken = tokenFromFragment || tokenFromQuery
 
     if (urlToken) {
         setToken(urlToken)
-        // Clean the URL
-        window.history.replaceState({}, document.title, window.location.pathname)
+        // Clean the URL (remove both search and hash)
+        const cleanPath = window.location.pathname
+        window.history.replaceState({}, document.title, cleanPath)
         // Fetch user data
         fetchUser()
         // After successful token handling, attempt to restore intended path
@@ -118,8 +131,7 @@ const handleTokenFromUrl = () => {
             const intendedPath = sessionStorage.getItem('intended_path')
             if (intendedPath) {
                 sessionStorage.removeItem('intended_path')
-                // Use location change to ensure fresh navigation after OAuth redirect landing
-                if (window.location.pathname + window.location.search !== intendedPath) {
+                if (cleanPath !== intendedPath) {
                     window.location.replace(intendedPath)
                 }
             }

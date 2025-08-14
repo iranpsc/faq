@@ -97,7 +97,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        return redirect(config('services.oauth.app_url') . '?token=' . $token);
+        // Use URL fragment to avoid leaking tokens via Referer headers
+        return redirect(config('services.oauth.app_url') . '#token=' . $token);
     }
 
     /**
