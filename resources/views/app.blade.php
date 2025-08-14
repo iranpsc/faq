@@ -13,7 +13,7 @@
         <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
         <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css"></noscript>
-        <link rel="preload" as="image" href="/assets/images/landing.png" imagesrcset="/assets/images/landing.png 1200w" imagesizes="100vw" fetchpriority="high">
+
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

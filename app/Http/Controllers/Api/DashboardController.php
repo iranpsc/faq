@@ -71,8 +71,8 @@ class DashboardController extends Controller
                         'votes_count' => $question->votes_count,
                         'views_count' => $question->views ?? 0,
                         'user' => [
-                            'id' => $question->user->id,
-                            'name' => $question->user->name,
+                            'id' => $question->user?->id,
+                            'name' => $question->user?->name,
                         ],
                         'category' => $question->category ? [
                             'id' => $question->category->id,
@@ -150,8 +150,8 @@ class DashboardController extends Controller
                         'votes_count' => $question->votes_count,
                         'views_count' => $question->views ?? 0,
                         'user' => [
-                            'id' => $question->user->id,
-                            'name' => $question->user->name,
+                            'id' => $question->user?->id,
+                            'name' => $question->user?->name,
                         ],
                         'category' => $question->category ? [
                             'id' => $question->category->id,
