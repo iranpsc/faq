@@ -12,11 +12,10 @@
         "laravel-vite-plugin": "^1.2.0",
         "postcss": "^8.5.6",
         "tailwindcss": "^3.4.14",
+        "terser": "^5.43.1",
         "vite": "^6.2.4"
     },
     "dependencies": {
-        "axios": "^1.10.0",
-        "nprogress": "^0.2.0",
         "@headlessui/vue": "^1.7.23",
         "@inertiajs/progress": "^0.1.2",
         "@inertiajs/vue3": "^2.0.17",
@@ -25,8 +24,10 @@
         "@tinymce/tinymce-vue": "^6.2.0",
         "@types/select2": "^4.0.63",
         "@vitejs/plugin-vue": "^6.0.0",
+        "axios": "^1.10.0",
         "date-fns-jalali": "^4.1.0-0",
         "jquery": "^3.7.1",
+        "nprogress": "^0.2.0",
         "primeicons": "^7.0.0",
         "primevue": "^4.3.6",
         "quill": "^2.0.3",
