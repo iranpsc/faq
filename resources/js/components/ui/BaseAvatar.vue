@@ -6,8 +6,12 @@
       :src="src"
       :alt="alt"
       :class="imageClasses"
+      :width="intrinsicSize"
+      :height="intrinsicSize"
       loading="lazy"
       decoding="async"
+      fetchpriority="low"
+      style="aspect-ratio:1/1; contain: paint;"
       @error="handleImageError"
       @load="handleImageLoad"
     />
@@ -150,9 +154,15 @@ export default {
     },
     imageClasses() {
       return [
-        'w-full h-full object-cover',
-        this.shapeClasses
+        'w-full h-full object-cover block',
+        this.shapeClasses,
+        this.imageLoaded ? 'opacity-100' : 'opacity-0'
       ]
+    },
+    intrinsicSize() {
+      // Provide a deterministic intrinsic size to prevent layout shifts (maps to tailwind sizes)
+      const map = { xs: 24, sm: 32, md: 40, lg: 48, xl: 64, '2xl': 80 }
+      return map[this.size] || 40
     },
     initialsClasses() {
       return [
@@ -331,4 +341,8 @@ export default {
 :global(.rtl) .absolute.-left-2 {
   right: -0.5rem;
 }
+</style>
+<style scoped>
+/* Reserve space & smooth image appearance to mitigate CLS */
+img { transition: opacity .3s ease; }
 </style>

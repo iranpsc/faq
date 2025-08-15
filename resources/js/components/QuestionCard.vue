@@ -11,7 +11,7 @@
     ]">
         <div class="p-6">
             <!-- Section 1: Category and Pin Badge (right), Creation Date and Pin Button (left) -->
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-2 min-h-[32px]">
                 <div class="flex items-center gap-2">
                     <!-- Category Badge -->
                     <router-link v-if="question.category" :to="`/categories/${question.category.slug}`">
@@ -60,7 +60,7 @@
             </div>
 
             <!-- Tags Section -->
-            <div v-if="question.tags && question.tags.length" class="flex flex-wrap gap-2 my-2">
+            <div v-if="question.tags && question.tags.length" class="flex flex-wrap gap-2 my-2 min-h-[36px]">
                 <span class="text-sm text-gray-500 dark:text-gray-400">برچسب‌ها:</span>
                 <BaseBadge
                     v-for="tag in showAllTags ? question.tags : question.tags.slice(0, 5)"

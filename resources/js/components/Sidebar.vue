@@ -24,7 +24,7 @@
                         class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
                         <div
                             class="w-6 h-6 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center">
-                            <img :src="logoUrl" alt="انجمن حم" loading="lazy" decoding="async" class="w-full h-full object-contain rounded-full">
+                            <img :src="logoUrl" alt="انجمن حم" loading="lazy" decoding="async" class="w-full h-full object-contain rounded-full" width="24" height="24" style="aspect-ratio:1/1; contain:paint;">
                         </div>
                     </div>
                 </router-link>

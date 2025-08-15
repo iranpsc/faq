@@ -5,7 +5,7 @@
             <h1 class="text-center">انجمن حم بزرگترین انجمن پرسش و پاسخ ایران</h1>
             <div class="relative overflow-hidden rounded-lg shadow-sm">
                 <img :src="landingImageUrl" alt="خوش آمدید به سیستم پرسش و پاسخ" class="w-full h-auto object-cover"
-                    loading="eager" fetchpriority="high" width="1200" height="480" style="content-visibility:auto; contain-intrinsic-size:1200px 480px" />
+                    loading="eager" fetchpriority="high" decoding="async" width="1200" height="480" style="aspect-ratio:1200/480; content-visibility:auto; contain-intrinsic-size:1200px 480px; object-fit:cover;" />
             </div>
         </template>
 
