@@ -2,9 +2,9 @@
     <div>
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     دسته‌بندی‌ها
-                </h3>
+                </h2>
             </div>
         </div>
 

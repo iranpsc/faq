@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-col items-start justify-between mb-6">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <h5 class="font-bold text-gray-900 dark:text-gray-100 mb-4">
             فیلترها
-        </h1>
+        </h5>
 
         <!-- Filter Section -->
         <div class="w-full space-y-4">
