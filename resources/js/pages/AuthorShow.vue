@@ -20,6 +20,8 @@
 
             <!-- Questions Section -->
             <div v-else-if="author">
+                <!-- Added h1 for main page heading accessibility (previously missing) -->
+                <h1 class="sr-only">پروفایل {{ author.name }}</h1>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                     سوالات پرسیده شده توسط {{ author.name }}
                 </h2>

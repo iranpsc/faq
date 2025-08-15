@@ -88,7 +88,7 @@
 
                             <!-- Additional Info -->
                             <div class="pt-6 border-t border-gray-200 dark:border-gray-600">
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">اطلاعات تکمیلی</h3>
+                                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">اطلاعات تکمیلی</h2>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                         <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
