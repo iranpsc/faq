@@ -35,12 +35,12 @@
           </button>
 
           <!-- Page numbers -->
-          <template v-for="page in visiblePages" :key="page">
+          <template v-for="(page, idx) in visiblePages" :key="page === '...' ? 'ellipsis-' + idx : page">
             <button
               v-if="page !== '...'"
-              @click="$emit('page-changed', page)"
+              @click="emitPageChange(page)"
               :class="[
-                page === currentPage
+                page === safeCurrentPage
                   ? 'relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
                   : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:z-20 focus:outline-offset-0'
               ]"
@@ -57,8 +57,8 @@
 
           <!-- Next button -->
           <button
-            @click="$emit('page-changed', currentPage + 1)"
-            :disabled="currentPage >= totalPages"
+            @click="emitPageChange(safeCurrentPage + 1)"
+            :disabled="safeCurrentPage >= totalPages"
             class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="sr-only">بعدی</span>
@@ -79,38 +79,32 @@ export default {
   name: 'BasePagination',
   emits: ['page-changed'],
   props: {
-    currentPage: {
-      type: Number,
-      default: 1
-    },
-    totalPages: {
-      type: Number,
-      default: 1
-    },
-    total: {
-      type: Number,
-      default: 0
-    },
-    perPage: {
-      type: Number,
-      default: 10
-    },
-    maxVisiblePages: {
-      type: Number,
-      default: 7
-    }
+    currentPage: { type: Number, default: 1 },
+    totalPages: { type: Number, default: 1 },
+    total: { type: Number, default: 0 },
+    perPage: { type: Number, default: 10 },
+    maxVisiblePages: { type: Number, default: 7 }
   },
-  setup(props) {
+  setup(props, { emit }) {
+    // Guard current page
+    const safeCurrentPage = computed(() => {
+      let p = Number(props.currentPage) || 1
+      if (p < 1) p = 1
+      if (props.totalPages && p > props.totalPages) p = props.totalPages
+      return p
+    })
+
     const from = computed(() => {
-      return props.total === 0 ? 0 : (props.currentPage - 1) * props.perPage + 1
+      return props.total === 0 ? 0 : (safeCurrentPage.value - 1) * props.perPage + 1
     })
 
     const to = computed(() => {
-      return Math.min(props.currentPage * props.perPage, props.total)
+      return Math.min(safeCurrentPage.value * props.perPage, props.total)
     })
 
     const visiblePages = computed(() => {
-      const { currentPage, totalPages, maxVisiblePages } = props
+      const { totalPages, maxVisiblePages } = props
+      const currentPage = safeCurrentPage.value
       const pages = []
 
       if (totalPages <= maxVisiblePages) {
@@ -158,11 +152,16 @@ export default {
       return pages
     })
 
-    return {
-      from,
-      to,
-      visiblePages
+    const emitPageChange = (page) => {
+      if (!props.totalPages) return
+      let target = Number(page)
+      if (isNaN(target)) return
+      if (target < 1) target = 1
+      if (target > props.totalPages) target = props.totalPages
+      if (target !== safeCurrentPage.value) emit('page-changed', target)
     }
+
+    return { from, to, visiblePages, emitPageChange, safeCurrentPage }
   }
 }
 </script>

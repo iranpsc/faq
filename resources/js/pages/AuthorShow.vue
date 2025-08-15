@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { ref, onMounted, defineAsyncComponent } from 'vue'
+import { ref, onMounted, defineAsyncComponent, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthors } from '../composables/useAuthors'
 import { usePageTitle } from '../composables/usePageTitle'
@@ -93,7 +93,7 @@ export default {
         const questions = ref([])
         const pagination = ref({})
 
-        const loadAuthor = async () => {
+    const loadAuthor = async () => {
             const { success, data, error: fetchError } = await fetchAuthor(props.id)
             if (success) {
                 author.value = data
@@ -101,7 +101,8 @@ export default {
                 if (author.value && author.value.name) {
                     setTitle(`پروفایل ${author.value.name}`)
                 }
-                await fetchAuthorQuestions(1)
+        const initialPage = parseInt(route.query.page) || 1
+        await fetchAuthorQuestions(initialPage)
             } else {
                 error.value = fetchError
             }
@@ -124,7 +125,13 @@ export default {
 
         const handlePageChange = async (page) => {
             if (pagination.value.meta && page === pagination.value.meta.current_page) return
-            await fetchAuthorQuestions(page)
+            const target = Math.max(1, page)
+            await fetchAuthorQuestions(target)
+            if (target > 1) {
+                router.push({ query: { ...route.query, page: target } })
+            } else if (route.query.page) {
+                router.push({ query: { ...route.query, page: undefined } })
+            }
         }
 
         const navigateToQuestion = (question) => {
@@ -132,6 +139,13 @@ export default {
         }
 
         onMounted(loadAuthor)
+
+        // Respond to back/forward navigation for page query
+        watch(() => route.query.page, (val) => {
+            const target = parseInt(val) || 1
+            if (pagination.value.meta && target === pagination.value.meta.current_page) return
+            fetchAuthorQuestions(target)
+        })
 
         return {
             author,

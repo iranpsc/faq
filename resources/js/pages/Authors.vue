@@ -156,8 +156,8 @@
 </template>
 
 <script>
-import { ref, onMounted, defineAsyncComponent } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, defineAsyncComponent, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { usePageTitle } from '../composables/usePageTitle'
 const AuthorCard = defineAsyncComponent(() => import('../components/AuthorCard.vue'))
 const BasePagination = defineAsyncComponent(() => import('../components/ui/BasePagination.vue'))
@@ -172,7 +172,8 @@ export default {
         ContentArea,
     },
     setup() {
-        const router = useRouter()
+    const router = useRouter()
+    const route = useRoute()
         const { setTitle } = usePageTitle()
         const {
             authors,
@@ -209,9 +210,11 @@ export default {
         }
 
         const handlePageChange = (page) => {
-            currentPage.value = page
-            loadAuthors(page)
-            // Scroll to top smoothly
+            let target = parseInt(page) || 1
+            if (target < 1) target = 1
+            currentPage.value = target
+            router.push({ query: { ...route.query, page: target > 1 ? target : undefined } })
+            loadAuthors(target)
             window.scrollTo({ top: 0, behavior: 'smooth' })
         }
 
@@ -239,7 +242,17 @@ export default {
         }
 
         onMounted(() => {
-            loadAuthors()
+            const initial = parseInt(route.query.page) || 1
+            currentPage.value = initial
+            loadAuthors(initial)
+        })
+
+        watch(() => route.query.page, (val) => {
+            const target = parseInt(val) || 1
+            if (target !== currentPage.value) {
+                currentPage.value = target
+                loadAuthors(target)
+            }
         })
 
         return {

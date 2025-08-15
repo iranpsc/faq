@@ -141,8 +141,8 @@
 </template>
 
 <script>
-import { onMounted, ref, computed, getCurrentInstance, onBeforeUnmount, defineAsyncComponent } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, computed, getCurrentInstance, onBeforeUnmount, defineAsyncComponent, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useQuestions, useUsers } from '../composables'
 import { usePageTitle } from '../composables/usePageTitle'
 const QuestionCard = defineAsyncComponent(() => import('../components/QuestionCard.vue'))
@@ -171,7 +171,8 @@ export default {
     },
     emits: [],
     setup(props) {
-        const router = useRouter()
+    const router = useRouter()
+    const route = useRoute()
         const instance = getCurrentInstance()
         const { setTitle } = usePageTitle()
 
@@ -213,15 +214,22 @@ export default {
         // Handle page change
         const handlePageChange = async (page) => {
             if (pagination.value.meta && page === pagination.value.meta.current_page) return
-
             clearErrors()
-
-            const params = { ...currentFilters.value, page }
-
-            // Scroll to top smoothly
-            window.scrollTo({ top: 400, behavior: 'smooth' });
-
+            let target = parseInt(page) || 1
+            if (target < 1) target = 1
+            // Optimistically update URL
+            router.push({ query: { ...route.query, page: target > 1 ? target : undefined } })
+            const params = { ...currentFilters.value, page: target }
+            window.scrollTo({ top: 400, behavior: 'smooth' })
             await fetchQuestions(params)
+            // Clamp if data set smaller now
+            if (pagination.value.meta && target > pagination.value.meta.last_page && pagination.value.meta.last_page > 0) {
+                const last = pagination.value.meta.last_page
+                if (last !== target) {
+                    router.replace({ query: { ...route.query, page: last > 1 ? last : undefined } })
+                    await fetchQuestions({ ...currentFilters.value, page: last })
+                }
+            }
         }
 
         const handleQuestionClick = (question) => {
@@ -274,10 +282,11 @@ export default {
             }
         }
 
-        onMounted(async () => {
-            // Load initial questions and active users in parallel
+        const loadInitial = async () => {
+            const initialPage = parseInt(route.query.page) || 1
+            const params = initialPage > 1 ? { page: initialPage } : {}
             const [questionsResult, usersResult] = await Promise.allSettled([
-                fetchQuestions(),
+                fetchQuestions(params),
                 fetchActiveUsers(5)
             ])
 
@@ -300,6 +309,25 @@ export default {
 
             // Store unsubscribe functions to clean up later
             questionServiceCleanup.value = [unsubscribeQuestionCreated, unsubscribeQuestionUpdated]
+        }
+
+        onMounted(loadInitial)
+
+        // Watch for back/forward navigation changes in page param
+        watch(() => route.query.page, async (newVal, oldVal) => {
+            if (newVal === oldVal) return
+            const targetPage = parseInt(newVal) || 1
+            // Avoid refetch if already on that page
+            if (pagination.value.meta && pagination.value.meta.current_page === targetPage) return
+            await fetchQuestions({ ...currentFilters.value, page: targetPage })
+            // If requested page exceeds last_page (e.g., data changed), clamp & refetch
+            if (pagination.value.meta && targetPage > pagination.value.meta.last_page && pagination.value.meta.last_page > 0) {
+                const last = pagination.value.meta.last_page
+                if (last !== targetPage) {
+                    router.replace({ query: { ...route.query, page: last > 1 ? last : undefined } })
+                    await fetchQuestions({ ...currentFilters.value, page: last })
+                }
+            }
         })
 
         const questionServiceCleanup = ref([])

@@ -86,7 +86,7 @@ export default {
             router.push({ name: 'QuestionShow', params: { slug: question.slug } });
         };
 
-        const fetchData = async (slug, page = 1) => {
+    const fetchData = async (slug, page = 1) => {
             try {
                 loading.value = true;
                 error.value = null;
@@ -123,18 +123,33 @@ export default {
 
         const handlePageChange = async (page) => {
             if (pagination.value.meta && page === pagination.value.meta.current_page) return;
-
-            await fetchData(route.params.slug, page);
+            const target = Math.max(1, page)
+            await fetchData(route.params.slug, target);
+            // update URL for consistency
+            if (target > 1) {
+                router.push({ query: { ...route.query, page: target } })
+            } else if (route.query.page) {
+                router.push({ query: { ...route.query, page: undefined } })
+            }
         };
 
         onMounted(() => {
-            fetchData(route.params.slug);
+            const initialPage = parseInt(route.query.page) || 1;
+            fetchData(route.params.slug, initialPage);
         });
 
         watch(() => route.params.slug, (newSlug) => {
             if (newSlug) {
-                fetchData(newSlug);
+                const pg = parseInt(route.query.page) || 1;
+                fetchData(newSlug, pg);
             }
+        });
+
+        // Watch for page query changes (browser navigation)
+        watch(() => route.query.page, (val) => {
+            const target = parseInt(val) || 1;
+            if (pagination.value.meta && target === pagination.value.meta.current_page) return;
+            fetchData(route.params.slug, target);
         });
 
         return {
