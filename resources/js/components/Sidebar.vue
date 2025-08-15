@@ -4,10 +4,12 @@
         :class="{ 'w-80': isOpen, 'w-16': !isOpen, 'translate-x-0': isOpen, 'translate-x-full lg:translate-x-0': !isOpen }">
         <!-- Toggle Button (when collapsed) -->
         <div v-if="!isOpen" class="flex justify-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0 p-2">
-            <button @click="$emit('toggle')"
+            <button
+                @click="$emit('toggle')"
+                aria-label="باز کردن منو"
                 class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 flex-shrink-0 rotate-180">
                 <svg class="rotate-180 w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                    viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
@@ -33,10 +35,13 @@
                 </router-link>
             </div>
             <!-- Toggle Button (when expanded) -->
-            <button v-if="isOpen" @click="$emit('toggle')"
+            <button
+                v-if="isOpen"
+                @click="$emit('toggle')"
+                aria-label="بستن منو"
                 class="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-all duration-300 flex-shrink-0">
                 <svg class="rotate-180  w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                    viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
@@ -52,6 +57,8 @@
                 <div v-if="isOpen" class="flex-1">
                     <button
                         @click="toggleUserDropdown"
+                        :aria-expanded="userDropdownOpen"
+                        aria-label="باز کردن منوی کاربر"
                         class="flex items-center gap-3 w-full p-2 rounded-lg transition-colors outline-none focus:outline-none focus:ring-0 focus:border-0"
                     >
                         <BaseAvatar :src="user.image_url" :name="user.name" size="lg"
