@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->job(new GenerateSitemaps)->daily();
+        $schedule->job(new GenerateSitemaps)->everyThreeHours();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(StartSession::class);
