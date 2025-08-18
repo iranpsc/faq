@@ -178,7 +178,38 @@ class UserController extends Controller
             'image' => $user->image_url,
             'score' => $user->score ?? 0,
             'online' => $user->online ?? false,
+            'login_notification_enabled' => $user->login_notification_enabled ?? false,
             'created_at' => $user->created_at,
+        ]);
+    }
+
+    /**
+     * Update user settings
+     */
+    public function updateSettings(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'login_notification_enabled' => 'boolean',
+        ], [
+            'login_notification_enabled.boolean' => 'مقدار تنظیمات ورود باید درست یا نادرست باشد',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'خطا در اعتبارسنجی',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        $user->update([
+            'login_notification_enabled' => $request->boolean('login_notification_enabled', false),
+        ]);
+
+        return response()->json([
+            'message' => 'تنظیمات با موفقیت بروزرسانی شد',
+            'login_notification_enabled' => $user->login_notification_enabled,
         ]);
     }
 }

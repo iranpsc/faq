@@ -48,7 +48,7 @@ class QuestionInteractionNotification extends Notification implements ShouldQueu
         return (new MailMessage)
             ->subject($subject)
             ->greeting("سلام! {$notifiable->name}")
-            ->line("کاربر '{$notifiable->name}' به سوال شما {$actionText}.")
+            ->line("کاربر '{$this->user->name}' به سوال شما {$actionText}.")
             ->line("عنوان سوال: {$this->question->title}")
             ->action('مشاهده سوال', url("/questions/{$this->question->slug}"))
             ->line('با تشکر از استفاده شما از پلتفرم ما!');

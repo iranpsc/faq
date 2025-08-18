@@ -74,11 +74,13 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
     Route::get('/stats', [UserController::class, 'stats']);
     Route::get('/activity', [UserController::class, 'activity']);
     Route::post('/update-image', [UserController::class, 'updateImage']);
+    Route::post('/settings', [UserController::class, 'updateSettings']);
 });
 
 // File upload routes
-Route::middleware('auth:sanctum')->prefix('upload')->group(function () {
+Route::middleware('auth.optional')->prefix('upload')->group(function () {
     Route::post('/tinymce-image', [FileUploadController::class, 'uploadTinyMCEImage']);
+    Route::post('/quill-image', [FileUploadController::class, 'uploadQuillImage']);
     Route::post('/file', [FileUploadController::class, 'uploadFile']);
     Route::delete('/file', [FileUploadController::class, 'deleteFile']);
 });

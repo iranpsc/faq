@@ -74,40 +74,15 @@ html.dark a:focus {
     transform: rotate(3deg) translate(0px, -4px);
 }
 
-/* TinyMCE z-index fixes for modal compatibility */
-.tox-tinymce-aux {
+/* Quill Editor z-index fixes for modal compatibility */
+.ql-tooltip {
     z-index: 99999 !important;
 }
 
-.tox-dialog-wrap {
+.ql-picker-options {
     z-index: 99999 !important;
 }
 
-.tox-dialog {
-    z-index: 99999 !important;
-}
-
-.tox-dialog__backdrop {
-    z-index: 99998 !important;
-}
-
-.tox-pop {
-    z-index: 99999 !important;
-}
-
-.tox-menu {
-    z-index: 99999 !important;
-}
-
-.tox .tox-dialog {
-    z-index: 99999 !important;
-}
-
-/* Additional TinyMCE fixes */
-.tox-collection {
-    z-index: 99999 !important;
-}
-
-.tox-toolbar__overflow {
+.ql-snow .ql-tooltip {
     z-index: 99999 !important;
 }

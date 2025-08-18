@@ -11,7 +11,7 @@ class FileUploadController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum');
+        // Optional authentication is handled at route level
     }
 
     /**
@@ -61,6 +61,57 @@ class FileUploadController extends Controller
 
         } catch (\Exception $e) {
             // Return error in TinyMCE expected format
+            return response()->json([
+                'error' => 'خطا در آپلود تصویر: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload image for Quill editor
+     */
+    public function uploadQuillImage(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Max 5MB
+        ], [
+            'file.required' => 'لطفا یک تصویر انتخاب کنید',
+            'file.image' => 'فایل انتخابی باید یک تصویر باشد',
+            'file.mimes' => 'فرمت تصویر باید از نوع: jpeg, png, jpg, gif, webp باشد',
+            'file.max' => 'حجم تصویر نباید بیشتر از 5 مگابایت باشد',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'خطا در اعتبارسنجی: ' . $validator->errors()->first()
+            ], 422);
+        }
+
+        try {
+            $image = $request->file('file');
+
+            // Generate unique filename
+            $timestamp = time();
+            $microseconds = substr(microtime(), 2, 6);
+            $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $image->getClientOriginalExtension();
+            $filename = $originalName . '_' . $timestamp . '_' . $microseconds . '.' . $extension;
+
+            // Store the image in the 'editor-images' directory
+            $path = $image->storeAs('editor-images', $filename, 'public');
+
+            // Generate the full URL
+            $fullUrl = asset('storage/' . $path);
+
+            // Return the location as expected by Quill
+            return response()->json([
+                'location' => $fullUrl
+            ], 200, [
+                'Content-Type' => 'application/json'
+            ]);
+
+        } catch (\Exception $e) {
             return response()->json([
                 'error' => 'خطا در آپلود تصویر: ' . $e->getMessage()
             ], 500);

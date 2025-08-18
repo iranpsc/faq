@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\FetchUserLevel;
+use App\Notifications\LoginNotification;
 
 class AuthController extends Controller
 {
@@ -96,6 +97,15 @@ class AuthController extends Controller
         }
 
         $this->guard()->login($user);
+
+        // Send login notification if enabled
+        if ($user->login_notification_enabled) {
+            $loginData = [
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ];
+            $user->notify(new LoginNotification($user, $loginData));
+        }
 
         // Dispatch job to fetch user level
         FetchUserLevel::dispatch($user);

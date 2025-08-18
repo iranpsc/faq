@@ -29,8 +29,7 @@ const $swal = (...args) => ensureSwal().then(Swal => Swal.fire(...args))
 $swal.fire = (...args) => ensureSwal().then(Swal => Swal.fire(...args))
 app.config.globalProperties.$swal = $swal
 
-// Lazy-load the rich text editor to keep initial bundle small
-app.component('Editor', defineAsyncComponent(() => import('@tinymce/tinymce-vue')));
+// Quill is imported directly in the BaseEditor component
 // Provide the centralized API client
 app.config.globalProperties.$api = api;
 if (typeof window !== 'undefined') {

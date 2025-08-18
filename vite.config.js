@@ -28,7 +28,7 @@ export default defineConfig({
                         if (id.includes('@headlessui') || id.includes('primevue')) return 'vendor-ui'
 
                         // Text editing
-                        if (id.includes('tinymce') || id.includes('quill')) return 'vendor-editor'
+                        if (id.includes('quill')) return 'vendor-editor'
 
                         // Utilities
                         if (id.includes('date-fns') || id.includes('select2') || id.includes('jquery')) return 'vendor-utils'
@@ -47,9 +47,11 @@ export default defineConfig({
                     if (id.includes('/composables/')) return 'composables'
                 },
             },
+            // Disable tree-shaking for Quill to avoid build errors
+            treeshake: false
         },
         chunkSizeWarningLimit: 900,
-        // Enable compression
+        // Re-enable minification
         minify: 'terser',
         terserOptions: {
             compress: {
@@ -63,4 +65,7 @@ export default defineConfig({
         // Asset optimization
         assetsInlineLimit: 2048,
     },
+    optimizeDeps: {
+        include: ['quill']
+    }
 });

@@ -31,7 +31,8 @@ class User extends Authenticatable
         'refresh_token',
         'expires_in',
         'token_type',
-        'role'
+        'role',
+        'login_notification_enabled'
     ];
 
     /**
@@ -46,6 +47,7 @@ class User extends Authenticatable
         'refresh_token' => '',
         'expires_in' => null,
         'token_type' => 'Bearer',
+        'login_notification_enabled' => false,
     ];
 
     /**
@@ -114,6 +116,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'expires_in' => 'datetime',
             'score' => 'integer',
+            'login_notification_enabled' => 'boolean',
         ];
     }
 
