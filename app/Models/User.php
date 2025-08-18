@@ -51,6 +51,21 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'expires_in' => 'datetime',
+            'score' => 'integer',
+            'login_notification_enabled' => 'boolean',
+        ];
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
@@ -103,21 +118,6 @@ class User extends Authenticatable
         ];
 
         return $levelNames[$this->level] ?? 'نامشخص';
-    }
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'expires_in' => 'datetime',
-            'score' => 'integer',
-            'login_notification_enabled' => 'boolean',
-        ];
     }
 
     /**
