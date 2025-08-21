@@ -4,27 +4,27 @@
         :class="{ 'w-80': isOpen, 'w-16': !isOpen, 'translate-x-0': isOpen, 'translate-x-full lg:translate-x-0': !isOpen }">
         <!-- Toggle Button (when collapsed) -->
         <div v-if="!isOpen" class="flex justify-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0 p-2">
-            <button
-                @click="$emit('toggle')"
-                aria-label="باز کردن منو"
-                class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 flex-shrink-0 rotate-180">
-                <svg class="rotate-180 w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </button>
+<button
+    @click="$emit('toggle')"
+    aria-label="باز کردن منو"
+    class="p-2 rounded-full">
+    <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
+        viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+</button>
         </div>
 
         <!-- Fixed Header -->
         <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
-            :class="{ 'p-4': isOpen, 'p-2': !isOpen }">
+            :class="{ 'p-4': isOpen, 'p-2 pr-[10px]': !isOpen }">
             <div class="flex items-center gap-3" :class="{ 'flex-1': isOpen }">
                 <router-link to="/">
                     <div
                         class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
                         <div
-                            class="w-6 h-6 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center">
-                            <img :src="logoUrl" alt="انجمن حم" loading="lazy" decoding="async" class="w-full h-full object-contain rounded-full" width="24" height="24" style="aspect-ratio:1/1; contain:paint;">
+                            class="w-[30px] h-[30px] rounded-full flex items-center justify-center">
+                            <img :src="logoUrl" alt="انجمن حم" loading="lazy" decoding="async" class="w-full h-full object-contain rounded-full" width="30" height="30" style="aspect-ratio:1/1; contain:paint;">
                         </div>
                     </div>
                 </router-link>
@@ -48,10 +48,10 @@
         </div>
 
         <!-- Fixed User Profile Section -->
-        <div class="border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
-            :class="{ 'p-4': isOpen, 'p-2': !isOpen }">
-            <div v-if="isAuthenticated && user" class="flex items-center gap-3"
-                :class="{ 'mb-4': isOpen, 'mb-0': !isOpen }">
+        <div class="border-b border-gray-200 dark:border-gray-700 flex-shrink-0 w-full"
+            :class="{ 'p-4': isOpen, 'px-0 pr-[10px]': !isOpen }">
+            <div v-if="isAuthenticated && user" class="flex items-center gap-3 "
+                :class="{ 'mb-4': isOpen, 'mr-10 mb-0  w-full': !isOpen }">
 
                 <!-- User Profile with Collapsible Menu (when expanded) -->
                 <div v-if="isOpen" class="flex-1">
@@ -61,7 +61,7 @@
                         aria-label="باز کردن منوی کاربر"
                         class="flex items-center gap-3 w-full p-2 rounded-lg transition-colors outline-none focus:outline-none focus:ring-0 focus:border-0"
                     >
-                        <BaseAvatar :src="user.image_url" :name="user.name" size="lg"
+                        <BaseAvatar :src="user.image_url" :name="user.name" size="md"
                             :status="user.online ? 'online' : 'offline'" />
                         <div class="text-right flex-1">
                             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{{ user.name }}</h4>
@@ -113,14 +113,14 @@
 
                 <!-- Collapsed view - just avatar -->
                 <div v-else class="flex items-center justify-center">
-                    <BaseAvatar :src="user.image_url" :name="user.name" size="lg"
+                    <BaseAvatar :src="user.image_url" :name="user.name" size="md"
                         :status="user.online ? 'online' : 'offline'" />
                 </div>
             </div>
 
             <!-- Guest User Section -->
             <div v-else class="flex items-center gap-3" :class="{ 'mb-4': isOpen, 'mb-0': !isOpen }">
-                <BaseAvatar size="lg" variant="secondary" />
+                <BaseAvatar size="md" variant="secondary" />
                 <div class="text-right flex-1 transition-all duration-300"
                     :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">
                     <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">کاربر مهمان</h4>

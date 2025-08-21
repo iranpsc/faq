@@ -9,16 +9,16 @@
                     ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
                     : ''
     ]">
-        <div class="p-6">
+        <div class=" p-1 md:p-6">
             <!-- Section 1: Category and Pin Badge (right), Creation Date and Pin Button (left) -->
             <div class="flex items-center justify-between mb-2 min-h-[32px]">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 mb-4">
                     <!-- Category Badge -->
                     <router-link v-if="question.category" :to="`/categories/${question.category.slug}`">
-                        <BaseBadge size="lg"
-                            class="cursor-pointer hover:-translate-y-0.5 transition-all duration-200 px-8 py-1 border-2 border-gray-400 dark:border-gray-200">
+                        <span
+                            class="cursor-pointer  transition-all duration-300 px-5 2xl:px-8 py-1 pt-[5px] border border-gray-400 dark:border-gray-200 rounded-full text-sm">
                             {{ question.category.name }}
-                        </BaseBadge>
+                        </span>
                     </router-link>
                     <!-- Pin Badge -->
                     <BaseBadge v-if="question.is_pinned_by_user" variant="success" size="sm"
@@ -60,14 +60,14 @@
             </div>
 
             <!-- Tags Section -->
-            <div v-if="question.tags && question.tags.length" class="flex flex-wrap gap-2 my-2 min-h-[36px]">
+            <div v-if="question.tags && question.tags.length" class="flex flex-wrap gap-2 my-2 min-h-[36px] items-center">
                 <span class="text-sm text-gray-500 dark:text-gray-400">برچسب‌ها:</span>
                 <BaseBadge
                     v-for="tag in showAllTags ? question.tags : question.tags.slice(0, 5)"
                     :key="tag.id"
                     size="sm"
                     variant="info"
-                    class="px-4 py-1 border border-blue-300 dark:border-blue-700 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                    class="px-2 py-1  border border-blue-300 dark:border-blue-700 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
                 >
                     {{ tag.name }}
                 </BaseBadge>
@@ -85,14 +85,14 @@
             <div
                 class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
                 <!-- User Info and Stats (right) -->
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-6 text-xs md:text-sm">
                     <!-- User Info -->
                     <router-link
                         v-if="question.user"
                         :to="`/authors/${question.user.id}`"
                         class="flex items-center gap-2 hover:underline"
                     >
-                        <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="xs" />
+                        <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="sm" />
                         <span>{{ question.user?.name }}</span>
                     </router-link>
                     <!-- Stats -->
@@ -102,7 +102,7 @@
                                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
                             </path>
                         </svg>
-                        {{ question?.answers_count || 0 }} پاسخ
+                        {{ question?.answers_count || 0 }} <span class="hidden md:block">پاسخ</span>
                     </span>
                     <span class="flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@
                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
                             </path>
                         </svg>
-                        {{ question?.votes_count || 0 }} رای
+                        {{ question?.votes_count || 0 }} <span class="hidden md:block">رای</span>
                     </span>
                     <span class="flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +120,7 @@
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
                             </path>
                         </svg>
-                        {{ question.views }} بازدید
+                        {{ question.views }} <span class="hidden md:block">بازدید</span>
                     </span>
                     <!-- Solved Badge -->
                     <span v-if="question.is_solved"

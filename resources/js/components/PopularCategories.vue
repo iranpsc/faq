@@ -22,7 +22,7 @@
         </div>
 
         <!-- Categories -->
-        <div v-else-if="popularCategories.length > 0" class="flex flex-wrap gap-2">
+        <div v-else-if="popularCategories.length > 0" class="flex  gap-2">
             <TransitionGroup name="category" tag="div" class="flex flex-wrap gap-2">
                 <BaseBadge
                     v-for="category in popularCategories"
@@ -34,14 +34,15 @@
                 >
                     {{ category.name }}
                 </BaseBadge>
-            </TransitionGroup>
-            <button
-                class="px-4 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium bg-blue-200 hover:bg-blue-400 dark:hover:bg-gray-700 transition-colors"
+                 <button
+                class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-green-500 text-sm font-medium   transition-colors px-6 py-2 border-2 light:border-gray-400 dark:border-gray-200"
                 @click="goToCategories"
                 type="button"
             >
                 مشاهده بیشتر
             </button>
+            </TransitionGroup>
+           
         </div>
 
         <!-- Empty State -->

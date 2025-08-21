@@ -1,3 +1,4 @@
+
 <template>
     <ContentArea layout="with-sidebar" :show-sidebar="true" main-width="3/4" sidebar-width="1/4">
         <!-- Hero Section -->
@@ -80,14 +81,15 @@
         <template #footer>
             <!-- Most Active Users Section -->
             <div v-if="!isLoading && questions.length > 0">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                <div class="flex items-center justify-between mb-6 px-1">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                         فعالان انجمن
                     </h2>
-                    <BaseButton class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center"
+                    <button class="border-2 border-blue-600 dark:border-blue-500 dark:text-blue-500  text-blue-600 md:text-xl rounded-xl px-4 py-2 rounded flex items-center"
                         @click="$router.push('/authors')">
                         مشاهده بیشتر
-                    </BaseButton>
+                    </button
+                    >
                 </div>
 
                 <!-- Loading State for Active Users -->

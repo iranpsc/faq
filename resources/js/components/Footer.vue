@@ -1,7 +1,7 @@
 <template>
-    <footer class="bg-gray-100 dark:bg-gray-800 py-8 mb-0 pb-0 transition-colors duration-300">
+    <footer class=" py-8 mb-0 pb-0 px-4 md:px-7 transition-colors duration-300 space-y-6">
         <!-- Top icons section -->
-        <div class="flex-wrap flex justify-center items-center gap-2 mx-auto " style="margin-bottom:50px ;">
+        <div class="flex-wrap flex justify-center items-center gap-2 mx-auto p-4 rounded-3xl bg-gray-100 dark:bg-gray-800 w-full">
             <a href="https://irpsc.com" style="width:55px; height:55px;" target="_blank " title="وزارت تعاون کار و رفاه اجتماعی">
                 <img src="https://irpsc.com/img-icon/vezarat.png" alt="وزارت تعاون کار و رفاه اجتماعی" width="55" height="55" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="aspect-ratio:1/1; object-fit:contain;">
             </a>
@@ -67,7 +67,7 @@
         </div>
 
         <!-- Main content sections -->
-        <div class="container mx-auto px-4 mb-8">
+        <div class=" mx-auto ">
             <div class="grid md:grid-cols-2 gap-6">
                 <!-- Ask Question Section (Blue) -->
                 <BaseCard variant="shadow" rounded="3xl" padding="lg"
@@ -113,7 +113,7 @@
         </div>
 
         <!-- Links and Social Media Section -->
-        <div class="bg-gray-200 dark:bg-gray-700 py-6 mx-4 rounded-t-3xl mb-0 transition-colors duration-300">
+        <div class="bg-gray-200 dark:bg-gray-700 py-6  rounded-t-3xl mb-0 transition-colors duration-300">
             <div class="container mx-auto px-4">
                 <!-- Navigation Links -->
                 <div class="flex justify-center items-center gap-8 mb-6 flex-wrap">
@@ -126,7 +126,6 @@
                         class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">سیاست
                         و حریم خصوصی</a>
                 </div>
-
                 <!-- Social Media Icons -->
                 <div class="flex justify-center items-center gap-4 mb-4">
                     <a href="#"
@@ -172,7 +171,6 @@
                         </svg>
                     </a>
                 </div>
-
                 <!-- Copyright text -->
                 <div class="text-center">
                     <p class="text-gray-600 dark:text-gray-400 text-sm">تمام حقوق مادی و معنوی مطالب و طرح قالب برای این

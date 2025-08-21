@@ -257,7 +257,7 @@ export default {
       }
 
       if (this.focused) {
-        return 'border-blue-500 dark:border-blue-400 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400'
+        return 'border-blue-500 dark:border-blue-400 focus:border-blue-500 dark:focus:border-blue-400  !ring-0 !outline-none '
       }
 
       return 'focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400'

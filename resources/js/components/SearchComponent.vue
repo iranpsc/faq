@@ -1,6 +1,6 @@
 <template>
     <!-- Desktop Search (hidden on mobile) -->
-    <div class="hidden md:block relative" ref="dropdownRef">
+    <div class="hidden md:block relative z-50" ref="dropdownRef">
         <!-- Search Input -->
         <BaseInput v-model="searchQuery" :placeholder="placeholder" :variant="variant" :rounded="rounded"
             @update:modelValue="handleInput" @focus="handleFocus" @keydown="handleKeydown" :class="inputClass">
@@ -56,11 +56,11 @@
                             </h4>
 
                             <!-- Stats row -->
-                            <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                            <div class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                 <!-- Solved badge -->
                                 <span v-if="question.is_solved"
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 ml-2">
-                                    <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-sm font-semibold bg-green-100 text-green-700 ml-2">
+                                    <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M5 13l4 4L19 7"></path>
@@ -68,43 +68,38 @@
                                     حل شده
                                 </span>
                                 <!-- Category -->
-                                <span v-if="question.category" class="flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
-                                        </path>
-                                    </svg>
+                                <span v-if="question.category" class="flex items-center gap-1 text-sm ml-2">
                                     {{ question.category.name }}
                                 </span>
                                 <!-- Answers count -->
                                 <span class="flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
                                         </path>
                                     </svg>
-                                    {{ question.answers_count || 0 }}
+                                    <span class="mt-[5px] text-sm">{{ question.answers_count || 0 }}</span>
                                 </span>
                                 <span class="mx-2">|</span>
                                 <!-- Votes count -->
                                 <span class="flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
                                     </svg>
-                                    {{ question.votes_count || 0 }}
+                                    <span class="mt-[5px] text-sm">{{ question.votes_count || 0 }}</span>
                                 </span>
                                 <span class="mx-2">|</span>
                                 <!-- Views -->
                                 <span class="flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
                                         </path>
                                     </svg>
-                                    {{ question.views || 0 }}
+                                    <span class="mt-[5px] text-sm">{{ question.views || 0 }}</span>
                                 </span>
                             </div>
                         </div>
@@ -139,6 +134,18 @@
         </button>
     </div>
 
+    <!-- Blur Backdrop for Desktop and Mobile -->
+    <Teleport to="body">
+        <Transition enter-active-class="transition ease-out duration-300"
+            enter-from-class="opacity-0" enter-to-class="opacity-100"
+            leave-active-class="transition ease-in duration-200"
+            leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="showDropdown || isMobileSearchOpen"
+                class="fixed inset-0 z-30 backdrop-blur-md bg-black/20 dark:bg-black/30"
+                @click="hideBackdrop"></div>
+        </Transition>
+    </Teleport>
+
     <!-- Mobile Search Overlay (full width below header) -->
     <Teleport to="body">
         <Transition enter-active-class="transition ease-out duration-300"
@@ -149,7 +156,7 @@
                 class="fixed inset-x-0 top-16 z-40 bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 md:hidden"
                 ref="mobileSearchRef">
                 <!-- Mobile Search Input -->
-                <div class="p-4">
+                <div class="p-4 relative z-50">
                     <BaseInput v-model="searchQuery" :placeholder="placeholder" :variant="variant" :rounded="rounded"
                         @update:modelValue="handleInput" @focus="handleFocus" @keydown="handleKeydown" class="w-full"
                         ref="mobileSearchInput">
@@ -356,10 +363,10 @@ export default {
             showDropdown.value = true
 
             try {
-                const result = await searchQuestions(query.trim(), 50) // Fetch more results (up to 50)
+                const result = await searchQuestions(query.trim(), 50)
                 allSearchResults.value = result.data || []
-                searchResults.value = allSearchResults.value.slice(0, 10) // Initially show only 10
-                showLimit.value = 10 // Reset show limit
+                searchResults.value = allSearchResults.value.slice(0, 10)
+                showLimit.value = 10
             } catch (error) {
                 console.error('Search failed:', error)
                 searchResults.value = []
@@ -389,28 +396,18 @@ export default {
             showDropdown.value = false
         }
 
-        const handleSearch = (query) => {
-            if (query && query.trim()) {
-                // For now, you can implement a search page or just log the search
-                console.log('Searching for:', query.trim())
-                // TODO: Implement search page navigation
-                // router.push({ name: 'Search', query: { q: query.trim() } })
-            }
+        const hideBackdrop = () => {
+            showDropdown.value = false
+            isMobileSearchOpen.value = false
         }
 
         const selectQuestion = (question) => {
             if (question && question.id) {
-                // Keep the search query as is, don't replace with question title
                 showDropdown.value = false
                 isMobileSearchOpen.value = false
                 emit('select', question)
-
-                // Navigate to the question page
                 const targetRoute = `/questions/${question.slug}`
-
-                // Use router.push and handle potential navigation errors
                 router.push(targetRoute).catch(error => {
-                    // Handle navigation errors (e.g., navigating to the same route)
                     if (error.name !== 'NavigationDuplicated') {
                         console.error('Navigation error:', error)
                     }
@@ -420,9 +417,7 @@ export default {
 
         const toggleMobileSearch = () => {
             isMobileSearchOpen.value = !isMobileSearchOpen.value
-
             if (isMobileSearchOpen.value) {
-                // Focus the mobile search input after the transition
                 nextTick(() => {
                     if (mobileSearchInput.value) {
                         const inputElement = mobileSearchInput.value.$el?.querySelector('input') || mobileSearchInput.value.$el
@@ -482,7 +477,6 @@ export default {
             }
         }
 
-        // Lifecycle hooks
         onMounted(() => {
             document.addEventListener('click', handleClickOutside)
         })
@@ -492,7 +486,6 @@ export default {
             clearTimeout(searchTimeout.value)
         })
 
-        // Watch for modelValue changes from parent
         watch(() => props.modelValue, (newValue) => {
             if (newValue !== searchQuery.value) {
                 searchQuery.value = newValue
@@ -517,7 +510,8 @@ export default {
             handleKeydown,
             selectQuestion,
             toggleMobileSearch,
-            showMoreQuestions
+            showMoreQuestions,
+            hideBackdrop
         }
     }
 }
@@ -535,7 +529,6 @@ export default {
 /* Mobile search overlay positioning */
 .fixed.inset-x-0.top-16 {
     top: 4rem;
-    /* Adjust based on your header height */
 }
 
 /* Smooth transitions for mobile search */
@@ -585,15 +578,24 @@ export default {
     background: #718096;
 }
 
-/* Ensure mobile search is above other content */
-.fixed.z-40 {
+/* Ensure mobile search and desktop input are above blur backdrop */
+.fixed.z-40, .relative.z-50 {
     z-index: 40;
 }
 
-/* Mobile search backdrop blur effect */
-@supports (backdrop-filter: blur(10px)) {
-    .fixed.inset-x-0.top-16.z-40 {
-        backdrop-filter: blur(10px);
+/* Blur backdrop styling */
+.backdrop-blur-md {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* برای سازگاری با Safari */
+}
+
+/* Fallback for browsers that don't support backdrop-filter */
+@supports not (backdrop-filter: blur(10px)) {
+    .backdrop-blur-md {
+        background-color: rgba(0, 0, 0, 0.3); /* فال‌بک برای حالت روشن */
+    }
+    :global(.dark) .backdrop-blur-md {
+        background-color: rgba(0, 0, 0, 0.4); /* فال‌بک برای حالت دارک */
     }
 }
 </style>
