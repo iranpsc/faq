@@ -49,39 +49,51 @@
       </transition>
     </div>
 
-    <!-- Add Answer Form -->
-    <div v-if="isAuthenticated" class="mb-8">
+    <!-- Add Answer Section -->
+    <div class="mb-8">
       <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
         پاسخ خود را ثبت کنید
       </h4>
-      <form @submit.prevent="submitAnswer">
-        <BaseEditor
-          v-model="newAnswer"
-          mode="simple"
-          :height="300"
-          placeholder="پاسخ خود را بنویسید..."
-          :image-upload="true"
-        />
-        <div class="mt-4 flex justify-end">
-          <button
-            type="submit"
-            :disabled="!newAnswer.trim() || isSubmittingAnswer"
-            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ isSubmittingAnswer ? 'در حال ارسال...' : 'ارسال پاسخ' }}
-          </button>
-        </div>
-      </form>
-    </div>
-    <div v-else class="mb-8 border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-center">
-      <p class="text-gray-600 dark:text-gray-400">
-        برای ثبت پاسخ، لطفا وارد حساب کاربری خود شوید.
-      </p>
+      <div v-if="isAuthenticated">
+        <button
+          @click="toggleAnswerForm"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          {{ showAnswerForm ? 'بستن فرم پاسخ' : ' پاسخ خود را بنویسید' }}
+        </button>
+        <transition name="fade">
+          <div v-if="showAnswerForm" class="mt-4">
+            <form @submit.prevent="submitAnswer">
+              <BaseEditor
+                v-model="newAnswer"
+                mode="simple"
+                :height="300"
+                placeholder="پاسخ خود را بنویسید..."
+                :image-upload="true"
+              />
+              <div class="mt-4 flex justify-end">
+                <button
+                  type="submit"
+                  :disabled="!newAnswer.trim() || isSubmittingAnswer"
+                  class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {{ isSubmittingAnswer ? 'در حال ارسال...' : 'ارسال پاسخ' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </transition>
+      </div>
+      <div v-else class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-center">
+        <p class="text-gray-600 dark:text-gray-400">
+          برای ثبت پاسخ، لطفا وارد حساب کاربری خود شوید.
+        </p>
+      </div>
     </div>
 
     <!-- Answers List -->
     <div class="space-y-8">
-  <div v-if="sortedAnswers.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      <div v-if="sortedAnswers.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
         هنوز پاسخی ثبت نشده است. اولین نفری باشید که پاسخ می‌دهد!
       </div>
 
@@ -320,9 +332,12 @@ export default {
       { value: 'correct', label: 'پاسخ‌های صحیح' }
     ]
     const showClearFilter = computed(() => selectedFilter.value !== defaultFilter)
-  const showFilters = ref(false)
-  const filterWrapper = ref(null)
-  const currentFilterLabel = computed(() => filterOptions.find(o => o.value === selectedFilter.value)?.label || 'جدیدترین')
+    const showFilters = ref(false)
+    const filterWrapper = ref(null)
+    const currentFilterLabel = computed(() => filterOptions.find(o => o.value === selectedFilter.value)?.label || 'جدیدترین')
+
+    // Add Answer Form state
+    const showAnswerForm = ref(false)
 
     // Computed properties
     const hasMoreAnswers = computed(() => {
@@ -441,6 +456,10 @@ export default {
 
     const toggleFilterDropdown = () => {
       showFilters.value = !showFilters.value
+    }
+
+    const toggleAnswerForm = () => {
+      showAnswerForm.value = !showAnswerForm.value
     }
 
     const handleClickOutside = (e) => {
@@ -759,16 +778,18 @@ export default {
       isLoadingMoreAnswers,
       usePagination,
       answersPagination,
-  selectedFilter,
-  filterOptions,
-  showClearFilter,
-  defaultFilter,
-  changeFilter,
-  selectFilter,
-  showFilters,
-  toggleFilterDropdown,
-  currentFilterLabel,
-  filterWrapper,
+      selectedFilter,
+      filterOptions,
+      showClearFilter,
+      defaultFilter,
+      changeFilter,
+      selectFilter,
+      showFilters,
+      toggleFilterDropdown,
+      currentFilterLabel,
+      filterWrapper,
+      showAnswerForm,
+      toggleAnswerForm,
       submitAnswer,
       startEdit,
       cancelEdit,

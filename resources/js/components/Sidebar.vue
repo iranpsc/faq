@@ -51,7 +51,7 @@
         <div class="border-b border-gray-200 dark:border-gray-700 flex-shrink-0 w-full"
             :class="{ 'p-4': isOpen, 'px-0 pr-[10px]': !isOpen }">
             <div v-if="isAuthenticated && user" class="flex items-center gap-3 "
-                :class="{ 'mb-4': isOpen, 'mr-10 mb-0  w-full': !isOpen }">
+                :class="{ 'mb-4': isOpen, ' mb-0 py-2 w-full': !isOpen }">
 
                 <!-- User Profile with Collapsible Menu (when expanded) -->
                 <div v-if="isOpen" class="flex-1">
