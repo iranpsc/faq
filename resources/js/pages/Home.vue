@@ -114,19 +114,21 @@
                 </div>
 
                 <!-- Active Users Grid -->
-                <div v-else-if="activeUsers.length > 0" class="grid gap-2"
+                <div v-else-if="activeUsers.length > 0"
+                    class="grid gap-2 items-stretch"
                     style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                     <TransitionGroup name="user" tag="div" class="contents">
                         <router-link
                             v-for="user in activeUsers"
                             :key="user.id"
                             :to="`/authors/${user.id}`"
-                            class="block"
+                            class="block h-full"
                         >
-                            <UserCard :user="user" />
+                            <UserCard :user="user" class="h-full flex flex-col" />
                         </router-link>
                     </TransitionGroup>
                 </div>
+
 
                 <!-- Empty State for Active Users -->
                 <div v-else class="text-center py-8">

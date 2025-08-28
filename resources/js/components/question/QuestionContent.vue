@@ -11,21 +11,29 @@
                     class="text-right min-w-0 group focus:outline-none focus:ring-2 focus:ring-blue-500 rounded block"
                     :title="`نمایش پروفایل ${question.user?.name || ''}`"
                 >
-                    <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" class="transition-transform group-hover:scale-105" />
-                    <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate group-hover:underline">{{ question.user?.name }}</span>
+                <div class="flex gap-2">
+                       <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="lg" class="transition-transform group-hover:scale-105" />
+                    <div class="flex flex-col justify-between py-[2px]">
+                        <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate group-hover:underline">{{ question.user?.name }}</span>
                     <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">
                         امتیاز: {{ formatNumber(question.user.score) }}
                     </div>
+                    </div>
+                </div>
                 </router-link>
                 <div v-else class="text-right min-w-0">
-                    <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" />
-                    <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ question.user?.name }}</span>
+                    <div class="flex gap-2">
+                        <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="md" />
+                    <div class="flex flex-col justify-between py-[2px]">
+                        <span class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ question.user?.name }}</span>
                     <div v-if="question.user?.score" class="text-xs text-blue-600 whitespace-nowrap">
                         امتیاز: {{ formatNumber(question.user.score) }}
+                    </div>
+                    </div>
                     </div>
                 </div>
                 <!-- Category -->
-                <span v-if="question.category?.name" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap">{{ question.category.name }}</span>
+                <span v-if="question.category?.name" class="px-3 py-1 border text-gray-700 dark:text-gray-300 text-sm rounded-full whitespace-nowrap">{{ question.category.name }}</span>
             </div>
             <!-- Left: Creation Date -->
             <div class="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">

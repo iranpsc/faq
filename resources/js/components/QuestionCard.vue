@@ -90,7 +90,7 @@
                     <router-link
                         v-if="question.user"
                         :to="`/authors/${question.user.id}`"
-                        class="flex items-center gap-2 hover:underline"
+                        class="flex items-center gap-2 hover:underline text-blue-600 dark:text-blue-500"
                     >
                         <BaseAvatar :src="question.user?.image_url" :name="question.user?.name" size="sm" />
                         <span>{{ question.user?.name }}</span>
