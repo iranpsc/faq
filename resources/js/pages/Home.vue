@@ -9,13 +9,15 @@
                     loading="eager" fetchpriority="high" decoding="async" width="1200" height="480" style="aspect-ratio:1200/480; content-visibility:auto; contain-intrinsic-size:1200px 480px; object-fit:cover;" />
             </div>
         </template>
-
-        <!-- Filters Section -->
-        <template #filters>
+                <template #filters1>
             <!-- Popular Categories Section -->
             <PopularCategories :limit="15" @category-click="handleCategoryClick" :selected-category="selectedCategory"
                 class="mb-6" />
-            <!-- Header -->
+
+        </template>
+        <!-- Filters Section -->
+        <template #filters>
+           
             <FilterQuestion @filters-changed="handleFiltersChanged" />
         </template>
 

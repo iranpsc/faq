@@ -21,7 +21,7 @@
       </div>
 
       <!-- Center - Search bar -->
-      <div class="flex-1 max-w-2xl mx-4">
+      <div class="flex-1 max-w-2xl mx-4 hidden md:block">
         <SearchComponent />
       </div>
 
@@ -43,6 +43,9 @@
         </BaseButton>
       </div>
     </div>
+          <div class="flex-1 w-full mt-4 rounded-xl  md:hidden border">
+        <SearchComponent />
+      </div>
   </header>
 </template>
 

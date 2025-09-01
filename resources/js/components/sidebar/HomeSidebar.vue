@@ -1,5 +1,5 @@
 <template>
-  <aside class="hidden md:block w-full h-full overflow-y-auto sidebar-scrollbar">
+  <aside class=" w-full h-full overflow-y-auto sidebar-scrollbar">
     <div class="space-y-6">
       <!-- Statistics Card -->
       <StatsCard

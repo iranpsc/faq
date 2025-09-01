@@ -79,16 +79,6 @@
       </p>
 
 
-
-
-
-
-
-
-
-
-
-
     </div>
 
     <!-- Answers List -->
@@ -110,7 +100,7 @@
               : ''
           ]"
         >
-          <div class="flex items-start gap-3 sm:gap-6 min-w-0">
+          <div class="flex items-start gap-5 min-w-0">
             <router-link
               v-if="answer.user"
               :to="`/authors/${answer.user.id}`"
@@ -127,7 +117,7 @@
             </router-link>
             <div class="flex-1 min-w-0">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div class="flex items-center gap-2 min-w-0">
+                <div class="flex flex-col justify-start  min-w-0">
                   <router-link
                     v-if="answer.user"
                     :to="`/authors/${answer.user.id}`"

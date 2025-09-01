@@ -1,6 +1,6 @@
 <template>
     <!-- Desktop Search (hidden on mobile) -->
-    <div class="hidden md:block relative z-50" ref="dropdownRef">
+    <div class="flex flex-col relative z-50" ref="dropdownRef">
         <!-- Search Input -->
         <BaseInput v-model="searchQuery" :placeholder="placeholder" :variant="variant" :rounded="rounded"
             @update:modelValue="handleInput" @focus="handleFocus" @keydown="handleKeydown" :class="inputClass">
@@ -20,7 +20,7 @@
             enter-to-class="opacity-100 translate-y-0" leave-active-class="transition ease-in duration-150"
             leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
             <div v-if="showDropdown && (displayedResults.length > 0 || showNoResults)"
-                class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+                class="absolute z-50 w-full mt-14 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-96 overflow-y-auto">
                 <!-- Loading state -->
                 <div v-if="isLoading" class="p-4 text-center text-gray-500 dark:text-gray-400">
                     <div class="flex items-center justify-center gap-2">
@@ -114,25 +114,8 @@
         </Transition>
     </div>
 
-    <!-- Mobile Search Icon (visible on mobile only) -->
-    <div class="md:hidden">
-        <button
-            type="button"
-            class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400"
-            @click="toggleMobileSearch"
-            :aria-label="isMobileSearchOpen ? 'بستن جستجو' : 'باز کردن جستجو'"
-            data-mobile-search-trigger
-        >
-            <svg v-if="!isMobileSearchOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                </path>
-            </svg>
-        </button>
-    </div>
+   
+
 
     <!-- Blur Backdrop for Desktop and Mobile -->
     <Teleport to="body">
@@ -141,7 +124,7 @@
             leave-active-class="transition ease-in duration-200"
             leave-from-class="opacity-100" leave-to-class="opacity-0">
             <div v-if="showDropdown || isMobileSearchOpen"
-                class="fixed inset-0 z-30 backdrop-blur-md bg-black/20 dark:bg-black/30"
+                class="fixed inset-0 z-30  backdrop-blur-md bg-black/20 dark:bg-black/30"
                 @click="hideBackdrop"></div>
         </Transition>
     </Teleport>

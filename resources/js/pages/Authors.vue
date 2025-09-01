@@ -47,30 +47,51 @@
 
                     <!-- Sort Options -->
                     <div class="flex gap-3">
-                        <select
-                            v-model="sortBy"
-                            @change="handleSortChange"
-                            class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
-                                   bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                                   focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="score">مرتب‌سازی بر اساس امتیاز</option>
-                            <option value="questions_count">بر اساس تعداد سوالات</option>
-                            <option value="answers_count">بر اساس تعداد پاسخ‌ها</option>
-                            <option value="name">بر اساس نام</option>
-                            <option value="created_at">بر اساس تاریخ عضویت</option>
-                        </select>
+<div class="relative inline-block w-full">
+  <select
+      v-model="sortBy"
+      @change="handleSortChange"
+      class="px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg
+             bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+             focus:ring-2 focus:ring-blue-500 appearance-none w-full"
+  >
+      <option value="score">مرتب‌سازی بر اساس امتیاز</option>
+      <option value="questions_count">بر اساس تعداد سوالات</option>
+      <option value="answers_count">بر اساس تعداد پاسخ‌ها</option>
+      <option value="name">بر اساس نام</option>
+      <option value="created_at">بر اساس تاریخ عضویت</option>
+  </select>
 
-                        <select
-                            v-model="sortOrder"
-                            @change="handleSortChange"
-                            class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
-                                   bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                                   focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="desc">نزولی</option>
-                            <option value="asc">صعودی</option>
-                        </select>
+  <!-- Arrow SVG سمت چپ -->
+  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <svg class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+  </div>
+</div>
+
+
+
+<div class="relative inline-block w-full">
+  <select
+      v-model="sortOrder"
+      @change="handleSortChange"
+      class="px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg
+             bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+             focus:ring-2 focus:ring-blue-500 appearance-none w-full"
+  >
+      <option value="desc">نزولی</option>
+      <option value="asc">صعودی</option>
+  </select>
+
+  <!-- Arrow SVG سمت چپ -->
+  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <svg class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+  </div>
+</div>
+
                     </div>
                 </div>
             </div>

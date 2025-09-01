@@ -69,7 +69,7 @@
                                 امتیاز:
                                 <BaseBadge variant="primary" size="xs" class="mr-1">{{ user.score }}</BaseBadge>
                             </p>
-                            <p v-if="user.level_name" class="text-xs text-gray-500 dark:text-gray-400">
+                            <p v-if="user.level_name" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 سطح:
                                 <BaseBadge variant="secondary" size="xs" class="mr-1">{{ user.level_name }}</BaseBadge>
                             </p>
