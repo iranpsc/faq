@@ -101,7 +101,7 @@
                                 }"
                                 role="menuitem"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
@@ -137,12 +137,12 @@
                     <li>
                         <router-link to="/" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 12l2.293 2.293a1 1 0 001.414 0L12 8.414l5.293 5.293a1 1 0 001.414 0L21 12m0 0v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6m16 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v3"></path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class=" transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">خانه</span>
                         </router-link>
                     </li>
@@ -150,12 +150,12 @@
                     <li>
                         <router-link to="/categories" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2 mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">دسته بندی ها</span>
                         </router-link>
                     </li>
@@ -164,12 +164,12 @@
                     <li>
                         <router-link to="/tags" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">برچسب ها</span>
                         </router-link>
                     </li>
@@ -178,12 +178,12 @@
                     <li>
                         <router-link to="/activities" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">فعالیت
                                 روز</span>
                         </router-link>
@@ -193,13 +193,13 @@
                     <li>
                         <router-link to="/authors" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                                 </path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">فعالان انجمن</span>
                         </router-link>
                     </li>
@@ -208,13 +208,13 @@
                     <li>
                         <a href="#" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
                                 </path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">اخبار
                                 متاورس</span>
                         </a>
@@ -224,13 +224,13 @@
                     <li>
                         <a href="#" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                                 </path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">انجمن
                                 متاورس</span>
                         </a>
@@ -240,12 +240,12 @@
                     <li>
                         <a href="#" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">درباره
                                 ما</span>
                         </a>
@@ -255,13 +255,13 @@
                     <li>
                         <a href="#" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                                 </path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">ارتباط با
                                 ما</span>
                         </a>
@@ -271,13 +271,13 @@
                     <li>
                         <a href="#" class="flex items-center rounded-lg transition-colors"
                             :class="{ 'gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': isOpen, 'p-2 justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700': !isOpen }">
-                            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
+                            <svg class="w-9 h-9 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                                 </path>
                             </svg>
-                            <span class="text-sm transition-all duration-300 whitespace-nowrap"
+                            <span class="text-sm transition-all duration-300 whitespace-nowrap mt-2"
                                 :class="{ 'opacity-100': isOpen, 'opacity-0 w-0 overflow-hidden': !isOpen }">زبان</span>
                         </a>
                     </li>
@@ -292,7 +292,7 @@
             <BaseButton v-if="!isAuthenticated && isOpen" @click="handleLogin" variant="primary" size="lg" block
                 class="mb-4 flex justify-between">
                 <template #icon>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
                         </path>
@@ -305,7 +305,7 @@
             <BaseButton v-if="isAuthenticated && isOpen" @click="handleLogout" variant="danger" size="lg" block
                 class="mb-4 flex justify-between">
                 <template #icon>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
                         </path>

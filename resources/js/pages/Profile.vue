@@ -1,5 +1,5 @@
 <template>
-    <ContentArea layout="centered" :show-sidebar="false">
+    <ContentArea >
         <!-- Main Content -->
         <template #main>
             <!-- Profile Header -->

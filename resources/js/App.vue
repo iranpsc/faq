@@ -1,8 +1,8 @@
 <template>
     <div
         class="app-container bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-        <div :class="{ 'lg:mr-80': sidebarOpen, 'lg:mr-16': !sidebarOpen, 'mr-0': true }"
-            class="flex flex-col flex-grow transition-colors duration-300">
+        <div :class="{ 'lg:mr-80': sidebarOpen, 'lg:mr-16': !sidebarOpen, 'mr-0': true } "
+            class="flex flex-col flex-grow transition-colors duration-300 " style="width: -webkit-fill-available;">
             <Header :sidebarOpen="sidebarOpen" @toggle-sidebar="toggleSidebar" @main-action="handleMainAction" />
             <router-view @edit-question="handleEditQuestion" />
             <Footer />
