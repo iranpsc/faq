@@ -40,10 +40,6 @@
             </div>
         </template>
 
-        <!-- Sidebar -->
-        <template #sidebar>
-            <HomeSidebar />
-        </template>
     </ContentArea>
 
     <!-- Question Modal -->
@@ -61,7 +57,6 @@ const QuestionContent = defineAsyncComponent(() => import('../components/questio
 const CommentsSection = defineAsyncComponent(() => import('../components/question/CommentsSection.vue'))
 const AnswersSection = defineAsyncComponent(() => import('../components/question/AnswersSection.vue'))
 const QuestionModal = defineAsyncComponent(() => import('../components/QuestionModal.vue'))
-const HomeSidebar = defineAsyncComponent(() => import('../components/sidebar/HomeSidebar.vue'))
 const ContentArea = defineAsyncComponent(() => import('../components/ContentArea.vue'))
 import questionService from '../services/questionService.js'
 import api from '../services/api.js'
@@ -80,7 +75,6 @@ export default {
         CommentsSection,
         AnswersSection,
         QuestionModal,
-        HomeSidebar,
         ContentArea
     },
     setup(props, { emit }) {
