@@ -429,17 +429,15 @@ export default {
             }
         }
 
-        onMounted(() => {
-            fetchQuestion()
-            // Add keyboard event listener
-            window.addEventListener('keydown', handleKeyDown)
-
-            // Subscribe to question service events
-            const unsubscribeQuestionUpdated = questionService.subscribe('question-updated', handleExternalQuestionUpdate)
-
-            // Store unsubscribe function to clean up later
-            questionServiceCleanup.value = [unsubscribeQuestionUpdated]
-        })
+            onMounted(() => {
+                fetchQuestion(); 
+                nextTick(() => {
+                    window.scrollTo(0, 0); 
+                });
+                window.addEventListener('keydown', handleKeyDown); 
+                const unsubscribeQuestionUpdated = questionService.subscribe('question-updated', handleExternalQuestionUpdate); 
+                questionServiceCleanup.value = [unsubscribeQuestionUpdated];
+            });
 
         onBeforeUnmount(() => {
             // Clean up event listener
