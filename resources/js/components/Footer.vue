@@ -117,9 +117,7 @@
             <div class="container mx-auto px-4">
                 <!-- Navigation Links -->
                 <div class="flex justify-center items-center gap-8 mb-6 flex-wrap">
-                    <a href="#"
-                        class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">بلاگ
-                        مدل سه بعدی</a>
+
                     <a href="#"
                         class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">آموزش</a>
                     <a href="#"
