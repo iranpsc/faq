@@ -116,6 +116,7 @@ class AuthController extends Controller
         $intendedUrl = cache()->pull('intended_url');
 
         // Validate and sanitize the intended URL
+        // Falls back to frontend app URL from FRONTEND_APP_URL env variable
         $baseUrl = $this->validateAndSanitizeUrl($intendedUrl) ?: config('services.oauth.app_url');
 
         // Use URL fragment to avoid leaking tokens via Referer headers
@@ -171,7 +172,7 @@ class AuthController extends Controller
             return null;
         }
 
-        // Get allowed domains from app URL
+        // Get allowed domains from frontend app URL
         $appDomain = parse_url(config('services.oauth.app_url'), PHP_URL_HOST);
         $urlDomain = $parsedUrl['host'] ?? null;
 
