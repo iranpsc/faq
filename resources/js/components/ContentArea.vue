@@ -18,7 +18,7 @@
 
       <!-- Main Layout -->
       <div :class="layoutClasses">
-              
+
         <!-- Main Content -->
         <div :class="mainContentClasses">
           <div v-if="$slots.filters" class="mb-6">

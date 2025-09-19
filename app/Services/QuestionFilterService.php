@@ -32,12 +32,14 @@ class QuestionFilterService
             $query->where('category_id', $request->category_id);
         }
 
-        // Apply tags filter
+        // Apply tags filter (AND logic - questions must have ALL selected tags)
         if ($request->filled('tags')) {
             $tags = explode(',', $request->tags);
-            $query->whereHas('tags', function ($q) use ($tags) {
-                $q->whereIn('tags.id', $tags);
-            });
+            foreach ($tags as $tagId) {
+                $query->whereHas('tags', function ($q) use ($tagId) {
+                    $q->where('tags.id', $tagId);
+                });
+            }
         }
 
         if ($this->hasActiveFilters($request)) {

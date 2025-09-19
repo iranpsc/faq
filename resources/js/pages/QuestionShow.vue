@@ -430,12 +430,12 @@ export default {
         }
 
             onMounted(() => {
-                fetchQuestion(); 
+                fetchQuestion();
                 nextTick(() => {
-                    window.scrollTo(0, 0); 
+                    window.scrollTo(0, 0);
                 });
-                window.addEventListener('keydown', handleKeyDown); 
-                const unsubscribeQuestionUpdated = questionService.subscribe('question-updated', handleExternalQuestionUpdate); 
+                window.addEventListener('keydown', handleKeyDown);
+                const unsubscribeQuestionUpdated = questionService.subscribe('question-updated', handleExternalQuestionUpdate);
                 questionServiceCleanup.value = [unsubscribeQuestionUpdated];
             });
 

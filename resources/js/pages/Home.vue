@@ -17,7 +17,7 @@
         </template>
         <!-- Filters Section -->
         <template #filters>
-           
+
             <FilterQuestion @filters-changed="handleFiltersChanged" />
         </template>
 

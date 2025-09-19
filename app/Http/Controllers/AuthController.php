@@ -20,11 +20,11 @@ class AuthController extends Controller
      */
     public function redirect(Request $request)
     {
-        $request->session()->put('state', $state = Str::random(40));
+        cache()->put('state', $state = Str::random(40));
 
         // Cache the intended URL if provided
         if ($request->has('intended_url')) {
-            $request->session()->put('intended_url', $request->input('intended_url'));
+            cache()->put('intended_url', $request->input('intended_url'));
         }
 
         $query = http_build_query([
@@ -49,7 +49,7 @@ class AuthController extends Controller
      */
     public function callback(Request $request)
     {
-        $state = $request->session()->pull('state');
+        $state = cache()->pull('state');
 
         throw_unless(
             strlen($state) > 0 && $state === $request->state,
@@ -113,7 +113,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
                 // Get cached intended URL and clean up session
-        $intendedUrl = $request->session()->pull('intended_url');
+        $intendedUrl = cache()->pull('intended_url');
 
         // Validate and sanitize the intended URL
         $baseUrl = $this->validateAndSanitizeUrl($intendedUrl) ?: config('services.oauth.app_url');

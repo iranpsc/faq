@@ -42,7 +42,7 @@
                 مشاهده بیشتر
             </button>
             </TransitionGroup>
-           
+
         </div>
 
         <!-- Empty State -->
