@@ -7,6 +7,7 @@ use App\Models\Answer;
 use App\Models\Comment;
 use App\Models\Question;
 use App\Models\User;
+use App\Services\ActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -111,7 +112,7 @@ class DashboardController extends Controller
     {
         try {
             $limit = $request->get('limit', 15);
-            $period = $request->get('period', 'week'); // week, month, year, all
+            $period = $request->get('period', 'all'); // week, month, year, all
 
             $query = Question::with(['user', 'tags', 'category'])
                 ->withCount(['answers', 'votes', 'comments'])
@@ -225,118 +226,42 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get daily activity feed showing recent activities
+     * Get activity feed showing activities for a specific period
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function dailyActivity(Request $request): JsonResponse
+    public function activity(Request $request): JsonResponse
     {
         try {
-            $limit = $request->get('limit', 20);
-            $date = $request->get('date', now()->format('Y-m-d'));
+            $months = $request->get('months', 3);
+            $offset = $request->get('offset', 0);
 
-            $activities = collect();
+            // Custom limits for activity types per month
+            $limits = [
+                'questions' => $request->get('questions_limit', 10),
+                'answers' => $request->get('answers_limit', 8),
+                'comments' => $request->get('comments_limit', 5)
+            ];
 
-            // Get today's questions
-            $questions = Question::with('user', 'category')
-                ->whereDate('created_at', $date)
-                ->latest()
-                ->take($limit)
-                ->get()
-                ->map(function ($question) {
-                    return [
-                        'id' => 'question_' . $question->id,
-                        'type' => 'question',
-                        'user_name' => $question->user->name,
-                        'user_id' => $question->user->id,
-                        'user_image' => $question->user->image_url,
-                        'title' => $question->title,
-                        'slug' => $question->slug,
-                        'question_id' => $question->id,
-                        'category_name' => $question->category->name ?? null,
-                        'description' => "کاربر '{$question->user->name}' سوال جدیدی با عنوان '{$question->title}' پرسید",
-                        'created_at' => $question->created_at,
-                        'url' => "/questions/{$question->slug}"
-                    ];
-                });
+            $activityService = new ActivityService();
+            $report = $activityService->generateActivityReport($months, $offset, $limits);
 
-            // Get today's answers
-            $answers = Answer::with('user', 'question')
-                ->whereDate('created_at', $date)
-                ->latest()
-                ->take($limit)
-                ->get()
-                ->map(function ($answer) {
-                    return [
-                        'id' => 'answer_' . $answer->id,
-                        'type' => 'answer',
-                        'user_name' => $answer->user->name,
-                        'user_id' => $answer->user->id,
-                        'user_image' => $answer->user->image_url,
-                        'title' => $answer->question->title,
-                        'question_id' => $answer->question->id,
-                        'description' => "کاربر '{$answer->user->name}' به سوال '{$answer->question->title}' پاسخ داد",
-                        'created_at' => $answer->created_at,
-                        'url' => "/questions/{$answer->question->slug}",
-                        'is_correct' => $answer->is_correct
-                    ];
-                });
-
-            // Get today's comments
-            $comments = DB::table('comments')
-                ->join('users', 'comments.user_id', '=', 'users.id')
-                ->whereDate('comments.created_at', $date)
-                ->orderBy('comments.created_at', 'desc')
-                ->limit($limit)
-                ->get()
-                ->map(function ($comment) {
-                    $title = '';
-                    $questionSlug = null;
-
-                    if ($comment->commentable_type === 'App\Models\Question') {
-                        $question = Question::find($comment->commentable_id);
-                        $title = $question ? $question->title : 'سوال حذف شده';
-                        $questionSlug = $question ? $question->slug : null;
-                    } elseif ($comment->commentable_type === 'App\Models\Answer') {
-                        $answer = Answer::with('question')->find($comment->commentable_id);
-                        $title = $answer && $answer->question ? $answer->question->title : 'پاسخ حذف شده';
-                        $questionSlug = $answer && $answer->question ? $answer->question->slug : null;
-                    }
-
-                    return [
-                        'id' => 'comment_' . $comment->id,
-                        'type' => 'comment',
-                        'user_name' => $comment->name,
-                        'user_id' => $comment->user_id,
-                        'user_image' => $comment->image ? asset('storage/' . $comment->image) : null,
-                        'title' => $title,
-                        'question_slug' => $questionSlug,
-                        'description' => "کاربر '{$comment->name}' نظری در '{$title}' ثبت کرد",
-                        'created_at' => $comment->created_at,
-                        'url' => $questionSlug ? "/questions/{$questionSlug}" : null
-                    ];
-                });
-
-            // Merge and sort all activities
-            $allActivities = $activities
-                ->merge($questions)
-                ->merge($answers)
-                ->merge($comments)
-                ->sortByDesc('created_at')
-                ->take($limit)
-                ->values();
+            $activities = $report['activities'];
+            $groupedActivities = $report['grouped_activities'];
 
             return response()->json([
                 'success' => true,
-                'data' => $allActivities,
-                'message' => 'فعالیت روزانه با موفقیت دریافت شد',
-                'date' => $date
+                'data' => $activities,
+                'grouped_data' => $groupedActivities,
+                'period' => $report['period'],
+                'limits' => $report['limits'],
+                'message' => 'فعالیت‌ها با موفقیت دریافت شد'
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'خطا در دریافت فعالیت روزانه',
+                'message' => 'خطا در دریافت فعالیت‌ها',
                 'error' => $e->getMessage()
             ], 500);
         }

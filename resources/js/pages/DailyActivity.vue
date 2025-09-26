@@ -162,7 +162,7 @@ export default {
 
                 error.value = null
 
-                const response = await api.get('/dashboard/daily-activity', {
+                const response = await api.get('/dashboard/activity', {
                     params: {
                         date: selectedDate.value,
                         limit: limit.value
