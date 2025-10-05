@@ -266,6 +266,16 @@ class QuestionController extends Controller
     {
         $user = $request->user();
 
+        // Check if user has already pinned this question
+        $isAlreadyPinned = $user->pinnedQuestions()->where('question_id', $question->id)->exists();
+
+        if ($isAlreadyPinned) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شما قبلا این سوال را پین کرده‌اید',
+            ], 409);
+        }
+
         $user->pinnedQuestions()->attach($question->id, [
             'pinned_at' => now()
         ]);
