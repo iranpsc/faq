@@ -25,7 +25,7 @@ If you've found a bug and want to fix it, follow these steps:
 1. **Fork the repository**: Fork the project to your GitHub account.
 2. **Clone your fork**: Clone the repository to your local machine.
    ```bash
-   git clone https://github.com/your-username/faq.git
+   git clone https://github.com/faq.git
    ```
 3. **Create a new branch**: Create a branch for your bug fix.
    ```bash
