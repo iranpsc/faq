@@ -6,7 +6,6 @@ use App\Models\Answer;
 use App\Models\Comment;
 use App\Models\Question;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class ActivityService
@@ -31,57 +30,49 @@ class ActivityService
         $endDate = Carbon::now()->subMonths($offset);
         $startDate = $endDate->copy()->subMonths($months);
 
-        // Create cache key for this specific request
-        $cacheKey = "activity_report_{$months}_{$offset}_" . md5(serialize($limits));
+        $allActivities = collect();
+        $groupedActivities = [];
 
-        // Cache for 5 minutes for recent data, 30 minutes for older data
-        $cacheTime = $offset === 0 ? 5 : 30;
+        // Generate activities for each month in the period
+        $currentDate = $startDate->copy();
+        while ($currentDate->lt($endDate)) {
+            $monthStart = $currentDate->copy()->startOfMonth();
+            $monthEnd = $currentDate->copy()->endOfMonth();
 
-        return Cache::remember($cacheKey, $cacheTime, function () use ($startDate, $endDate, $months, $offset, $limits) {
-            $allActivities = collect();
-            $groupedActivities = [];
-
-            // Generate activities for each month in the period
-            $currentDate = $startDate->copy();
-            while ($currentDate->lt($endDate)) {
-                $monthStart = $currentDate->copy()->startOfMonth();
-                $monthEnd = $currentDate->copy()->endOfMonth();
-
-                // Don't go beyond the end date
-                if ($monthEnd->gt($endDate)) {
-                    $monthEnd = $endDate->copy();
-                }
-
-                $monthActivities = $this->getSelectiveActivitiesForPeriod(
-                    $monthStart,
-                    $monthEnd,
-                    $limits
-                );
-
-                if ($monthActivities->isNotEmpty()) {
-                    $monthName = $this->getPersianMonth($monthStart);
-                    $allActivities = $allActivities->merge($monthActivities);
-                    $groupedActivities[$monthName] = $monthActivities->toArray();
-                }
-
-                $currentDate->addMonth();
+            // Don't go beyond the end date
+            if ($monthEnd->gt($endDate)) {
+                $monthEnd = $endDate->copy();
             }
 
-            // Sort all activities by creation date
-            $allActivities = $allActivities->sortByDesc('created_at')->values();
+            $monthActivities = $this->getSelectiveActivitiesForPeriod(
+                $monthStart,
+                $monthEnd,
+                $limits
+            );
 
-            return [
-                'activities' => $allActivities,
-                'grouped_activities' => $groupedActivities,
-                'period' => [
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'months' => $months,
-                    'offset' => $offset
-                ],
-                'limits' => $limits
-            ];
-        });
+            if ($monthActivities->isNotEmpty()) {
+                $monthName = $this->getPersianMonth($monthStart);
+                $allActivities = $allActivities->merge($monthActivities);
+                $groupedActivities[$monthName] = $monthActivities->toArray();
+            }
+
+            $currentDate->addMonth();
+        }
+
+        // Sort all activities by creation date
+        $allActivities = $allActivities->sortByDesc('created_at')->values();
+
+        return [
+            'activities' => $allActivities,
+            'grouped_activities' => $groupedActivities,
+            'period' => [
+                'start_date' => jdate($startDate)->format('Y/m/d'),
+                'end_date' => jdate($endDate)->format('Y/m/d'),
+                'months' => $months,
+                'offset' => $offset
+            ],
+            'limits' => $limits
+        ];
     }
 
     /**
@@ -98,14 +89,22 @@ class ActivityService
 
         // Get top questions for the period (optimized query)
         if ($limits['questions'] > 0) {
-            $questions = Question::select(['id', 'title', 'slug', 'user_id', 'category_id', 'created_at'])
+            $questions = Question::select(['id', 'title', 'slug', 'user_id', 'category_id', 'created_at', 'published_at'])
                 ->with(['user:id,name,image', 'category:id,name'])
-                ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('published', true)
-                ->orderBy('created_at', 'desc')
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('published_at', [$startDate, $endDate])
+                          ->orWhere(function ($subQuery) use ($startDate, $endDate) {
+                              // Fallback to created_at if published_at is null
+                              $subQuery->whereNull('published_at')
+                                       ->whereBetween('created_at', [$startDate, $endDate]);
+                          });
+                })
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
                 ->limit($limits['questions'])
                 ->get()
                 ->map(function ($question) {
+                    $activityDate = $question->published_at ?? $question->created_at;
                     return [
                         'id' => 'question_' . $question->id,
                         'type' => 'question',
@@ -117,9 +116,9 @@ class ActivityService
                         'question_id' => $question->id,
                         'category_name' => $question->category->name ?? null,
                         'description' => "کاربر '{$question->user->name}' سوال جدیدی با عنوان '{$question->title}' پرسید",
-                        'created_at' => $question->created_at,
+                        'created_at' => $activityDate,
                         'url' => "/questions/{$question->slug}",
-                        'month' => $this->getPersianMonth($question->created_at)
+                        'month' => $this->getPersianMonth($activityDate)
                     ];
                 });
 
@@ -128,14 +127,22 @@ class ActivityService
 
         // Get top answers for the period (optimized query)
         if ($limits['answers'] > 0) {
-            $answers = Answer::select(['id', 'question_id', 'user_id', 'is_correct', 'created_at'])
+            $answers = Answer::select(['id', 'question_id', 'user_id', 'is_correct', 'created_at', 'published_at'])
                 ->with(['user:id,name,image', 'question:id,title,slug'])
-                ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('published', true)
-                ->orderBy('created_at', 'desc')
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('published_at', [$startDate, $endDate])
+                          ->orWhere(function ($subQuery) use ($startDate, $endDate) {
+                              // Fallback to created_at if published_at is null
+                              $subQuery->whereNull('published_at')
+                                       ->whereBetween('created_at', [$startDate, $endDate]);
+                          });
+                })
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
                 ->limit($limits['answers'])
                 ->get()
                 ->map(function ($answer) {
+                    $activityDate = $answer->published_at ?? $answer->created_at;
                     return [
                         'id' => 'answer_' . $answer->id,
                         'type' => 'answer',
@@ -145,10 +152,10 @@ class ActivityService
                         'title' => $answer->question->title,
                         'question_id' => $answer->question->id,
                         'description' => "کاربر '{$answer->user->name}' به سوال '{$answer->question->title}' پاسخ داد",
-                        'created_at' => $answer->created_at,
+                        'created_at' => $activityDate,
                         'url' => "/questions/{$answer->question->slug}",
                         'is_correct' => $answer->is_correct,
-                        'month' => $this->getPersianMonth($answer->created_at)
+                        'month' => $this->getPersianMonth($activityDate)
                     ];
                 });
 
@@ -163,19 +170,28 @@ class ActivityService
                     'comments.commentable_type',
                     'comments.commentable_id',
                     'comments.created_at',
+                    'comments.published_at',
                     'users.name',
                     'users.id as user_id',
                     'users.image'
                 ])
                 ->join('users', 'comments.user_id', '=', 'users.id')
-                ->whereBetween('comments.created_at', [$startDate, $endDate])
                 ->where('comments.published', true)
-                ->orderBy('comments.created_at', 'desc')
-                ->limit($limits['comments'])
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('comments.published_at', [$startDate, $endDate])
+                          ->orWhere(function ($subQuery) use ($startDate, $endDate) {
+                              // Fallback to created_at if published_at is null
+                              $subQuery->whereNull('comments.published_at')
+                                       ->whereBetween('comments.created_at', [$startDate, $endDate]);
+                          });
+                })
+                ->orderByRaw('COALESCE(comments.published_at, comments.created_at) DESC')
+                ->limit($limits['comments'] * 2) // Get more to account for filtering
                 ->get()
                 ->map(function ($comment) {
                     $title = '';
                     $questionSlug = null;
+                    $activityDate = $comment->published_at ?? $comment->created_at;
 
                     if ($comment->commentable_type === 'App\Models\Question') {
                         $question = Question::select(['id', 'title', 'slug'])->find($comment->commentable_id);
@@ -183,8 +199,13 @@ class ActivityService
                         $questionSlug = $question ? $question->slug : null;
                     } elseif ($comment->commentable_type === 'App\Models\Answer') {
                         $answer = Answer::select(['id'])->with('question:id,title,slug')->find($comment->commentable_id);
-                        $title = $answer && $answer->question ? $answer->question->title : 'پاسخ حذف شده';
-                        $questionSlug = $answer && $answer->question ? $answer->question->slug : null;
+                        if ($answer && $answer->question) {
+                            $title = $answer->question->title;
+                            $questionSlug = $answer->question->slug;
+                        } else {
+                            $title = 'پاسخ حذف شده';
+                            $questionSlug = null;
+                        }
                     }
 
                     return [
@@ -196,11 +217,16 @@ class ActivityService
                         'title' => $title,
                         'question_slug' => $questionSlug,
                         'description' => "کاربر '{$comment->name}' نظری در '{$title}' ثبت کرد",
-                        'created_at' => $comment->created_at,
+                        'created_at' => $activityDate,
                         'url' => $questionSlug ? "/questions/{$questionSlug}" : null,
-                        'month' => $this->getPersianMonth($comment->created_at)
+                        'month' => $this->getPersianMonth($activityDate)
                     ];
-                });
+                })
+                ->filter(function ($comment) {
+                    // Only include comments that have valid URLs (not deleted content)
+                    return $comment['url'] !== null;
+                })
+                ->take($limits['comments']); // Limit to the desired number after filtering
 
             $activities = $activities->merge($comments);
         }
@@ -265,6 +291,52 @@ class ActivityService
         }
 
         return $persianMonths[$persianMonthNum] . ' ' . $persianYear;
+    }
+
+    /**
+     * Check if there are more activities available beyond the given offset
+     *
+     * @param int $offset
+     * @return bool
+     */
+    public function hasMoreActivities(int $offset): bool
+    {
+        // Check if there are any activities older than the current offset
+        $checkDate = Carbon::now()->subMonths($offset);
+
+        // Check for any activities (questions, answers, or comments) before this date
+        // Use published_at if available, fallback to created_at
+        $hasQuestions = Question::where('published', true)
+            ->where(function ($query) use ($checkDate) {
+                $query->where('published_at', '<', $checkDate)
+                      ->orWhere(function ($subQuery) use ($checkDate) {
+                          $subQuery->whereNull('published_at')
+                                   ->where('created_at', '<', $checkDate);
+                      });
+            })
+            ->exists();
+
+        $hasAnswers = Answer::where('published', true)
+            ->where(function ($query) use ($checkDate) {
+                $query->where('published_at', '<', $checkDate)
+                      ->orWhere(function ($subQuery) use ($checkDate) {
+                          $subQuery->whereNull('published_at')
+                                   ->where('created_at', '<', $checkDate);
+                      });
+            })
+            ->exists();
+
+        $hasComments = Comment::where('published', true)
+            ->where(function ($query) use ($checkDate) {
+                $query->where('published_at', '<', $checkDate)
+                      ->orWhere(function ($subQuery) use ($checkDate) {
+                          $subQuery->whereNull('published_at')
+                                   ->where('created_at', '<', $checkDate);
+                      });
+            })
+            ->exists();
+
+        return $hasQuestions || $hasAnswers || $hasComments;
     }
 
     /**

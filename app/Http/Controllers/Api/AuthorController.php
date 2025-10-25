@@ -98,9 +98,8 @@ class AuthorController extends Controller
             });
 
             return response()->json([
-                'success' => true,
                 'data' => $formattedUsers,
-                'pagination' => [
+                'meta' => [
                     'current_page' => $users->currentPage(),
                     'last_page' => $users->lastPage(),
                     'per_page' => $users->perPage(),
@@ -108,7 +107,12 @@ class AuthorController extends Controller
                     'from' => $users->firstItem(),
                     'to' => $users->lastItem(),
                 ],
-                'message' => 'لیست نویسندگان با موفقیت دریافت شد'
+                'links' => [
+                    'first' => $users->url(1),
+                    'last' => $users->url($users->lastPage()),
+                    'prev' => $users->previousPageUrl(),
+                    'next' => $users->nextPageUrl(),
+                ]
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Answer;
-use App\Models\Comment;
 use App\Models\Question;
 use App\Models\User;
 use App\Services\ActivityService;
@@ -227,6 +226,15 @@ class DashboardController extends Controller
 
     /**
      * Get activity feed showing activities for a specific period
+     * Loads 3 months by default, with load more functionality
+     *
+     * Query Parameters:
+     * - load_more (boolean): Set to true to load 3 more months from current offset
+     * - offset (int): Number of months to offset from current date (auto-calculated for load_more)
+     * - months (int): Number of months to load (default: 3, ignored when load_more=true)
+     * - questions_limit (int): Max questions per month (default: 10)
+     * - answers_limit (int): Max answers per month (default: 8)
+     * - comments_limit (int): Max comments per month (default: 5)
      *
      * @param Request $request
      * @return JsonResponse
@@ -234,8 +242,16 @@ class DashboardController extends Controller
     public function activity(Request $request): JsonResponse
     {
         try {
+            // Default to 3 months, but allow custom months for load more
             $months = $request->get('months', 3);
             $offset = $request->get('offset', 0);
+            $loadMore = $request->get('load_more', false);
+
+            // If load_more is true, load 3 more months from the current offset
+            if ($loadMore) {
+                $months = 3; // Always load 3 months at a time for load more
+                $offset = $offset + 3; // Move offset by 3 months
+            }
 
             // Custom limits for activity types per month
             $limits = [
@@ -250,12 +266,22 @@ class DashboardController extends Controller
             $activities = $report['activities'];
             $groupedActivities = $report['grouped_activities'];
 
+            // Calculate next offset for load more functionality
+            $nextOffset = $offset + $months;
+            $hasMore = $activityService->hasMoreActivities($nextOffset);
+
             return response()->json([
                 'success' => true,
                 'data' => $activities,
                 'grouped_data' => $groupedActivities,
                 'period' => $report['period'],
                 'limits' => $report['limits'],
+                'pagination' => [
+                    'current_offset' => $offset,
+                    'next_offset' => $nextOffset,
+                    'has_more' => $hasMore,
+                    'months_loaded' => $months
+                ],
                 'message' => 'فعالیت‌ها با موفقیت دریافت شد'
             ]);
         } catch (\Exception $e) {
