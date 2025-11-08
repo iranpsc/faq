@@ -126,8 +126,8 @@ class CommentController extends Controller
         // Add 2 score scores for commenting
         $comment->user->increment('score', 2);
 
-        if (!is_null($comment->parent->user)) {
-            $comment->parent->user->notify(new QuestionInteractionNotification($user, $comment->parent, 'comment'));
+        if (!is_null($comment->commentable->user)) {
+            $comment->commentable->user->notify(new QuestionInteractionNotification($user, $comment->commentable, 'comment'));
         }
 
         return response()->json([
