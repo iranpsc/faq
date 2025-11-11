@@ -44,17 +44,17 @@ class ActivityService
 
         Log::info('Date Range: ' . $periodStart->format('Y-m-d') . ' to ' . $periodEnd->format('Y-m-d'));
 
-        // Generate activities for each month in the period
-        $currentMonth = $periodStart->copy();
-        for ($i = 0; $i < $months; $i++) {
-            if ($currentMonth->gt($periodEnd)) {
-                break;
-            }
-
+        // Generate activities for each month in the period (newest to oldest)
+        $currentMonth = $periodEnd->copy()->startOfMonth();
+        $iterations = 0;
+        while ($currentMonth->gte($periodStart) && $iterations < $months) {
             $monthStart = $currentMonth->copy()->startOfMonth();
             $monthEnd = $currentMonth->copy()->endOfMonth();
 
-            // Don't go beyond the end date
+            if ($monthStart->lt($periodStart)) {
+                $monthStart = $periodStart->copy();
+            }
+
             if ($monthEnd->gt($periodEnd)) {
                 $monthEnd = $periodEnd->copy();
             }
@@ -65,13 +65,15 @@ class ActivityService
                 $limits
             );
 
+            $monthName = $this->getPersianMonth($monthStart);
+            $groupedActivities[$monthName] = $monthActivities->values()->all();
+
             if ($monthActivities->isNotEmpty()) {
-                $monthName = $this->getPersianMonth($monthStart);
                 $allActivities = $allActivities->merge($monthActivities);
-                $groupedActivities[$monthName] = $monthActivities->values()->all();
             }
 
-            $currentMonth = $currentMonth->addMonth()->startOfMonth();
+            $currentMonth = $currentMonth->subMonth()->startOfMonth();
+            $iterations++;
         }
 
         // Sort all activities by creation date
