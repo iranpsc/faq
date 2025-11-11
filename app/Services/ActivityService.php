@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Answer;
 use App\Models\Comment;
 use App\Models\Question;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -28,23 +27,28 @@ class ActivityService
         ];
 
         $limits = array_merge($defaultLimits, $limits);
-        $endDate = Carbon::now()->subMonths($offset);
-        $startDate = $endDate->copy()->subMonths($months);
+        $months = max(1, $months);
+
+        $endDate = Carbon::now()->subMonths($offset)->endOfDay();
+        $startDate = $endDate->copy()->subMonths($months - 1)->startOfMonth();
+
+        $periodStart = $startDate->copy();
+        $periodEnd = $endDate->copy();
 
         $allActivities = collect();
         $groupedActivities = [];
 
-        Log::info('Date Range: ' . $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'));
+        Log::info('Date Range: ' . $periodStart->format('Y-m-d') . ' to ' . $periodEnd->format('Y-m-d'));
 
         // Generate activities for each month in the period
-        $currentDate = $startDate->copy();
-        while ($currentDate->lt($endDate)) {
+        $currentDate = $periodStart->copy();
+        while ($currentDate->lte($periodEnd)) {
             $monthStart = $currentDate->copy()->startOfMonth();
             $monthEnd = $currentDate->copy()->endOfMonth();
 
             // Don't go beyond the end date
-            if ($monthEnd->gt($endDate)) {
-                $monthEnd = $endDate->copy();
+            if ($monthEnd->gt($periodEnd)) {
+                $monthEnd = $periodEnd->copy();
             }
 
             $monthActivities = $this->getSelectiveActivitiesForPeriod(
@@ -59,7 +63,7 @@ class ActivityService
                 $groupedActivities[$monthName] = $monthActivities->toArray();
             }
 
-            $currentDate->addMonth();
+            $currentDate = $currentDate->copy()->addMonth()->startOfMonth();
         }
 
         // Sort all activities by creation date
@@ -69,8 +73,8 @@ class ActivityService
             'activities' => $allActivities,
             'grouped_activities' => $groupedActivities,
             'period' => [
-                'start_date' => jdate($startDate)->format('Y/m/d'),
-                'end_date' => jdate($endDate)->format('Y/m/d'),
+                'start_date' => jdate($periodStart)->format('Y/m/d'),
+                'end_date' => jdate($periodEnd)->format('Y/m/d'),
                 'months' => $months,
                 'offset' => $offset
             ],
@@ -238,7 +242,7 @@ class ActivityService
     public function hasMoreActivities(int $offset): bool
     {
         // Check if there are any activities older than the current offset
-        $checkDate = Carbon::now()->subMonths($offset);
+        $checkDate = Carbon::now()->subMonths($offset)->startOfMonth();
 
         // Check for any activities (questions, answers, or comments) before this date
         // Use published_at if available, fallback to created_at

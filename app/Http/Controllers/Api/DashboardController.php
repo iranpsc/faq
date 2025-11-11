@@ -243,14 +243,16 @@ class DashboardController extends Controller
     {
         try {
             // Default to 3 months, but allow custom months for load more
-            $months = $request->get('months', 3);
-            $offset = $request->get('offset', 0);
-            $loadMore = $request->get('load_more', false);
+            $months = (int) $request->get('months', 3);
+            $offset = (int) $request->get('offset', 0);
+            $loadMore = filter_var($request->get('load_more', false), FILTER_VALIDATE_BOOLEAN);
 
-            // If load_more is true, load 3 more months from the current offset
             if ($loadMore) {
-                $months = 3; // Always load 3 months at a time for load more
-                $offset = $offset + 3; // Move offset by 3 months
+                $months = 3;
+                $offset = max(0, $offset);
+            } else {
+                $offset = 0;
+                $months = max(1, $months);
             }
 
             // Custom limits for activity types per month
