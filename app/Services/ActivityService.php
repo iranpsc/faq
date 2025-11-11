@@ -68,7 +68,7 @@ class ActivityService
             if ($monthActivities->isNotEmpty()) {
                 $monthName = $this->getPersianMonth($monthStart);
                 $allActivities = $allActivities->merge($monthActivities);
-                $groupedActivities[$monthName] = $monthActivities->toArray();
+                $groupedActivities[$monthName] = $monthActivities->values()->all();
             }
 
             $currentMonth = $currentMonth->addMonth()->startOfMonth();
@@ -225,7 +225,7 @@ class ActivityService
             $activities = $activities->merge($comments);
         }
 
-        return $activities->sortByDesc('created_at');
+        return $activities->sortByDesc('created_at')->values();
     }
 
     /**
