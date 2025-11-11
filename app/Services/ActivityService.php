@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\Question;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ActivityService
 {
@@ -32,6 +33,8 @@ class ActivityService
 
         $allActivities = collect();
         $groupedActivities = [];
+
+        Log::info('Date Range: ' . $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'));
 
         // Generate activities for each month in the period
         $currentDate = $startDate->copy();
@@ -243,54 +246,8 @@ class ActivityService
     private function getPersianMonth($date): string
     {
         $carbon = Carbon::parse($date);
-        $persianMonths = [
-            1 => 'فروردین',
-            2 => 'اردیبهشت',
-            3 => 'خرداد',
-            4 => 'تیر',
-            5 => 'مرداد',
-            6 => 'شهریور',
-            7 => 'مهر',
-            8 => 'آبان',
-            9 => 'آذر',
-            10 => 'دی',
-            11 => 'بهمن',
-            12 => 'اسفند'
-        ];
 
-        // Get Gregorian month and year
-        $gregorianMonth = (int) $carbon->format('n');
-        $gregorianYear = (int) $carbon->format('Y');
-
-        // Map Gregorian months to Persian months (approximate mapping)
-        $monthMapping = [
-            1 => 10,  // January -> Dey
-            2 => 11,  // February -> Bahman
-            3 => 12,  // March -> Esfand
-            4 => 1,   // April -> Farvardin
-            5 => 2,   // May -> Ordibehesht
-            6 => 3,   // June -> Khordad
-            7 => 4,   // July -> Tir
-            8 => 5,   // August -> Mordad
-            9 => 6,   // September -> Shahrivar
-            10 => 7,  // October -> Mehr
-            11 => 8,  // November -> Aban
-            12 => 9   // December -> Azar
-        ];
-
-        $persianMonthNum = $monthMapping[$gregorianMonth];
-
-        // Convert Gregorian year to Persian year
-        // Persian year is approximately 621 years behind Gregorian year
-        // But we need to account for the fact that Persian new year starts in March
-        $persianYear = $gregorianYear - 621;
-
-        // Adjust for Persian new year (starts around March 20-21)
-        if ($gregorianMonth < 3 || ($gregorianMonth == 3 && $carbon->format('j') < 21)) {
-            $persianYear = $persianYear - 1;
-        }
-
-        return $persianMonths[$persianMonthNum] . ' ' . $persianYear;
+        return jdate($carbon)->format('F Y');
     }
 
     /**
