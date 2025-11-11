@@ -135,7 +135,8 @@ class Answer extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('published', true);
+        return $query->where('answers.published', true)
+            ->whereNotNull('answers.published_at');
     }
 
     /**

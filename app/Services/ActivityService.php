@@ -94,20 +94,13 @@ class ActivityService
         if ($limits['questions'] > 0) {
             $questions = Question::select(['id', 'title', 'slug', 'user_id', 'category_id', 'created_at', 'published_at'])
                 ->with(['user:id,name,image', 'category:id,name'])
-                ->where('published', true)
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('published_at', [$startDate, $endDate])
-                          ->orWhere(function ($subQuery) use ($startDate, $endDate) {
-                              // Fallback to created_at if published_at is null
-                              $subQuery->whereNull('published_at')
-                                       ->whereBetween('created_at', [$startDate, $endDate]);
-                          });
-                })
-                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->published()
+                ->whereBetween('published_at', [$startDate, $endDate])
+                ->orderByDesc('published_at')
                 ->limit($limits['questions'])
                 ->get()
                 ->map(function ($question) {
-                    $activityDate = $question->published_at ?? $question->created_at;
+                    $activityDate = $question->published_at;
                     return [
                         'id' => 'question_' . $question->id,
                         'type' => 'question',
@@ -132,20 +125,13 @@ class ActivityService
         if ($limits['answers'] > 0) {
             $answers = Answer::select(['id', 'question_id', 'user_id', 'is_correct', 'created_at', 'published_at'])
                 ->with(['user:id,name,image', 'question:id,title,slug'])
-                ->where('published', true)
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('published_at', [$startDate, $endDate])
-                          ->orWhere(function ($subQuery) use ($startDate, $endDate) {
-                              // Fallback to created_at if published_at is null
-                              $subQuery->whereNull('published_at')
-                                       ->whereBetween('created_at', [$startDate, $endDate]);
-                          });
-                })
-                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->published()
+                ->whereBetween('published_at', [$startDate, $endDate])
+                ->orderByDesc('published_at')
                 ->limit($limits['answers'])
                 ->get()
                 ->map(function ($answer) {
-                    $activityDate = $answer->published_at ?? $answer->created_at;
+                    $activityDate = $answer->published_at;
                     return [
                         'id' => 'answer_' . $answer->id,
                         'type' => 'answer',
@@ -167,7 +153,7 @@ class ActivityService
 
         // Get top comments for the period (optimized query)
         if ($limits['comments'] > 0) {
-            $comments = DB::table('comments')
+            $comments = Comment::query()
                 ->select([
                     'comments.id',
                     'comments.commentable_type',
@@ -179,22 +165,15 @@ class ActivityService
                     'users.image'
                 ])
                 ->join('users', 'comments.user_id', '=', 'users.id')
-                ->where('comments.published', true)
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('comments.published_at', [$startDate, $endDate])
-                          ->orWhere(function ($subQuery) use ($startDate, $endDate) {
-                              // Fallback to created_at if published_at is null
-                              $subQuery->whereNull('comments.published_at')
-                                       ->whereBetween('comments.created_at', [$startDate, $endDate]);
-                          });
-                })
-                ->orderByRaw('COALESCE(comments.published_at, comments.created_at) DESC')
+                ->published()
+                ->whereBetween('comments.published_at', [$startDate, $endDate])
+                ->orderByDesc('comments.published_at')
                 ->limit($limits['comments'] * 2) // Get more to account for filtering
                 ->get()
                 ->map(function ($comment) {
                     $title = '';
                     $questionSlug = null;
-                    $activityDate = $comment->published_at ?? $comment->created_at;
+                    $activityDate = $comment->published_at;
 
                     if ($comment->commentable_type === 'App\Models\Question') {
                         $question = Question::select(['id', 'title', 'slug'])->find($comment->commentable_id);
@@ -263,34 +242,16 @@ class ActivityService
 
         // Check for any activities (questions, answers, or comments) before this date
         // Use published_at if available, fallback to created_at
-        $hasQuestions = Question::where('published', true)
-            ->where(function ($query) use ($checkDate) {
-                $query->where('published_at', '<', $checkDate)
-                      ->orWhere(function ($subQuery) use ($checkDate) {
-                          $subQuery->whereNull('published_at')
-                                   ->where('created_at', '<', $checkDate);
-                      });
-            })
+        $hasQuestions = Question::published()
+            ->where('published_at', '<', $checkDate)
             ->exists();
 
-        $hasAnswers = Answer::where('published', true)
-            ->where(function ($query) use ($checkDate) {
-                $query->where('published_at', '<', $checkDate)
-                      ->orWhere(function ($subQuery) use ($checkDate) {
-                          $subQuery->whereNull('published_at')
-                                   ->where('created_at', '<', $checkDate);
-                      });
-            })
+        $hasAnswers = Answer::published()
+            ->where('published_at', '<', $checkDate)
             ->exists();
 
-        $hasComments = Comment::where('published', true)
-            ->where(function ($query) use ($checkDate) {
-                $query->where('published_at', '<', $checkDate)
-                      ->orWhere(function ($subQuery) use ($checkDate) {
-                          $subQuery->whereNull('published_at')
-                                   ->where('created_at', '<', $checkDate);
-                      });
-            })
+        $hasComments = Comment::published()
+            ->where('published_at', '<', $checkDate)
             ->exists();
 
         return $hasQuestions || $hasAnswers || $hasComments;

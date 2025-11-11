@@ -102,7 +102,8 @@ class Comment extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('published', true);
+        return $query->where('comments.published', true)
+            ->whereNotNull('comments.published_at');
     }
 
     /**

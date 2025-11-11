@@ -200,7 +200,8 @@ class Question extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('questions.published', true);
+        return $query->where('questions.published', true)
+            ->whereNotNull('questions.published_at');
     }
 
     /**
