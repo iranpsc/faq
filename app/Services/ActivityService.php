@@ -28,9 +28,13 @@ class ActivityService
 
         $limits = array_merge($defaultLimits, $limits);
         $months = max(1, $months);
+        $offset = max(0, $offset);
 
-        $endDate = Carbon::now()->subMonths($offset)->endOfDay();
-        $startDate = $endDate->copy()->subMonths($months - 1)->startOfMonth();
+        $now = Carbon::now();
+        $endDate = $offset === 0
+            ? $now->copy()
+            : $now->copy()->subMonths($offset)->endOfMonth();
+        $startDate = $now->copy()->subMonths($offset + $months - 1)->startOfMonth();
 
         $periodStart = $startDate->copy();
         $periodEnd = $endDate->copy();
@@ -41,10 +45,14 @@ class ActivityService
         Log::info('Date Range: ' . $periodStart->format('Y-m-d') . ' to ' . $periodEnd->format('Y-m-d'));
 
         // Generate activities for each month in the period
-        $currentDate = $periodStart->copy();
-        while ($currentDate->lte($periodEnd)) {
-            $monthStart = $currentDate->copy()->startOfMonth();
-            $monthEnd = $currentDate->copy()->endOfMonth();
+        $currentMonth = $periodStart->copy();
+        for ($i = 0; $i < $months; $i++) {
+            if ($currentMonth->gt($periodEnd)) {
+                break;
+            }
+
+            $monthStart = $currentMonth->copy()->startOfMonth();
+            $monthEnd = $currentMonth->copy()->endOfMonth();
 
             // Don't go beyond the end date
             if ($monthEnd->gt($periodEnd)) {
@@ -63,7 +71,7 @@ class ActivityService
                 $groupedActivities[$monthName] = $monthActivities->toArray();
             }
 
-            $currentDate = $currentDate->copy()->addMonth()->startOfMonth();
+            $currentMonth = $currentMonth->addMonth()->startOfMonth();
         }
 
         // Sort all activities by creation date
