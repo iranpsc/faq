@@ -65,10 +65,9 @@ class ActivityService
                 $limits
             );
 
-            $monthName = $this->getPersianMonth($monthStart);
-            $groupedActivities[$monthName] = $monthActivities->values()->all();
-
             if ($monthActivities->isNotEmpty()) {
+                $monthName = $this->getPersianMonth($monthStart);
+                $groupedActivities[$monthName] = $monthActivities->values()->all();
                 $allActivities = $allActivities->merge($monthActivities);
             }
 
